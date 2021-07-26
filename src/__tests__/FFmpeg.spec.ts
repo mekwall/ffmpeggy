@@ -25,7 +25,7 @@ describe("FFmpeg", () => {
     expect(ffmpeg).toBeInstanceOf(FFmpeg);
   });
 
-  it.only("should copy sample.mp4 to temp.mkv", (done) => {
+  it("should copy sample.mp4 to temp.mkv", (done) => {
     const ffmpeg = new FFmpeg();
     ffmpeg
       .setInput(sampleMp4)
