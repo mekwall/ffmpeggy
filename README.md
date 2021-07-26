@@ -2,7 +2,7 @@
 
 [![license](https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square)](https://github.com/mekwall/ffmpeggy/blob/main/LICENSE) [![npm](https://img.shields.io/npm/v/ffmpeggy.svg?style=flat-square&logo=npm)](https://www.npmjs.com/package/ffmpeggy) [![dependencies](https://img.shields.io/librariesio/github/mekwall/ffmpeggy.svg?style=flat-square)](https://github.com/mekwall/ffmpeggy) ![types](https://img.shields.io/npm/types/ffmpeggy.svg?style=flat-square&logo=typescript) [![coverage](https://img.shields.io/codecov/c/github/mekwall/ffmpeggy?style=flat-square)](https://codecov.io/github/mekwall/ffmpeggy?branch=main) [![quality](https://img.shields.io/lgtm/grade/javascript/github/mekwall/ffmpeggy?style=flat-square)](https://lgtm.com/projects/g/mekwall/ffmpeggy/?mode=list)
 
-A minimal yet powerful wrapper for FFmpeg and FFprobe. Has built-in support for Node.js streams and events that can provide you a detailed progress report.
+A minimal yet powerful wrapper for [FFmpeg][ffmpeg] and [FFprobe][ffprobe]. Has built-in support for Node.js streams and events that can provide you a detailed progress report.
 
 This is a hybrid package built in TypeScript that provides both CommonJS and ES modules with only a couple of dependencies.
 
@@ -71,11 +71,11 @@ To make use of all the bells and whistles of ffmpeggy you can hook into the even
 import { FFmpeg } from "ffmpeggy";
 
 new FFmpeg({
-  autorun: true,
-  input: "file.mp4",
-  output: "file.mkv",
-  outputOptions: ["-c:v h264"],
-})
+    autorun: true,
+    input: "file.mp4",
+    output: "file.mkv",
+    outputOptions: ["-c:v h264"],
+  })
   .on("start", (args) => {
     console.log(`ffmpeg was started with these args:`, args);
   })
@@ -205,3 +205,6 @@ They strive to solve different problems. Whereas ffmpeggy aims to be lean and si
 ## License
 
 MIT
+
+[ffmpeg]: http://ffmpeg.org/
+[ffprobe]: https://ffmpeg.org/ffprobe.html
