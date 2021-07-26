@@ -1,0 +1,74 @@
+{
+  "name": "ffmpeggy",
+  "version": "1.0.0",
+  "description": "A minimal yet powerful wrapper around ffmpeg and ffprobe",
+  "keywords": [
+    "ffmpeg",
+    "ffprobe",
+    "wrapper",
+    "stream",
+    "transcode",
+    "encode",
+    "decode"
+  ],
+  "author": "Marcus Ekwall <marcus.ekwall@gmail.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mekwall/ffmpeggy.git"
+  },
+  "main": "cjs",
+  "types": "cjs",
+  "exports": {
+    ".": {
+      "require": "./cjs/index.js",
+      "import": "./es/index.mjs"
+    }
+  },
+  "scripts": {
+    "rebuild": "yarn build --clean",
+    "build": "tsukuru -c tsconfig.build.json",
+    "test": "cross-env NODE_OPTIONS=--experimental-vm-modules jest --runInBand",
+    "test:debug": "cross-env DEBUG=ffmpeggy NODE_OPTIONS=--experimental-vm-modules jest --runInBand",
+    "semantic-release": "semantic-release"
+  },
+  "engines": {
+    "node": ">= 10"
+  },
+  "dependencies": {
+    "debug": "^4.3.2",
+    "execa": "^5.1.1"
+  },
+  "optionalDependencies": {
+    "@ffmpeg-installer/ffmpeg": "^1.1.0",
+    "@ffprobe-installer/ffprobe": "^1.1.0"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.14.8",
+    "@babel/preset-env": "^7.14.8",
+    "@babel/preset-typescript": "^7.14.5",
+    "@types/debug": "^4.1.7",
+    "@types/jest": "^26.0.24",
+    "@types/node": "^16.4.3",
+    "@typescript-eslint/eslint-plugin": "^4.28.4",
+    "@typescript-eslint/parser": "^4.28.4",
+    "cross-env": "^7.0.3",
+    "eslint": "^7.31.0",
+    "eslint-config-prettier": "^8.3.0",
+    "eslint-plugin-import": "^2.23.4",
+    "eslint-plugin-unused-imports": "^1.1.2",
+    "jest": "^27.0.6",
+    "tsukuru": "^0.7.2",
+    "typed-emitter": "^1.3.1",
+    "typescript": "^4.3.5"
+  },
+  "release": {
+    "branches": [
+      "main"
+    ],
+    "plugins": [
+      "@semantic-release/npm",
+      "@semantic-release/github"
+    ]
+  }
+}
