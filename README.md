@@ -200,7 +200,7 @@ Because I wasn't happy with the ones that already exists. Most of them are badly
 
 ## How does ffmpeggy compare from fluent-ffmpeg?
 
-They strive to solve different problems. Whereas ffmpeggy aims to be minimal and small, fluent-ffmpeg aims to provide a human readable API. Personally I don't really have the need of that, but I might revisit it at a later stage and extend it with a human readable api, but that will most likely end up in a separate package to keep this one lean.
+They strive to solve different problems. Whereas ffmpeggy aims to be lean and simple, fluent-ffmpeg aims to provide an exhaustive and human readable API. I personally don't that kind of an API, but I might revisit it at a later stage, but an extended API will most likely end up in a separate package to keep this one as lean as possible.
 
 ## License
 
