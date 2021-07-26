@@ -23,6 +23,7 @@ tsconfig.*.tsbuildinfo
 /es
 /cjs
 *.tgz
+.env
 
 # misc
 .DS_Store
