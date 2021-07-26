@@ -33,7 +33,7 @@
     "semantic-release": "semantic-release"
   },
   "engines": {
-    "node": ">= 10"
+    "node": ">= 12"
   },
   "dependencies": {
     "debug": "^4.3.2",
