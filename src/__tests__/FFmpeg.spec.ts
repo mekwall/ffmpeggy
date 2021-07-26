@@ -62,7 +62,7 @@ describe("FFmpeg", () => {
       expect(error).toBeUndefined();
       done();
     });
-  }, 10000);
+  });
 
   it("should stream sample1.mkv to temp file", async () => {
     const tempFile = getTempFile("mkv");
@@ -77,7 +77,7 @@ describe("FFmpeg", () => {
     await waitFile({ resources: [tempFile] });
     const pipedStats = await stat(tempFile);
     expect(pipedStats.size).toBeGreaterThan(0);
-  }, 10000);
+  });
 
   it("should stream sample1.mp3 to temp file", async () => {
     const tempFile = getTempFile("mp3");
@@ -92,7 +92,7 @@ describe("FFmpeg", () => {
     await waitFile({ resources: [tempFile] });
     const pipedStats = await stat(tempFile);
     expect(pipedStats.size).toBeGreaterThan(0);
-  }, 10000);
+  });
 
   it("should receive progress event", (done) => {
     expect.assertions(11);
@@ -121,7 +121,7 @@ describe("FFmpeg", () => {
     ffmpeg.on("exit", async () => {
       done();
     });
-  }, 10000);
+  });
 
   describe("toStream()", () => {
     it("should pipe to piped.mkv", async () => {
@@ -139,7 +139,7 @@ describe("FFmpeg", () => {
       await waitFile({ resources: [tempFile] });
       const pipedStats = await stat(tempFile);
       expect(pipedStats.size).toBeGreaterThan(0);
-    }, 10000);
+    });
   });
 
   describe("probe", () => {
@@ -151,7 +151,7 @@ describe("FFmpeg", () => {
       expect(result.format.duration).toBe("5.312000");
       expect(result.streams.length).toBeGreaterThan(0);
       expect(result.streams[0].codec_name).toBe("h264");
-    }, 10000);
+    });
 
     it("should throw error if failed", (done) => {
       expect.assertions(1);
