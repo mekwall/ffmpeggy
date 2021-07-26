@@ -2,12 +2,9 @@ import fs, { createWriteStream, createReadStream } from "fs";
 import path from "path";
 import { path as ffmpegBin } from "@ffmpeg-installer/ffmpeg";
 import { path as ffprobeBin } from "@ffprobe-installer/ffprobe";
+import { file as tmpFile } from "tempy";
+import { waitFile } from "wait-file";
 import { FFmpeg } from "../FFmpeg";
-
-const sampleMp4 = path.join(__dirname, "samples/sample1.mp4");
-const sampleMkv = path.join(__dirname, "samples/sample1.mkv");
-const sampleMp3 = path.join(__dirname, "samples/sample1.mp3");
-const tempFile = path.join(__dirname, "temp.mkv");
 
 // NOTE: "fs/promises" is not available in node 12
 const { unlink, stat } = fs.promises;
@@ -16,17 +13,35 @@ FFmpeg.DefaultConfig = {
   ...FFmpeg.DefaultConfig,
   overwriteExisting: true,
   ffprobeBin,
-  ffmpegBin
-}
+  ffmpegBin,
+};
 
 describe("FFmpeg", () => {
+  const sampleMp4 = path.join(__dirname, "samples/sample1.mp4");
+  const sampleMkv = path.join(__dirname, "samples/sample1.mkv");
+  const sampleMp3 = path.join(__dirname, "samples/sample1.mp3");
+  const tempFiles: string[] = [];
+
+  function getTempFile(extension: string): string {
+    const file = tmpFile({ extension });
+    tempFiles.push(file);
+    return file;
+  }
+
+  afterAll(async () => {
+    // Clean up temp files
+    await waitFile({ resources: tempFiles });
+    await Promise.allSettled(tempFiles.map(unlink));
+  });
+
   it("should initialize", () => {
     const ffmpeg = new FFmpeg();
     expect(ffmpeg).toBeInstanceOf(FFmpeg);
   });
 
-  it("should copy sample.mp4 to temp.mkv", (done) => {
+  it("should copy sample.mp4 to temp file", (done) => {
     const ffmpeg = new FFmpeg();
+    const tempFile = getTempFile("mp4");
     ffmpeg
       .setInput(sampleMp4)
       .setOutputOptions(["-c copy"])
@@ -34,56 +49,56 @@ describe("FFmpeg", () => {
       .run();
 
     ffmpeg.on("done", async () => {
+      await waitFile({ resources: [tempFile] });
       const tempStats = await stat(tempFile);
-      await unlink(tempFile);
       expect(tempStats.size).toBeGreaterThan(0);
     });
 
     ffmpeg.on("exit", async (exitCode, error) => {
       expect(exitCode).toBe(0);
       expect(error).toBeUndefined();
-      await unlink(tempFile);
       done();
     });
-  });
+  }, 10000);
 
-  it("should stream sample1.mkv to test.mkv", async () => {
-    const testFile = path.join(__dirname, "test.mkv");
+  it("should stream sample1.mkv to temp file", async () => {
+    const tempFile = getTempFile("mkv");
     const ffmpeg = new FFmpeg({
       autorun: true,
       input: createReadStream(sampleMkv),
       inputOptions: ["-f matroska"],
-      output: createWriteStream(testFile),
+      output: createWriteStream(tempFile),
       outputOptions: ["-f matroska", "-c copy"],
     });
     await ffmpeg.done();
-    const pipedStats = await stat(testFile);
-    await unlink(testFile);
+    await waitFile({ resources: [tempFile] });
+    const pipedStats = await stat(tempFile);
     expect(pipedStats.size).toBeGreaterThan(0);
-  });
+  }, 10000);
 
-  it("should stream sample1.mp3 to test.mp3", async () => {
-    const testFile = path.join(__dirname, "test.mp3");
+  it("should stream sample1.mp3 to temp file", async () => {
+    const tempFile = getTempFile("mp3");
     const ffmpeg = new FFmpeg({
       autorun: true,
       input: createReadStream(sampleMp3),
       inputOptions: ["-f mp3"],
-      output: createWriteStream(testFile),
+      output: createWriteStream(tempFile),
       outputOptions: ["-f mp3", "-c copy"],
     });
     await ffmpeg.done();
-    const pipedStats = await stat(testFile);
-    await unlink(testFile);
+    await waitFile({ resources: [tempFile] });
+    const pipedStats = await stat(tempFile);
     expect(pipedStats.size).toBeGreaterThan(0);
-  });
+  }, 10000);
 
   it("should receive progress event", (done) => {
     expect.assertions(11);
+    const tempFile = getTempFile("mp4");
     const ffmpeg = new FFmpeg();
     ffmpeg
       .setInput(sampleMp4)
       .setOutputOptions(["-c copy"])
-      .setOutput(path.join(__dirname, "temp.mkv"))
+      .setOutput(tempFile)
       .run();
 
     ffmpeg.on("progress", async (e) => {
@@ -101,13 +116,13 @@ describe("FFmpeg", () => {
     });
 
     ffmpeg.on("exit", async () => {
-      await unlink(tempFile);
       done();
     });
-  });
+  }, 10000);
 
   describe("toStream()", () => {
     it("should pipe to piped.mkv", async () => {
+      const tempFile = getTempFile("mkv");
       const ffmpeg = new FFmpeg({
         autorun: true,
         input: sampleMp4,
@@ -116,13 +131,12 @@ describe("FFmpeg", () => {
       });
 
       const stream = ffmpeg.toStream();
-      const pipedFile = path.join(__dirname, "piped.mkv");
-      stream.pipe(createWriteStream(pipedFile));
+      stream.pipe(createWriteStream(tempFile));
       await ffmpeg.done();
-      const pipedStats = await stat(pipedFile);
-      await unlink(pipedFile);
+      await waitFile({ resources: [tempFile] });
+      const pipedStats = await stat(tempFile);
       expect(pipedStats.size).toBeGreaterThan(0);
-    });
+    }, 10000);
   });
 
   describe("probe", () => {
@@ -134,7 +148,7 @@ describe("FFmpeg", () => {
       expect(result.format.duration).toBe("5.312000");
       expect(result.streams.length).toBeGreaterThan(0);
       expect(result.streams[0].codec_name).toBe("h264");
-    });
+    }, 10000);
 
     it("should throw error if failed", (done) => {
       expect.assertions(1);
