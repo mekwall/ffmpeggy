@@ -1,5 +1,4 @@
-import { createWriteStream, createReadStream } from "fs";
-import { unlink, stat } from "fs/promises";
+import fs, { createWriteStream, createReadStream } from "fs";
 import path from "path";
 import { path as ffmpegBin } from "@ffmpeg-installer/ffmpeg";
 import { path as ffprobeBin } from "@ffprobe-installer/ffprobe";
@@ -9,6 +8,9 @@ const sampleMp4 = path.join(__dirname, "samples/sample1.mp4");
 const sampleMkv = path.join(__dirname, "samples/sample1.mkv");
 const sampleMp3 = path.join(__dirname, "samples/sample1.mp3");
 const tempFile = path.join(__dirname, "temp.mkv");
+
+// NOTE: "fs/promises" is not available in node 12
+const { unlink, stat } = fs.promises;
 
 FFmpeg.DefaultConfig = {
   ...FFmpeg.DefaultConfig,
