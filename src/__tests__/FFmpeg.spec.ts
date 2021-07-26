@@ -76,6 +76,34 @@ describe("FFmpeg", () => {
     expect(pipedStats.size).toBeGreaterThan(0);
   });
 
+  it("should receive progress event", (done) => {
+    expect.assertions(11);
+    const ffmpeg = new FFmpeg();
+    ffmpeg
+      .setInput(sampleMp4)
+      .setOutputOptions(["-c copy"])
+      .setOutput(path.join(__dirname, "temp.mkv"))
+      .run();
+
+    ffmpeg.on("progress", async (e) => {
+      expect(e.frame).toBeGreaterThan(0);
+      expect(e.fps).toBeDefined();
+      expect(e.q).toBeDefined();
+      expect(e.size).toBe(1055744);
+      expect(e.time).toBeGreaterThan(0);
+      expect(e.bitrate).toBeGreaterThan(0);
+      expect(e.duplicates).toBeDefined();
+      expect(e.dropped).toBeDefined();
+      expect(e.speed).toBeGreaterThan(0);
+      expect(e.duration).toBeDefined();
+      expect(e.percent).toBeGreaterThan(0);
+    });
+
+    ffmpeg.on("exit", () => {
+      done();
+    });
+  });
+
   describe("toStream()", () => {
     it("should pipe to piped.mkv", async () => {
       const ffmpeg = new FFmpeg({
