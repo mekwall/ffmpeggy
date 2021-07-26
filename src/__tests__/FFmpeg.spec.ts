@@ -30,7 +30,7 @@ describe("FFmpeg", () => {
     ffmpeg
       .setInput(sampleMp4)
       .setOutputOptions(["-c copy"])
-      .setOutput(path.join(__dirname, "temp.mkv"))
+      .setOutput(tempFile)
       .run();
 
     ffmpeg.on("done", async () => {
@@ -39,9 +39,10 @@ describe("FFmpeg", () => {
       expect(tempStats.size).toBeGreaterThan(0);
     });
 
-    ffmpeg.on("exit", (exitCode, error) => {
+    ffmpeg.on("exit", async (exitCode, error) => {
       expect(exitCode).toBe(0);
       expect(error).toBeUndefined();
+      await unlink(tempFile);
       done();
     });
   });
@@ -99,7 +100,8 @@ describe("FFmpeg", () => {
       expect(e.percent).toBeGreaterThan(0);
     });
 
-    ffmpeg.on("exit", () => {
+    ffmpeg.on("exit", async () => {
+      await unlink(tempFile);
       done();
     });
   });
