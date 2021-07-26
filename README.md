@@ -161,27 +161,27 @@ const probeResults = await ffmpeg.probe();
 
 ## Available events
 
-### `start` - `(ffmpegArgs: readonly string[]) => void`
+#### `start` - `(ffmpegArgs: readonly string[]) => void`
 
 Fires when the ffmpeg process have been started. The `ffmpegArgs` argument contains an array with the arguments that was passed to the ffmpeg process.
 
-### `error` - `(error: Error) => void`
+#### `error` - `(error: Error) => void`
 
 Fires when there was an error while running the ffmpeg process.
 
-### `done` - `(file?: string) => void`
+#### `done` - `(file?: string) => void`
 
 Fires when the ffmpeg process have successfully completed.
 
-### `exit` - `(code?: number | null, error?: Error) => void`
+#### `exit` - `(code?: number | null, error?: Error) => void`
 
 Fires when the ffmpeg process have exited.
 
-### `probe` - `(probeResult: FFprobeResult) => void`
+#### `probe` - `(probeResult: FFprobeResult) => void`
 
 Fires when the ffprobe process have returned its result.
 
-### `progress` - `(progress: FFmpegProgressEvent) => void`
+#### `progress` - `(progress: FFmpegProgressEvent) => void`
 
 Fires when ffmpeg is outputting it's progress. Most of the properties in `FFmpegProgressEvent` are provided by ffmpeg's output, except `duration` and `percent`:
 
@@ -196,11 +196,11 @@ Fires when ffmpeg is outputting it's progress. Most of the properties in `FFmpeg
 
 ## Why another ffmpeg wrapper?
 
-Because I wasn't happy with the ones that existed, and most of them are badly maintained or lacking TypeScript typings. I started coding on this a while back for another project and decided it deserved it's own package.
+Because I wasn't happy with the ones that already exists. Most of them are badly maintained and/or lacking TypeScript typings. I started coding on this a while back for another project and decided it deserved it's own package.
 
-## How does ffmpeggy differ from fluent-ffmpeg?
+## How does ffmpeggy compare from fluent-ffmpeg?
 
-ffmpeggy is a much simpler and smaller than fluent-ffmpeg. While fluent-ffmpeg aim to provide a human readable API, ffmpeggy does not. I might revisit this at a later stage and extend with a human readable api, but that will most likely be in a separate package.
+They strive to solve different problems. Whereas ffmpeggy aims to be minimal and small, fluent-ffmpeg aims to provide a human readable API. Personally I don't really have the need of that, but I might revisit it at a later stage and extend it with a human readable api, but that will most likely end up in a separate package to keep this one lean.
 
 ## License
 
