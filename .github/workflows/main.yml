@@ -3,8 +3,6 @@ name: Node.js CI
 on:
   push:
     branches: [main]
-  pull_request:
-    branches: [main]
 
 jobs:
   build:
@@ -31,6 +29,7 @@ jobs:
           path: |
             es
             cjs
+
   coverage:
     needs: build
     runs-on: ubuntu-latest
