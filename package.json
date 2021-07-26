@@ -71,5 +71,11 @@
       "@semantic-release/npm",
       "@semantic-release/github"
     ]
+  },
+  "jest": {
+    "coveragePathIgnorePatterns": [
+      "es",
+      "cjs"
+    ]
   }
 }
