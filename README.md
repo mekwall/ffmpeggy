@@ -50,8 +50,8 @@ async function main() {
   const ffmpeg = new FFmpeg();
   try {
     ffmpeg
-      .setInput("file.mp4")
-      .setOutput("file.mkv")
+      .setInput("input.mp4")
+      .setOutput("output.mkv")
       .setOutputOptions(["-c:v h264"])
       .run();
 
@@ -72,8 +72,8 @@ import { FFmpeg } from "ffmpeggy";
 
 new FFmpeg({
     autorun: true,
-    input: "file.mp4",
-    output: "file.mkv",
+    input: "input.mp4",
+    output: "output.mkv",
     outputOptions: ["-c:v h264"],
   })
   .on("start", (args) => {
@@ -116,12 +116,12 @@ import { FFmpeg } from "ffmpeggy";
 const ffmpeg = new FFmpeg({
   autorun: true,
   pipe: true, // shorthand for output set to pipe:0
-  input: createReadStream("file.mp4"),
+  input: createReadStream("input.mp4"),
   outputOptions: ["-c:v h264"],
 });
 
 const stream = ffmpeg.toStream();
-stream.pipe(createWriteStream("file.mkv"));
+stream.pipe(createWriteStream("output.mkv"));
 ```
 
 ### Probing
@@ -131,7 +131,7 @@ You can call the static `FFmpeg.probe()` method, which returns a promise:
 ```ts
 import { FFmpeg } from "ffmpeggy";
 
-const probeResults = await FFmpeg.probe("file.mkv");
+const probeResults = await FFmpeg.probe("input.mkv");
 ```
 
 Or you can call `.probe()` on an instance that will then run a probe on provided `input`:
