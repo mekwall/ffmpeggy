@@ -17,8 +17,9 @@
     "type": "git",
     "url": "https://github.com/mekwall/ffmpeggy.git"
   },
-  "main": "cjs",
-  "types": "cjs",
+  "main": "./cjs/index.js",
+  "module": "./es/index.mjs",
+  "types": "./cjs/index.d.ts",
   "exports": {
     ".": {
       "require": "./cjs/index.js",
