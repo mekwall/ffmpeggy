@@ -1,4 +1,4 @@
-export interface FFmpegProgress {
+export interface FFmpeggyProgress {
   frame: number;
   fps: number;
   q: number;

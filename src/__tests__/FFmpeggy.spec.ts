@@ -4,13 +4,13 @@ import { path as ffmpegBin } from "@ffmpeg-installer/ffmpeg";
 import { path as ffprobeBin } from "@ffprobe-installer/ffprobe";
 import { file as tmpFile } from "tempy";
 import { waitFile } from "wait-file";
-import { FFmpeg } from "../FFmpeg";
+import { FFmpeggy } from "../FFmpeggy";
 
 // NOTE: "fs/promises" is not available in node 12
 const { unlink, stat } = fs.promises;
 
-FFmpeg.DefaultConfig = {
-  ...FFmpeg.DefaultConfig,
+FFmpeggy.DefaultConfig = {
+  ...FFmpeggy.DefaultConfig,
   overwriteExisting: true,
   ffprobeBin,
   ffmpegBin,
@@ -38,12 +38,12 @@ describe("FFmpeg", () => {
   });
 
   it("should initialize", () => {
-    const ffmpeg = new FFmpeg();
-    expect(ffmpeg).toBeInstanceOf(FFmpeg);
+    const ffmpeg = new FFmpeggy();
+    expect(ffmpeg).toBeInstanceOf(FFmpeggy);
   });
 
   it("should copy sample.mp4 to temp file", (done) => {
-    const ffmpeg = new FFmpeg();
+    const ffmpeg = new FFmpeggy();
     const tempFile = getTempFile("mp4");
     ffmpeg
       .setInput(sampleMp4)
@@ -66,7 +66,7 @@ describe("FFmpeg", () => {
 
   it("should stream sample1.mkv to temp file", async () => {
     const tempFile = getTempFile("mkv");
-    const ffmpeg = new FFmpeg({
+    const ffmpeg = new FFmpeggy({
       autorun: true,
       input: createReadStream(sampleMkv),
       inputOptions: ["-f matroska"],
@@ -81,7 +81,7 @@ describe("FFmpeg", () => {
 
   it("should stream sample1.mp3 to temp file", async () => {
     const tempFile = getTempFile("mp3");
-    const ffmpeg = new FFmpeg({
+    const ffmpeg = new FFmpeggy({
       autorun: true,
       input: createReadStream(sampleMp3),
       inputOptions: ["-f mp3"],
@@ -97,7 +97,7 @@ describe("FFmpeg", () => {
   it("should receive progress event", (done) => {
     expect.assertions(11);
     const tempFile = getTempFile("mp4");
-    const ffmpeg = new FFmpeg();
+    const ffmpeg = new FFmpeggy();
     ffmpeg
       .setInput(sampleMp4)
       .setOutputOptions(["-c copy"])
@@ -126,7 +126,7 @@ describe("FFmpeg", () => {
   describe("toStream()", () => {
     it("should pipe to piped.mkv", async () => {
       const tempFile = getTempFile("mkv");
-      const ffmpeg = new FFmpeg({
+      const ffmpeg = new FFmpeggy({
         autorun: true,
         input: sampleMp4,
         pipe: true,
@@ -145,7 +145,7 @@ describe("FFmpeg", () => {
   describe("probe", () => {
     it("should probe sample.mp4", async () => {
       expect.assertions(5);
-      const result = await FFmpeg.probe(sampleMp4);
+      const result = await FFmpeggy.probe(sampleMp4);
       expect(result.format).toBeDefined();
       expect(result.format.nb_streams).toBe(2);
       expect(result.format.duration).toBe("5.312000");
@@ -155,7 +155,7 @@ describe("FFmpeg", () => {
 
     it("should throw error if failed", (done) => {
       expect.assertions(1);
-      FFmpeg.probe("path_does_not_exist").catch((e) => {
+      FFmpeggy.probe("path_does_not_exist").catch((e) => {
         expect(e.message).toBe("Failed to probe");
         done();
       });

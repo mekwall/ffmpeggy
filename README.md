@@ -28,8 +28,8 @@ You can then change the default config to use those binaries like this:
 import { path as ffmpegBin } from "@ffmpeg-installer/ffmpeg";
 import { path as ffprobeBin } from "@ffprobe-installer/ffprobe";
 
-FFmpeg.DefaultConfig = {
-  ...FFmpeg.DefaultConfig,
+FFmpeggy.DefaultConfig = {
+  ...FFmpeggy.DefaultConfig,
   ffprobeBin,
   ffmpegBin,
 };
@@ -68,9 +68,9 @@ async function main() {
 To make use of all the bells and whistles of ffmpeggy you can hook into the events that are transmitted. All the events are fully typed!
 
 ```ts
-import { FFmpeg } from "ffmpeggy";
+import { FFmpeggy } from "ffmpeggy";
 
-new FFmpeg({
+new FFmpeggy({
     autorun: true,
     input: "input.mp4",
     output: "output.mkv",
@@ -97,9 +97,9 @@ You can provide streams directly to both input and output.
 > NOTE: ffmpeg uses filenames to detect a format and since a stream doesn't have a filename you need to explicitly add that option for each stream.
 
 ```ts
-import { FFmpeg } from "ffmpeggy";
+import { FFmpeggy } from "ffmpeggy";
 
-new FFmpeg({
+new FFmpeggy({
   autorun: true,
   input: createReadStream("input.mkv"),
   inputOptions: ["-f matroska"],
@@ -111,9 +111,9 @@ new FFmpeg({
 You can also use the `.toStream()` method to get a stream that you can pipe.
 
 ```ts
-import { FFmpeg } from "ffmpeggy";
+import { FFmpeggy } from "ffmpeggy";
 
-const ffmpeg = new FFmpeg({
+const ffmpeggy = new FFmpeggy({
   autorun: true,
   pipe: true, // shorthand for output set to pipe:0
   input: createReadStream("input.mp4"),
@@ -129,21 +129,21 @@ stream.pipe(createWriteStream("output.mkv"));
 You can call the static `FFmpeg.probe()` method, which returns a promise:
 
 ```ts
-import { FFmpeg } from "ffmpeggy";
+import { FFmpeggy } from "ffmpeggy";
 
-const probeResults = await FFmpeg.probe("input.mkv");
+const probeResults = await FFmpeggy.probe("input.mkv");
 ```
 
 Or you can call `.probe()` on an instance that will then run a probe on provided `input`:
 
 ```ts
-import { FFmpeg } from "ffmpeggy";
+import { FFmpeggy } from "ffmpeggy";
 
-const ffmpeg = new FFmpeg({
-  input: "input.mkv"
+const ffmpeggy = new FFmpeg({
+  input: "input.mkv",
 });
 
-const probeResults = await ffmpeg.probe();
+const probeResults = await ffmpeggy.probe();
 ```
 
 ## Available options
@@ -185,14 +185,14 @@ Fires when the ffprobe process have returned its result.
 
 Fires when ffmpeg is outputting it's progress. Most of the properties in `FFmpegProgressEvent` are provided by ffmpeg's output, except `duration` and `percent`:
 
-  - `frame`: The current frame (i.e. total frames that have been processed)
-  - `fps`: Framerate at which FFmpeg is currently processing
-  - `size`: The current size of the output in kilobytes
-  - `time`: The time of the current frame in seconds
-  - `bitrate`: The current throughput at which FFmpeg is processing
-  - `duration`: The duration of the output in seconds
-  - `percent`: An estimation of the progress percentage
-  - `q`: The current quality scale (qscale). This is rarely used and is often just set to 0.
+- `frame`: The current frame (i.e. total frames that have been processed)
+- `fps`: Framerate at which FFmpeg is currently processing
+- `size`: The current size of the output in kilobytes
+- `time`: The time of the current frame in seconds
+- `bitrate`: The current throughput at which FFmpeg is processing
+- `duration`: The duration of the output in seconds
+- `percent`: An estimation of the progress percentage
+- `q`: The current quality scale (qscale). This is rarely used and is often just set to 0.
 
 ## Why another ffmpeg wrapper?
 

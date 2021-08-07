@@ -5,10 +5,10 @@ import createDebug from "debug";
 import execa from "execa";
 import TypedEmitter from "typed-emitter";
 import { parseInfo, parseWriting, parseProgress } from "./parsers";
-import { FFmpegProgress } from "./types/FFmpegProgress";
+import { FFmpeggyProgress } from "./types/FFmpeggyProgress";
 import { FFprobeResult } from "./types/probeTypes";
 
-export interface FFMpegOptions {
+export interface FFmpeggyOptions {
   cwd?: string;
   input?: string | ReadStream;
   output?: string | WriteStream;
@@ -19,7 +19,7 @@ export interface FFMpegOptions {
   autorun?: boolean;
 }
 
-type FFmpegProgressEvent = FFmpegProgress & {
+type FFmpeggyProgressEvent = FFmpeggyProgress & {
   duration?: number;
   percent?: number;
 };
@@ -30,12 +30,12 @@ interface FFmpegEvents {
   done: (file?: string) => void;
   exit: (code?: number | null, error?: Error) => void;
   probe: (probeResult: FFprobeResult) => void;
-  progress: (progress: FFmpegProgressEvent) => void;
+  progress: (progress: FFmpeggyProgressEvent) => void;
   writing: (file: string) => void;
 }
 
 const debug = createDebug("ffmpeggy");
-export class FFmpeg extends (EventEmitter as new () => TypedEmitter<FFmpegEvents>) {
+export class FFmpeggy extends (EventEmitter as new () => TypedEmitter<FFmpegEvents>) {
   public running = false;
   public status?: execa.ExecaReturnValue;
   public process?: execa.ExecaChildProcess;
@@ -74,9 +74,9 @@ export class FFmpeg extends (EventEmitter as new () => TypedEmitter<FFmpegEvents
   private pipedOutput = false;
   private outputStream = new PassThrough();
 
-  public constructor(opts: FFMpegOptions = {}) {
+  public constructor(opts: FFmpeggyOptions = {}) {
     super();
-    Object.assign(this, FFmpeg.DefaultConfig);
+    Object.assign(this, FFmpeggy.DefaultConfig);
     if (opts.cwd) {
       this.cwd = opts.cwd;
     }
@@ -220,7 +220,7 @@ export class FFmpeg extends (EventEmitter as new () => TypedEmitter<FFmpegEvents
         }
         const progress = parseProgress(txt);
         if (progress) {
-          const progressEvent: FFmpegProgressEvent = {
+          const progressEvent: FFmpeggyProgressEvent = {
             ...progress,
             duration,
             percent: Math.min(
@@ -284,37 +284,37 @@ export class FFmpeg extends (EventEmitter as new () => TypedEmitter<FFmpegEvents
     }
   }
 
-  public setOverwriteExisting(overwriteExisting: boolean): FFmpeg {
+  public setOverwriteExisting(overwriteExisting: boolean): FFmpeggy {
     this.overwriteExisting = overwriteExisting;
     return this;
   }
 
-  public setCwd(cwd: string): FFmpeg {
+  public setCwd(cwd: string): FFmpeggy {
     this.cwd = cwd;
     return this;
   }
 
-  public setInput(input: string): FFmpeg {
+  public setInput(input: string): FFmpeggy {
     this.input = input;
     return this;
   }
 
-  public setOutput(output: string): FFmpeg {
+  public setOutput(output: string): FFmpeggy {
     this.output = output;
     return this;
   }
 
-  public setGlobalOptions(opts: string[]): FFmpeg {
+  public setGlobalOptions(opts: string[]): FFmpeggy {
     this.globalOptions = [...this.globalOptions, ...opts];
     return this;
   }
 
-  public setInputOptions(opts: string[]): FFmpeg {
+  public setInputOptions(opts: string[]): FFmpeggy {
     this.inputOptions = [...this.inputOptions, ...opts];
     return this;
   }
 
-  public setOutputOptions(opts: string[]): FFmpeg {
+  public setOutputOptions(opts: string[]): FFmpeggy {
     this.outputOptions = [...this.outputOptions, ...opts];
     return this;
   }
@@ -329,7 +329,7 @@ export class FFmpeg extends (EventEmitter as new () => TypedEmitter<FFmpegEvents
     this.outputOptions = [];
     this.outputStream = new PassThrough();
     this.error = undefined;
-    Object.assign(this, FFmpeg.DefaultConfig);
+    Object.assign(this, FFmpeggy.DefaultConfig);
   }
 
   public toStream(): PassThrough {
@@ -342,21 +342,23 @@ export class FFmpeg extends (EventEmitter as new () => TypedEmitter<FFmpegEvents
       throw new Error("No input file specified");
     }
     if (typeof input !== "string") {
-      throw new Error("Probe can only accept strings. Use static FFmpeg.probe() directly.");
+      throw new Error(
+        "Probe can only accept strings. Use static FFmpeg.probe() directly."
+      );
     }
-    const result = await FFmpeg.probe(input);
+    const result = await FFmpeggy.probe(input);
     return result;
   }
 
   public static async probe(filePath: string): Promise<FFprobeResult> {
-    const args = [...FFmpeg.DefaultConfig.ffprobeArgs, filePath];
+    const args = [...FFmpeggy.DefaultConfig.ffprobeArgs, filePath];
     try {
-      const binPath = FFmpeg.DefaultConfig.ffprobeBin;
+      const binPath = FFmpeggy.DefaultConfig.ffprobeBin;
       if (!binPath) {
         throw Error("Missing path to ffprobe binary");
       }
       const { stdout, exitCode } = await execa(
-        FFmpeg.DefaultConfig.ffprobeBin,
+        FFmpeggy.DefaultConfig.ffprobeBin,
         args
       );
       if (exitCode === 1) {
