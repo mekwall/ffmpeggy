@@ -44,18 +44,18 @@ ffmpeggy comes with an intuitive api that allows you to work with it in your pre
 The most simple way to use ffmpeggy is with async/await.
 
 ```ts
-import { FFmpeg } from "ffmpeggy";
+import { FFmpeggy } from "ffmpeggy";
 
 async function main() {
-  const ffmpeg = new FFmpeg();
+  const ffmpeggy = new FFmpeggy();
   try {
-    ffmpeg
+    ffmpeggy
       .setInput("input.mp4")
       .setOutput("output.mkv")
       .setOutputOptions(["-c:v h264"])
       .run();
 
-    await ffmpeg.done();
+    await ffmpeggy.done();
     console.log(`Done =)`);
   } catch {
     console.error(`Something went wrong =(`);
@@ -120,7 +120,7 @@ const ffmpeggy = new FFmpeggy({
   outputOptions: ["-c:v h264"],
 });
 
-const stream = ffmpeg.toStream();
+const stream = ffmpeggy.toStream();
 stream.pipe(createWriteStream("output.mkv"));
 ```
 
