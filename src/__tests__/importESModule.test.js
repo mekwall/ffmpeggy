@@ -5,8 +5,8 @@ describe("import ES modules", () => {
       return;
     }
     const module = await import("../../es/index.mjs");
-    expect(module.FFmpeg).toBeDefined();
-    const ffmpeg = new module.FFmpeg();
-    expect(ffmpeg).toBeInstanceOf(module.FFmpeg);
+    expect(module.FFmpeggy).toBeDefined();
+    const ffmpeggy = new module.FFmpeggy();
+    expect(ffmpeggy).toBeInstanceOf(module.FFmpeggy);
   });
 });
