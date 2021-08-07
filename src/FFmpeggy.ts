@@ -226,7 +226,9 @@ export class FFmpeggy extends (EventEmitter as new () => TypedEmitter<FFmpegEven
             duration,
             percent: Math.min(
               100,
-              Math.round((progress.time / duration) * 100 * 100) / 100
+              progress.time
+                ? Math.round((progress.time / duration) * 100 * 100) / 100
+                : 0
             ),
           };
           debug("progress: %o", progressEvent);
