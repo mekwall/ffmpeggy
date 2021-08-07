@@ -71,11 +71,11 @@ To make use of all the bells and whistles of ffmpeggy you can hook into the even
 import { FFmpeggy } from "ffmpeggy";
 
 new FFmpeggy({
-    autorun: true,
-    input: "input.mp4",
-    output: "output.mkv",
-    outputOptions: ["-c:v h264"],
-  })
+  autorun: true,
+  input: "input.mp4",
+  output: "output.mkv",
+  outputOptions: ["-c:v h264"],
+})
   .on("start", (args) => {
     console.log(`ffmpeg was started with these args:`, args);
   })
@@ -148,16 +148,17 @@ const probeResults = await ffmpeggy.probe();
 
 ## Available options
 
-| Name            | Value                      | Description                                           | Default      |
-| --------------- | -------------------------- | ----------------------------------------------------- | ------------ |
-| `cwd`           | `string`                   | The working directory that ffmpeg will use            | Current cwd  |
-| `input`         | `string \| ReadableStream` | Input path or readable stream                         | Empty string |
-| `output`        | `string \| WritableStream` | Output path or writable stream                        | Empty string |
-| `pipe`          | `boolean`                  | If output should be piped or not                      | Empty string |
-| `globalOptions` | `string[]`                 | An array of ffmpeg global options                     | Empty array  |
-| `inputOptions`  | `string[]`                 | An array of ffmpeg input options                      | Empty array  |
-| `outputOptions` | `string[]`                 | An array of ffmpeg output options                     | Empty array  |
-| `autorun`       | `boolean`                  | Will call `run()` in the constructor if set to `true` | `false`      |
+| Name                | Value                      | Description                                           | Default      |
+| ------------------- | -------------------------- | ----------------------------------------------------- | ------------ |
+| `cwd`               | `string`                   | The working directory that ffmpeg will use            | Current cwd  |
+| `input`             | `string \| ReadableStream` | Input path or readable stream                         | Empty string |
+| `output`            | `string \| WritableStream` | Output path or writable stream                        | Empty string |
+| `pipe`              | `boolean`                  | If output should be piped or not                      | Empty string |
+| `globalOptions`     | `string[]`                 | An array of ffmpeg global options                     | Empty array  |
+| `inputOptions`      | `string[]`                 | An array of ffmpeg input options                      | Empty array  |
+| `outputOptions`     | `string[]`                 | An array of ffmpeg output options                     | Empty array  |
+| `autorun`           | `boolean`                  | Will call `run()` in the constructor if set to `true` | `false`      |
+| `overwriteExisting` | `boolean`                  | Shorthand to add `-y` to globalOptions                | `false`      |
 
 ## Available events
 

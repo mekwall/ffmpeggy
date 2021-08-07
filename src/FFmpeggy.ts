@@ -17,6 +17,7 @@ export interface FFmpeggyOptions {
   inputOptions?: string[];
   outputOptions?: string[];
   autorun?: boolean;
+  overwriteExisting?: boolean;
 }
 
 type FFmpeggyProgressEvent = FFmpeggyProgress & {
