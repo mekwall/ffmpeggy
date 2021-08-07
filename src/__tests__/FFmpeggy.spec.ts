@@ -95,7 +95,7 @@ describe("FFmpeg", () => {
   });
 
   it("should receive progress event", (done) => {
-    expect.assertions(11);
+    expect.assertions(9);
     const tempFile = getTempFile("mp4");
     const ffmpeg = new FFmpeggy();
     ffmpeg
@@ -111,8 +111,6 @@ describe("FFmpeg", () => {
       expect(e.size).toBe(1055744);
       expect(e.time).toBeGreaterThan(0);
       expect(e.bitrate).toBeGreaterThan(0);
-      expect(e.duplicates).toBeDefined();
-      expect(e.dropped).toBeDefined();
       expect(e.speed).toBeGreaterThan(0);
       expect(e.duration).toBeDefined();
       expect(e.percent).toBeGreaterThan(0);
