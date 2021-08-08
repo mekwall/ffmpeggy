@@ -16,7 +16,7 @@ FFmpeggy.DefaultConfig = {
   ffmpegBin,
 };
 
-describe("FFmpeg", () => {
+describe("FFmpeggy", () => {
   const sampleMp4 = path.join(__dirname, "samples/sample1.mp4");
   const sampleMkv = path.join(__dirname, "samples/sample1.mkv");
   const sampleMp3 = path.join(__dirname, "samples/sample1.mp3");
@@ -38,26 +38,26 @@ describe("FFmpeg", () => {
   });
 
   it("should initialize", () => {
-    const ffmpeg = new FFmpeggy();
-    expect(ffmpeg).toBeInstanceOf(FFmpeggy);
+    const ffmpeggy = new FFmpeggy();
+    expect(ffmpeggy).toBeInstanceOf(FFmpeggy);
   });
 
   it("should copy sample.mp4 to temp file", (done) => {
-    const ffmpeg = new FFmpeggy();
+    const ffmpeggy = new FFmpeggy();
     const tempFile = getTempFile("mp4");
-    ffmpeg
+    ffmpeggy
       .setInput(sampleMp4)
       .setOutputOptions(["-c copy"])
       .setOutput(tempFile)
       .run();
 
-    ffmpeg.on("done", async () => {
+    ffmpeggy.on("done", async () => {
       await waitFile({ resources: [tempFile] });
       const tempStats = await stat(tempFile);
       expect(tempStats.size).toBeGreaterThan(0);
     });
 
-    ffmpeg.on("exit", async (exitCode, error) => {
+    ffmpeggy.on("exit", async (exitCode, error) => {
       expect(exitCode).toBe(0);
       expect(error).toBeUndefined();
       done();
@@ -66,14 +66,14 @@ describe("FFmpeg", () => {
 
   it("should stream sample1.mkv to temp file", async () => {
     const tempFile = getTempFile("mkv");
-    const ffmpeg = new FFmpeggy({
+    const ffmpeggy = new FFmpeggy({
       autorun: true,
       input: createReadStream(sampleMkv),
       inputOptions: ["-f matroska"],
       output: createWriteStream(tempFile),
       outputOptions: ["-f matroska", "-c copy"],
     });
-    await ffmpeg.done();
+    await ffmpeggy.done();
     await waitFile({ resources: [tempFile] });
     const pipedStats = await stat(tempFile);
     expect(pipedStats.size).toBeGreaterThan(0);
@@ -81,14 +81,14 @@ describe("FFmpeg", () => {
 
   it("should stream sample1.mp3 to temp file", async () => {
     const tempFile = getTempFile("mp3");
-    const ffmpeg = new FFmpeggy({
+    const ffmpeggy = new FFmpeggy({
       autorun: true,
       input: createReadStream(sampleMp3),
       inputOptions: ["-f mp3"],
       output: createWriteStream(tempFile),
       outputOptions: ["-f mp3", "-c copy"],
     });
-    await ffmpeg.done();
+    await ffmpeggy.done();
     await waitFile({ resources: [tempFile] });
     const pipedStats = await stat(tempFile);
     expect(pipedStats.size).toBeGreaterThan(0);
@@ -97,14 +97,14 @@ describe("FFmpeg", () => {
   it("should receive progress event", (done) => {
     expect.assertions(9);
     const tempFile = getTempFile("mp4");
-    const ffmpeg = new FFmpeggy();
-    ffmpeg
+    const ffmpeggy = new FFmpeggy();
+    ffmpeggy
       .setInput(sampleMp4)
       .setOutputOptions(["-c copy"])
       .setOutput(tempFile)
       .run();
 
-    ffmpeg.on("progress", async (e) => {
+    ffmpeggy.on("progress", async (e) => {
       expect(e.frame).toBeGreaterThan(0);
       expect(e.fps).toBeDefined();
       expect(e.q).toBeDefined();
@@ -116,7 +116,7 @@ describe("FFmpeg", () => {
       expect(e.percent).toBeGreaterThan(0);
     });
 
-    ffmpeg.on("exit", async () => {
+    ffmpeggy.on("exit", async () => {
       done();
     });
   });
