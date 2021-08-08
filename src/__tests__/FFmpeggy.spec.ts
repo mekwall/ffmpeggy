@@ -145,15 +145,15 @@ describe("FFmpeggy", () => {
 
   it("should emit writing and done events for segments", (done) => {
     // expect.assertions(10);
+    const segmentCount = 3;
     const ffmpeggy = new FFmpeggy({
       input: sampleMkv,
       output: path.join(__dirname, "samples/.temp/temp-%d.mpegts"),
       outputOptions: [
-        "-t 5",
+        `-t ${segmentCount}`,
         "-map 0",
         "-c:v libx264",
         "-c:a aac",
-        "-r 25",
         "-force_key_frames expr:gte(t,n_forced*1)",
         "-f ssegment",
         "-forced-idr 1",
@@ -170,7 +170,7 @@ describe("FFmpeggy", () => {
       ],
     });
 
-    const segments = new Array(5)
+    const segments = new Array(segmentCount)
       .fill(undefined)
       .map((_v, idx) =>
         path.join(__dirname, "samples/.temp/", `temp-${idx}.mpegts`)
@@ -196,8 +196,8 @@ describe("FFmpeggy", () => {
       if (code === 1 || error) {
         done.fail(error);
       } else {
-        expect(writingEvents).toBe(5);
-        expect(doneEvents).toBe(5);
+        expect(writingEvents).toBe(segmentCount);
+        expect(doneEvents).toBe(segmentCount);
         done();
       }
     });
