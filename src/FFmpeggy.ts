@@ -18,6 +18,7 @@ export interface FFmpeggyOptions {
   outputOptions?: string[];
   autorun?: boolean;
   overwriteExisting?: boolean;
+  hideBanner?: boolean;
 }
 
 type FFmpeggyProgressEvent = FFmpeggyProgress & {
@@ -53,11 +54,13 @@ export class FFmpeggy extends (EventEmitter as new () => TypedEmitter<FFmpegEven
   public cwd!: string;
   public output!: string | WriteStream;
   public overwriteExisting!: boolean;
+  public hideBanner!: boolean;
 
   public static DefaultConfig = {
     cwd: process.cwd(),
     output: "",
     overwriteExisting: false,
+    hideBanner: true,
     ffmpegBin: "",
     ffprobeBin: "",
     ffprobeArgs: [
@@ -137,6 +140,7 @@ export class FFmpeggy extends (EventEmitter as new () => TypedEmitter<FFmpegEven
     const ffmpegOutput = output instanceof WriteStream ? "pipe:" : output;
 
     const args = [
+      ...(this.hideBanner ? ["-hide_banner"] : []),
       ...(this.overwriteExisting ? ["-y"] : []),
       ...globalOptions.join(" ").split(" "),
       ...inputOptions.join(" ").split(" "),

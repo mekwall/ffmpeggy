@@ -158,7 +158,8 @@ const probeResults = await ffmpeggy.probe();
 | `inputOptions`      | `string[]`                 | An array of ffmpeg input options                      | Empty array  |
 | `outputOptions`     | `string[]`                 | An array of ffmpeg output options                     | Empty array  |
 | `autorun`           | `boolean`                  | Will call `run()` in the constructor if set to `true` | `false`      |
-| `overwriteExisting` | `boolean`                  | Shorthand to add `-y` to globalOptions                | `false`      |
+| `overwriteExisting` | `boolean`                  | Shorthand to add `-y` to global options               | `false`      |
+| `hideBanner`        | `boolean`                  | Shorthand to add `-hide_banner` to global options     | `true`       |
 
 ## Available events
 
