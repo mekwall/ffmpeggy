@@ -170,21 +170,25 @@ describe("FFmpeggy", () => {
       ],
     });
 
-    let fileIdx = 0;
+    const segments = new Array(5)
+      .fill(undefined)
+      .map((_v, idx) =>
+        path.join(__dirname, "samples/.temp/", `temp-${idx}.mpegts`)
+      );
+
+    let writingEvents = 0;
     ffmpeggy.on("writing", (file) => {
       if (file.includes("temp-")) {
-        expect(file).toBe(
-          path.join(__dirname, "samples/.temp/", `temp-${fileIdx}.mpegts`)
-        );
+        expect(segments.includes(file)).toBe(true);
+        writingEvents++;
       }
     });
 
+    let doneEvents = 0;
     ffmpeggy.on("done", (file) => {
       if (file?.includes("temp-")) {
-        expect(file).toBe(
-          path.join(__dirname, "samples/.temp/", `temp-${fileIdx}.mpegts`)
-        );
-        fileIdx++;
+        expect(segments.includes(file)).toBe(true);
+        doneEvents++;
       }
     });
 
@@ -192,6 +196,8 @@ describe("FFmpeggy", () => {
       if (code === 1 || error) {
         done.fail(error);
       } else {
+        expect(writingEvents).toBe(5);
+        expect(doneEvents).toBe(5);
         done();
       }
     });
