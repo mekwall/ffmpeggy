@@ -22,8 +22,8 @@ describe("FFmpeggy", () => {
   const sampleMp3 = path.join(__dirname, "samples/audio.mp3");
   const tempFiles: string[] = [];
 
-  // bump jest timeout since file ops can take some time
-  jest.setTimeout(30000);
+  // bump jest timeout since file operations can take some time (especially on CI)
+  jest.setTimeout(60000);
 
   function getTempFile(extension: string): string {
     const file = tmpFile({ extension });
