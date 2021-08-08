@@ -109,7 +109,7 @@ describe("FFmpeggy", () => {
     expect(pipedStats.size).toBeGreaterThan(0);
   });
 
-  it.only("should receive progress event", (done) => {
+  it("should receive progress event", (done) => {
     expect.assertions(9);
     const tempFile = getTempFile("mp4");
     const ffmpeggy = new FFmpeggy();
@@ -215,6 +215,34 @@ describe("FFmpeggy", () => {
       await waitFile({ resources: [tempFile] });
       const pipedStats = await stat(tempFile);
       expect(pipedStats.size).toBeGreaterThan(0);
+    });
+  });
+
+  describe("reset()", () => {
+    it("should be possible to reuse instance", async () => {
+      expect.assertions(2);
+      const ffmpeggy = new FFmpeggy();
+      const tempFile1 = getTempFile("mp4");
+      await ffmpeggy
+        .setInput(sampleMp4)
+        .setOutputOptions(["-c copy"])
+        .setOutput(tempFile1)
+        .run();
+
+      const tempStats1 = await stat(tempFile1);
+      expect(tempStats1.size).toBeGreaterThan(0);
+
+      ffmpeggy.reset();
+
+      const tempFile2 = getTempFile("mp4");
+      await ffmpeggy
+        .setInput(sampleMp4)
+        .setOutputOptions(["-c copy"])
+        .setOutput(tempFile2)
+        .run();
+
+      const tempStats2 = await stat(tempFile2);
+      expect(tempStats2.size).toBeGreaterThan(0);
     });
   });
 
