@@ -15,18 +15,18 @@ $ yarn add ffmpeggy
 
 ### Installing `ffmpeg` and `ffprobe` binaries
 
-If you don't want to provide your own binaries, I recommend you to install these optional packages that includes binaries for all platforms:
+If you don't want to provide your own binaries, you can use the following packages that provides binaries for both ffmpeg and ffprobe:
 
 ```bash
-$ npm install --save @ffmpeg-installer/ffmpeg @ffprobe-installer/ffprobe
-$ yarn add @ffmpeg-installer/ffmpeg @ffprobe-installer/ffprobe
+$ npm install --save ffmpeg-static ffprobe-static
+$ yarn add ffmpeg-static ffprobe-static
 ```
 
-You can then change the default config to use those binaries like this:
+You can then change the default config to use the binaries like this:
 
 ```ts
-import { path as ffmpegBin } from "@ffmpeg-installer/ffmpeg";
-import { path as ffprobeBin } from "@ffprobe-installer/ffprobe";
+import ffmpegBin from "ffmpeg-static";
+import { path as ffprobeBin } from "ffprobe-static";
 
 FFmpeggy.DefaultConfig = {
   ...FFmpeggy.DefaultConfig,
