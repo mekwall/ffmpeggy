@@ -21,7 +21,7 @@ export interface FFmpeggyOptions {
   hideBanner?: boolean;
 }
 
-type FFmpeggyProgressEvent = FFmpeggyProgress & {
+export type FFmpeggyProgressEvent = FFmpeggyProgress & {
   duration?: number;
   percent?: number;
 };
@@ -139,9 +139,15 @@ export class FFmpeggy extends (EventEmitter as new () => TypedEmitter<FFmpegEven
     const ffmpegInput = input instanceof ReadStream ? "pipe:" : input;
     const ffmpegOutput = output instanceof WriteStream ? "pipe:" : output;
 
+    if (this.hideBanner) {
+      globalOptions.push("-hide_banner");
+    }
+
+    if (this.overwriteExisting) {
+      globalOptions.push("-y");
+    }
+
     const args = [
-      ...(this.hideBanner ? ["-hide_banner"] : []),
-      ...(this.overwriteExisting ? ["-y"] : []),
       ...globalOptions.join(" ").split(" "),
       ...inputOptions.join(" ").split(" "),
       ...["-i", ffmpegInput],
@@ -200,7 +206,7 @@ export class FFmpeggy extends (EventEmitter as new () => TypedEmitter<FFmpegEven
       this.error = e;
       debug("error: %o", e);
       this.emit("error", e);
-      this.emit("exit");
+      this.emit("exit", 1, e);
       this.running = false;
     }
 

@@ -1,13 +1,13 @@
 import fs, { createWriteStream, createReadStream } from "fs";
 import path from "path";
-import { path as ffmpegBin } from "@ffmpeg-installer/ffmpeg";
-import { path as ffprobeBin } from "@ffprobe-installer/ffprobe";
+import ffmpegBin from "ffmpeg-static";
+import { path as ffprobeBin } from "ffprobe-static";
 import { file as tmpFile } from "tempy";
 import { waitFile } from "wait-file";
-import { FFmpeggy } from "../FFmpeggy";
+import { FFmpeggy, FFmpeggyProgressEvent } from "../FFmpeggy";
 
-// NOTE: "fs/promises" is not available in node 12
-const { unlink, stat } = fs.promises;
+// NOTE: "fs/promises" is not available in node 12 =(
+const { mkdir, rmdir, unlink, stat } = fs.promises;
 
 FFmpeggy.DefaultConfig = {
   ...FFmpeggy.DefaultConfig,
@@ -17,9 +17,9 @@ FFmpeggy.DefaultConfig = {
 };
 
 describe("FFmpeggy", () => {
-  const sampleMp4 = path.join(__dirname, "samples/sample1.mp4");
-  const sampleMkv = path.join(__dirname, "samples/sample1.mkv");
-  const sampleMp3 = path.join(__dirname, "samples/sample1.mp3");
+  const sampleMkv = path.join(__dirname, "samples/bunny1.mkv");
+  const sampleMp4 = path.join(__dirname, "samples/bunny2.mp4");
+  const sampleMp3 = path.join(__dirname, "samples/audio.mp3");
   const tempFiles: string[] = [];
 
   // bump jest timeout since file ops can take some time
@@ -31,10 +31,25 @@ describe("FFmpeggy", () => {
     return file;
   }
 
+  beforeAll(async () => {
+    try {
+      await mkdir(path.join(__dirname, "samples/.temp/"));
+    } catch {
+      // Ignore
+    }
+  });
+
   afterAll(async () => {
     // Clean up temp files
-    await waitFile({ resources: tempFiles });
-    await Promise.allSettled(tempFiles.map(unlink));
+    if (tempFiles.length > 0) {
+      await waitFile({ resources: tempFiles });
+      await Promise.allSettled(tempFiles.map(unlink));
+    }
+    try {
+      await rmdir(path.join(__dirname, "samples/.temp/"), { recursive: true });
+    } catch {
+      // Ignore
+    }
   });
 
   it("should initialize", () => {
@@ -42,7 +57,7 @@ describe("FFmpeggy", () => {
     expect(ffmpeggy).toBeInstanceOf(FFmpeggy);
   });
 
-  it("should copy sample.mp4 to temp file", (done) => {
+  it("should copy bunny2.mp4 to temp file", (done) => {
     const ffmpeggy = new FFmpeggy();
     const tempFile = getTempFile("mp4");
     ffmpeggy
@@ -64,7 +79,7 @@ describe("FFmpeggy", () => {
     });
   });
 
-  it("should stream sample1.mkv to temp file", async () => {
+  it("should stream bunny1.mkv to temp file", async () => {
     const tempFile = getTempFile("mkv");
     const ffmpeggy = new FFmpeggy({
       autorun: true,
@@ -79,7 +94,7 @@ describe("FFmpeggy", () => {
     expect(pipedStats.size).toBeGreaterThan(0);
   });
 
-  it("should stream sample1.mp3 to temp file", async () => {
+  it("should stream audio.mp3 to temp file", async () => {
     const tempFile = getTempFile("mp3");
     const ffmpeggy = new FFmpeggy({
       autorun: true,
@@ -94,7 +109,7 @@ describe("FFmpeggy", () => {
     expect(pipedStats.size).toBeGreaterThan(0);
   });
 
-  it("should receive progress event", (done) => {
+  it.only("should receive progress event", (done) => {
     expect.assertions(9);
     const tempFile = getTempFile("mp4");
     const ffmpeggy = new FFmpeggy();
@@ -104,21 +119,84 @@ describe("FFmpeggy", () => {
       .setOutput(tempFile)
       .run();
 
-    ffmpeggy.on("progress", async (e) => {
-      expect(e.frame).toBeGreaterThan(0);
-      expect(e.fps).toBeDefined();
-      expect(e.q).toBeDefined();
-      expect(e.size).toBe(1055744);
-      expect(e.time).toBeGreaterThan(0);
-      expect(e.bitrate).toBeGreaterThan(0);
-      expect(e.speed).toBeGreaterThan(0);
-      expect(e.duration).toBeDefined();
-      expect(e.percent).toBeGreaterThan(0);
+    let progress: FFmpeggyProgressEvent;
+    ffmpeggy.on("progress", async (p) => {
+      progress = p;
     });
 
-    ffmpeggy.on("exit", async () => {
-      done();
+    ffmpeggy.on("exit", async (code, error) => {
+      expect(progress.frame).toBeGreaterThan(0);
+      expect(progress.fps).toBeDefined();
+      expect(progress.q).toBeDefined();
+      expect(progress.size).toBe(1055744);
+      expect(progress.time).toBeGreaterThan(0);
+      expect(progress.bitrate).toBeGreaterThan(0);
+      expect(progress.speed).toBeGreaterThan(0);
+      expect(progress.duration).toBeDefined();
+      expect(progress.percent).toBeGreaterThan(0);
+
+      if (code === 1 || error) {
+        done.fail(error);
+      } else {
+        done();
+      }
     });
+  });
+
+  it("should emit writing and done events for segments", (done) => {
+    expect.assertions(10);
+    const ffmpeggy = new FFmpeggy({
+      input: sampleMkv,
+      output: path.join(__dirname, "samples/.temp/temp-%d.mpegts"),
+      outputOptions: [
+        "-t 5",
+        "-map 0",
+        "-c:v libx264",
+        "-c:a aac",
+        "-r 25",
+        "-force_key_frames expr:gte(t,n_forced*1)",
+        "-f ssegment",
+        "-forced-idr 1",
+        "-flags +cgop",
+        "-copyts",
+        "-vsync -1",
+        "-avoid_negative_ts disabled",
+        "-individual_header_trailer 0",
+        "-start_at_zero",
+        "-segment_list_type m3u8",
+        `-segment_list ${path.join(__dirname, "samples/.temp/playlist.m3u8")}`,
+        "-segment_time 1",
+        "-segment_format mpegts",
+      ],
+    });
+
+    let fileIdx = 0;
+    ffmpeggy.on("writing", (file) => {
+      if (file.includes("temp-")) {
+        expect(file).toBe(
+          path.join(__dirname, "samples/.temp/", `temp-${fileIdx}.mpegts`)
+        );
+      }
+    });
+
+    ffmpeggy.on("done", (file) => {
+      if (file?.includes("temp-")) {
+        expect(file).toBe(
+          path.join(__dirname, "samples/.temp/", `temp-${fileIdx}.mpegts`)
+        );
+        fileIdx++;
+      }
+    });
+
+    ffmpeggy.on("exit", (code, error) => {
+      if (code === 1 || error) {
+        done.fail(error);
+      } else {
+        done();
+      }
+    });
+
+    ffmpeggy.run();
   });
 
   describe("toStream()", () => {
@@ -141,7 +219,7 @@ describe("FFmpeggy", () => {
   });
 
   describe("probe", () => {
-    it("should probe sample.mp4", async () => {
+    it("should probe bunny2.mp4", async () => {
       expect.assertions(5);
       const result = await FFmpeggy.probe(sampleMp4);
       expect(result.format).toBeDefined();
