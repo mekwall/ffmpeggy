@@ -1,5 +1,6 @@
 import EventEmitter from "events";
 import { ReadStream, WriteStream } from "fs";
+import { nextTick } from "process";
 import { PassThrough } from "stream";
 import createDebug from "debug";
 import execa from "execa";
@@ -74,7 +75,7 @@ export class FFmpeggy extends (EventEmitter as new () => TypedEmitter<FFmpegEven
     ],
   };
 
-  private log = "";
+  public log = "";
   private pipedOutput = false;
   private outputStream = new PassThrough();
 
@@ -264,16 +265,21 @@ export class FFmpeggy extends (EventEmitter as new () => TypedEmitter<FFmpegEven
       const status = await this.process;
       const code = this.process.exitCode;
       if (code === 1) {
-        console.error("FFMPeg failed:", this.log);
+        console.error("FFmpeg failed:", this.log);
       } else {
         debug("done: %s", this.currentFile);
         this.emit("done", this.currentFile);
       }
-      this.status = status;
-      this.process = undefined;
-      this.running = false;
-      debug("exit: %o %o", code, this.error);
-      this.emit("exit", code, this.error);
+      nextTick(() => {
+        // Wait until next tick to emit the exit event
+        // This is to ensure that the done event is emitted
+        // before the exit event
+        this.status = status;
+        this.process = undefined;
+        this.running = false;
+        debug("exit: %o %o", code, this.error);
+        this.emit("exit", code, this.error);
+      });
     }
   }
 
