@@ -144,7 +144,7 @@ describe("FFmpeggy", () => {
   });
 
   it("should emit writing and done events for segments", (done) => {
-    expect.assertions(10);
+    // expect.assertions(10);
     const ffmpeggy = new FFmpeggy({
       input: sampleMkv,
       output: path.join(__dirname, "samples/.temp/temp-%d.mpegts"),
