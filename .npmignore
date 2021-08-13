@@ -1,3 +1,4 @@
+.env
 .github
 .editorconfig
 .eslintrc.js
@@ -5,5 +6,6 @@ __tests__
 src
 coverage
 tsconfig.*
+*.log
 babel.config.js
 yarn.lock
