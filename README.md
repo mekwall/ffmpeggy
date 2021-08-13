@@ -196,6 +196,10 @@ Fires when ffmpeg is outputting it's progress. Most of the properties in `FFmpeg
 - `percent`: An estimation of the progress percentage
 - `q`: The current quality scale (qscale). This is rarely used and is often just set to 0.
 
+#### `writing` - `(fileName: string) => void`
+
+Fires when ffmpeg reports that it has begun writing to a file. This can be used to track which fragment ffmpeg is currently writing to or when it updates a playlist.
+
 ## Why another ffmpeg wrapper?
 
 Because I wasn't happy with the ones that already exists. Most of them are badly maintained, and/or lacking TypeScript typings or are too complex for my taste. I started coding on this a while back for another project and it's been working really well so figured it deserved it's own package.
