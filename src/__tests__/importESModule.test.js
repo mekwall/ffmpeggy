@@ -7,6 +7,7 @@ describe("import ES modules", () => {
       return;
     }
     // Ensure __signal_exit_emitter__ is defined or jest-runtime blows up
+    // This bug is tracked here: https://github.com/facebook/jest/issues/11746
     process.__signal_exit_emitter__ = new EventEmitter();
     const module = await import("../../es/index.mjs");
     expect(module.FFmpeggy).toBeDefined();
