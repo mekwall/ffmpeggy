@@ -20,6 +20,8 @@ tsconfig.*.tsbuildinfo
 /coverage
 
 # production
+/es
+/cjs
 *.tgz
 .env
 
