@@ -34,9 +34,9 @@ describe("parsers", () => {
     expect(progress?.frame).toBe(72);
     expect(progress?.fps).toBe(0);
     expect(progress?.q).toBe(-1);
-    expect(progress?.size).toBe(-1);
+    expect(progress?.size).toBe(undefined);
     expect(progress?.time).toBe(2.85);
-    expect(progress?.bitrate).toBe(-1);
+    expect(progress?.bitrate).toBe(undefined);
     expect(progress?.speed).toBe(2.93);
   });
 });

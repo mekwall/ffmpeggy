@@ -19,14 +19,14 @@ export function parseProgress(data: string): FFmpeggyProgress | undefined {
     typeof v.size !== "undefined" && v.sizeunit
       ? parseSize(Number(v.size) || 0, v.sizeunit)
       : v.size === "N/A"
-      ? -1
+      ? undefined
       : 0;
   const time = v.time ? timerToSecs(v.time) : undefined;
   const bitrate =
     typeof v.bitrate !== "undefined" && v.bitrateunit
       ? parseBitrate(Number(v.bitrate), v.bitrateunit)
       : v.bitrate === "N/A"
-      ? -1
+      ? undefined
       : 0;
   const duplicates =
     typeof v.duplicates !== "undefined" ? Number(v.duplicates) : undefined;
