@@ -25,4 +25,18 @@ describe("parsers", () => {
     expect(progress?.bitrate).toBe(1339.9);
     expect(progress?.speed).toBe(9.82);
   });
+
+  it("should parse progress where size and bitrate are N/A", () => {
+    const txt =
+      "frame=   72 fps=0.0 q=-1.0 Lsize=N/A time=00:00:02.85 bitrate=N/A speed=2.93x";
+    const progress = parseProgress(txt);
+    expect(progress).toBeDefined();
+    expect(progress?.frame).toBe(72);
+    expect(progress?.fps).toBe(0);
+    expect(progress?.q).toBe(-1);
+    expect(progress?.size).toBe(-1);
+    expect(progress?.time).toBe(2.85);
+    expect(progress?.bitrate).toBe(-1);
+    expect(progress?.speed).toBe(2.93);
+  });
 });

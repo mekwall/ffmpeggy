@@ -4,43 +4,46 @@ import { parseSize } from "./utils/parseSize";
 import { timerToSecs } from "./utils/timerToSecs";
 
 const progressRxp =
-  /(?:frame=\s*(?<frame>[\d]+)\s+)?(?:fps=\s*(?<fps>[\d.]+)\s+)?(?:q=(?<q>[0-9.-]+)\s+(L?)\s*)?size=\s*(?<size>[0-9]+)(?<sizeunit>kB|mB|b)?\s*time=\s*(?<time>\d\d:\d\d:\d\d\.\d\d)\s*bitrate=\s*(?<bitrate>N\/A|[\d.]+)(?<bitrateunit>bits\/s|mbits\/s|kbits\/s)?.*(dup=(?<duplicates>\d+)\s*)?(drop=(?<dropped>\d+)\s*)?speed=\s*(?<speed>[\d.e+]+)x/;
+  /(?:frame=\s*(?<frame>[\d]+)\s+)?(?:fps=\s*(?<fps>[\d.]+)\s+)?(?:q=(?<q>[0-9.-]+)\s+)?(L?)size=\s*(?<size>[0-9]+|N\/A)(?<sizeunit>kB|mB|b)?\s*time=\s*(?<time>\d\d:\d\d:\d\d\.\d\d)\s*bitrate=\s*(?<bitrate>N\/A|[\d.]+)(?<bitrateunit>bits\/s|mbits\/s|kbits\/s)?.*(dup=(?<duplicates>\d+)\s*)?(drop=(?<dropped>\d+)\s*)?speed=\s*(?<speed>[\d.e+]+)x/;
 export function parseProgress(data: string): FFmpeggyProgress | undefined {
   const matches = progressRxp.exec(data);
   if (!matches || !matches.groups) {
     return;
   }
-  const {
+  const v = matches.groups;
+
+  const frame = typeof v.frame !== "undefined" ? Number(v.frame) : undefined;
+  const fps = typeof v.fps !== "undefined" ? Number(v.fps) : undefined;
+  const q = typeof v.q !== "undefined" ? Number(v.q) : undefined;
+  const size =
+    typeof v.size !== "undefined" && v.sizeunit
+      ? parseSize(Number(v.size) || 0, v.sizeunit)
+      : v.size === "N/A"
+      ? -1
+      : 0;
+  const time = v.time ? timerToSecs(v.time) : undefined;
+  const bitrate =
+    typeof v.bitrate !== "undefined" && v.bitrateunit
+      ? parseBitrate(Number(v.bitrate), v.bitrateunit)
+      : v.bitrate === "N/A"
+      ? -1
+      : 0;
+  const duplicates =
+    typeof v.duplicates !== "undefined" ? Number(v.duplicates) : undefined;
+  const dropped =
+    typeof v.dropped !== "undefined" ? Number(v.dropped) : undefined;
+  const speed = typeof v.speed !== "undefined" ? Number(v.speed) : undefined;
+
+  return {
     frame,
     fps,
     q,
     size,
-    sizeunit,
     time,
     bitrate,
-    bitrateunit,
     duplicates,
     dropped,
     speed,
-  } = matches.groups;
-
-  return {
-    frame: typeof frame !== "undefined" ? Number(frame) : undefined,
-    fps: typeof frame !== "undefined" ? Number(fps) : undefined,
-    q: typeof frame !== "undefined" ? Number(q) : undefined,
-    size:
-      typeof size !== "undefined" && sizeunit
-        ? parseSize(Number(size) || 0, sizeunit)
-        : 0,
-    time: time ? timerToSecs(time) : undefined,
-    bitrate:
-      typeof bitrate !== "undefined" && bitrateunit
-        ? parseBitrate(Number(bitrate), bitrateunit)
-        : 0,
-    duplicates:
-      typeof duplicates !== "undefined" ? Number(duplicates) : undefined,
-    dropped: typeof dropped !== "undefined" ? Number(dropped) : undefined,
-    speed: typeof speed !== "undefined" ? Number(speed) : undefined,
   };
 }
 
