@@ -47,7 +47,7 @@ export class FFmpeggy extends (EventEmitter as new () => TypedEmitter<FFmpegEven
   public input: string | ReadStream = "";
   public outputOptions: string[] = [];
   public inputOptions: string[] = [];
-  public globalOptions: string[] = [];
+  public globalOptions: string[] = ["-stats"];
 
   // set from DefaultConfig in constructor
   public ffmpegBin!: string;
@@ -223,6 +223,7 @@ export class FFmpeggy extends (EventEmitter as new () => TypedEmitter<FFmpegEven
       let duration = 0;
       output.on("data", (data) => {
         const txt = data.toString();
+        debug(txt);
         if (!duration) {
           const info = parseInfo(txt);
           if (info) {
