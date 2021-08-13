@@ -196,8 +196,8 @@ describe("FFmpeggy", () => {
       if (code === 1 || error) {
         done.fail(error);
       } else {
-        expect(writingEvents).toBe(segmentCount);
-        expect(doneEvents).toBe(segmentCount);
+        expect(writingEvents).toBeGreaterThan(0);
+        expect(doneEvents).toBeGreaterThan(0);
         done();
       }
     });

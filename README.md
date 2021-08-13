@@ -200,6 +200,8 @@ Fires when ffmpeg is outputting it's progress. Most of the properties in `FFmpeg
 
 Fires when ffmpeg reports that it has begun writing to a file. This can be used to track which fragment ffmpeg is currently writing to or when it updates a playlist.
 
+> Limitation: ffmpeg may finish before outputting this for every file so you need to handle that accordingly. Expect it to have successfully written every segment if it exits with error code 0.
+
 ## Why another ffmpeg wrapper?
 
 Because I wasn't happy with the ones that already exists. Most of them are badly maintained, and/or lacking TypeScript typings or are too complex for my taste. I started coding on this a while back for another project and it's been working really well so figured it deserved it's own package.
