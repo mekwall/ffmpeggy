@@ -57,6 +57,50 @@ describe("FFmpeggy", () => {
     expect(ffmpeggy).toBeInstanceOf(FFmpeggy);
   });
 
+  it("should pass in options in constructor", () => {
+    const ffmpeggy = new FFmpeggy({
+      cwd: __dirname,
+      overwriteExisting: false,
+      pipe: true,
+      hideBanner: false,
+      globalOptions: ["-max_alloc 1024", "-vol 512"],
+    });
+    const go = ffmpeggy.globalOptions;
+    expect(ffmpeggy.cwd).toBe(__dirname);
+    expect(ffmpeggy.overwriteExisting).toBe(false);
+    expect(ffmpeggy.output).toBe("-"); // pipe = true
+    expect(ffmpeggy.hideBanner).toBe(false);
+    expect(go.includes("-max_alloc 1024")).toBe(true);
+    expect(go.includes("-vol 512")).toBe(true);
+  });
+
+  it("should set options with methods", () => {
+    const ffmpeggy = new FFmpeggy();
+
+    ffmpeggy.setCwd(__dirname);
+    expect(ffmpeggy.cwd).toBe(__dirname);
+
+    ffmpeggy.setOverwriteExisting(false);
+    expect(ffmpeggy.overwriteExisting).toBe(false);
+
+    ffmpeggy.setPipe(true); // output = "-"
+    expect(ffmpeggy.output).toBe("-"); // pipe = true
+
+    ffmpeggy.setHideBanner(false);
+    expect(ffmpeggy.hideBanner).toBe(false);
+
+    ffmpeggy.setGlobalOptions(["-max_alloc 1024", "-vol 512"]);
+    expect(ffmpeggy.globalOptions.includes("-max_alloc 1024")).toBe(true);
+    expect(ffmpeggy.globalOptions.includes("-vol 512")).toBe(true);
+
+    ffmpeggy.setInputOptions([`-i ${sampleMp4}`]);
+    expect(ffmpeggy.inputOptions.includes(`-i ${sampleMp4}`)).toBe(true);
+
+    ffmpeggy.setOutputOptions(["-f mp4", "-c:v libx264"]);
+    expect(ffmpeggy.outputOptions.includes("-f mp4")).toBe(true);
+    expect(ffmpeggy.outputOptions.includes("-c:v libx264")).toBe(true);
+  });
+
   it("should copy bunny2.mp4 to temp file", (done) => {
     const ffmpeggy = new FFmpeggy();
     const tempFile = getTempFile("mp4");
@@ -205,6 +249,17 @@ describe("FFmpeggy", () => {
     ffmpeggy.run();
   });
 
+  it("should return existing process", () => {
+    const ffmpeggy = new FFmpeggy();
+    const tempFile = getTempFile("mp4");
+    const process = ffmpeggy
+      .setInput(sampleMp4)
+      .setOutputOptions(["-c copy"])
+      .setOutput(tempFile)
+      .run();
+    expect(ffmpeggy.run()).toEqual(process);
+  });
+
   describe("toStream()", () => {
     it("should pipe to piped.mkv", async () => {
       const tempFile = getTempFile("mkv");
@@ -252,7 +307,7 @@ describe("FFmpeggy", () => {
     });
   });
 
-  describe("probe", () => {
+  describe("probe()", () => {
     it("should probe bunny2.mp4", async () => {
       expect.assertions(5);
       const result = await FFmpeggy.probe(sampleMp4);
@@ -269,6 +324,28 @@ describe("FFmpeggy", () => {
         expect(e.message).toBe("Failed to probe");
         done();
       });
+    });
+  });
+
+  describe("run(): error handling", () => {
+    it("should throw error if ffmpegBin is falsey", () => {
+      const ffmpeggy = new FFmpeggy();
+      ffmpeggy.ffmpegBin = "";
+      const fn = async () => ffmpeggy.run();
+      expect(fn).rejects.toThrow("Missing path to ffmpeg binary");
+    });
+
+    it("should throw error if input is falsey", () => {
+      const ffmpeggy = new FFmpeggy({ input: "" });
+      ffmpeggy.input = "";
+      const fn = async () => ffmpeggy.run();
+      expect(fn).rejects.toThrow("No input specified");
+    });
+
+    it("should throw error if output is falsey", () => {
+      const ffmpeggy = new FFmpeggy({ input: "foo", output: "" });
+      const fn = async () => ffmpeggy.run();
+      expect(fn).rejects.toThrow("No output specified");
     });
   });
 });
