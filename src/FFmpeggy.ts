@@ -17,9 +17,9 @@ export interface FFmpeggyOptions {
   globalOptions?: string[];
   inputOptions?: string[];
   outputOptions?: string[];
-  autorun?: boolean;
   overwriteExisting?: boolean;
   hideBanner?: boolean;
+  autorun?: boolean;
 }
 
 export type FFmpeggyProgressEvent = FFmpeggyProgress & {
@@ -91,7 +91,7 @@ export class FFmpeggy extends (EventEmitter as new () => TypedEmitter<FFmpegEven
     if (opts.output) {
       this.output = opts.output;
     }
-    if (opts.pipe) {
+    if (typeof opts.pipe !== "undefined") {
       this.output = "-";
     }
     if (opts.globalOptions) {
@@ -102,6 +102,12 @@ export class FFmpeggy extends (EventEmitter as new () => TypedEmitter<FFmpegEven
     }
     if (opts.outputOptions) {
       this.outputOptions = opts.outputOptions;
+    }
+    if (typeof opts.overwriteExisting !== "undefined") {
+      this.overwriteExisting = opts.overwriteExisting;
+    }
+    if (typeof opts.hideBanner !== "undefined") {
+      this.hideBanner = opts.hideBanner;
     }
     if (opts.autorun) {
       this.run();
@@ -304,13 +310,25 @@ export class FFmpeggy extends (EventEmitter as new () => TypedEmitter<FFmpegEven
     }
   }
 
+  public setCwd(cwd: string): FFmpeggy {
+    this.cwd = cwd;
+    return this;
+  }
+
   public setOverwriteExisting(overwriteExisting: boolean): FFmpeggy {
     this.overwriteExisting = overwriteExisting;
     return this;
   }
 
-  public setCwd(cwd: string): FFmpeggy {
-    this.cwd = cwd;
+  public setPipe(pipe: boolean): FFmpeggy {
+    if (pipe) {
+      this.output = "-";
+    }
+    return this;
+  }
+
+  public setHideBanner(hideBanner: boolean): FFmpeggy {
+    this.hideBanner = hideBanner;
     return this;
   }
 
