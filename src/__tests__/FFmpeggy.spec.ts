@@ -155,11 +155,11 @@ describe("FFmpeggy", () => {
 
   it("should receive progress event", (done) => {
     expect.assertions(9);
-    const tempFile = getTempFile("mp4");
+    const tempFile = getTempFile("mkv");
     const ffmpeggy = new FFmpeggy();
     ffmpeggy
       .setInput(sampleMp4)
-      .setOutputOptions(["-c copy"])
+      .setOutputOptions(["-c:v libx264", "-c:a aac", "-f matroska"])
       .setOutput(tempFile)
       .run();
 
@@ -172,7 +172,7 @@ describe("FFmpeggy", () => {
       expect(progress.frame).toBeGreaterThan(0);
       expect(progress.fps).toBeDefined();
       expect(progress.q).toBeDefined();
-      expect(progress.size).toBe(1055744);
+      expect(progress.size).toBeGreaterThan(0);
       expect(progress.time).toBeGreaterThan(0);
       expect(progress.bitrate).toBeGreaterThan(0);
       expect(progress.speed).toBeGreaterThan(0);
