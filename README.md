@@ -208,7 +208,7 @@ Fires when ffmpeg reports that it has begun writing to a file. This can be used 
 
 Because I wasn't happy with the ones that already exists. Most of them are badly maintained, and/or lacking TypeScript typings or are too complex for my taste. I started coding on this a while back for another project and it's been working really well so figured it deserved it's own package.
 
-## How does ffmpeggy compare from fluent-ffmpeg?
+## How does ffmpeggy compare to fluent-ffmpeg?
 
 They strive to solve different problems. Whereas ffmpeggy aims to be lean and simple, fluent-ffmpeg aims to provide an exhaustive and human readable API. I personally don't need all of that but I might revisit it at a later stage. But an extended API will most likely end up in a separate package to keep this one as lean as possible.
 
