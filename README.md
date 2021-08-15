@@ -196,11 +196,13 @@ Fires when ffmpeg is outputting it's progress. Most of the properties in `FFmpeg
 - `percent`: An estimation of the progress percentage
 - `q`: The current quality scale (qscale). This is rarely used and is often just set to 0.
 
+> Note: If the operation is fast enough ffmpeg might not output a progress report that includes all the values so you need to handle that accordingly. This usually only happens when you copy directly from an input to an output without changing anything.
+
 #### `writing` - `(fileName: string) => void`
 
 Fires when ffmpeg reports that it has begun writing to a file. This can be used to track which fragment ffmpeg is currently writing to or when it updates a playlist.
 
-> Limitation: ffmpeg may finish before outputting this for every file so you need to handle that accordingly. Expect it to have successfully written every segment if it exits with error code 0.
+> Note: ffmpeg may finish before outputting this event for every file so you need to handle that accordingly. Expect it to have successfully written every segment if it exits with error code 0.
 
 ## Why another ffmpeg wrapper?
 
