@@ -3,8 +3,8 @@ import path from "path";
 import ffmpegBin from "ffmpeg-static";
 import { path as ffprobeBin } from "ffprobe-static";
 import { file as tmpFile } from "tempy";
-import { waitFile } from "wait-file";
 import { FFmpeggy, FFmpeggyProgressEvent } from "../FFmpeggy";
+import { waitFiles } from "./utils/waitFiles";
 
 // NOTE: "fs/promises" is not available in node 12 =(
 const { mkdir, rmdir, unlink, stat } = fs.promises;
@@ -42,7 +42,7 @@ describe("FFmpeggy", () => {
   afterAll(async () => {
     // Clean up temp files
     if (tempFiles.length > 0) {
-      await waitFile({ resources: tempFiles });
+      await waitFiles(tempFiles);
       await Promise.allSettled(tempFiles.map(unlink));
     }
     try {
@@ -111,7 +111,7 @@ describe("FFmpeggy", () => {
       .run();
 
     ffmpeggy.on("done", async () => {
-      await waitFile({ resources: [tempFile] });
+      await waitFiles([tempFile]);
       const tempStats = await stat(tempFile);
       expect(tempStats.size).toBeGreaterThan(0);
     });
@@ -133,7 +133,7 @@ describe("FFmpeggy", () => {
       outputOptions: ["-f matroska", "-c copy"],
     });
     await ffmpeggy.done();
-    await waitFile({ resources: [tempFile] });
+    await waitFiles([tempFile]);
     const pipedStats = await stat(tempFile);
     expect(pipedStats.size).toBeGreaterThan(0);
   });
@@ -148,7 +148,7 @@ describe("FFmpeggy", () => {
       outputOptions: ["-f mp3", "-c copy"],
     });
     await ffmpeggy.done();
-    await waitFile({ resources: [tempFile] });
+    await waitFiles([tempFile]);
     const pipedStats = await stat(tempFile);
     expect(pipedStats.size).toBeGreaterThan(0);
   });
@@ -273,7 +273,7 @@ describe("FFmpeggy", () => {
       const stream = ffmpeg.toStream();
       stream.pipe(createWriteStream(tempFile));
       await ffmpeg.done();
-      await waitFile({ resources: [tempFile] });
+      await waitFiles([tempFile]);
       const pipedStats = await stat(tempFile);
       expect(pipedStats.size).toBeGreaterThan(0);
     });
