@@ -68,6 +68,7 @@ jobs:
         with:
           name: build
       - run: yarn config set ./.yarn-cache
+      - run: yarn install
       - run: yarn test --coverage
       - uses: codecov/codecov-action@v2
         with:
@@ -92,7 +93,6 @@ jobs:
         env:
           cache-name: cache-node-modules
         with:
-          # we use a custom cache folder so that it is the same for all platforms
           path: .yarn-cache
           key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/yarn.lock') }}
           restore-keys: |
