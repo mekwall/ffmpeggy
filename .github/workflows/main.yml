@@ -10,6 +10,7 @@ jobs:
 
     strategy:
       matrix:
+        os: [macos-latest, ubuntu-latest, windows-latest]
         node-version: [12.x, 14.x, 16.x]
 
     steps:
@@ -18,7 +19,18 @@ jobs:
         uses: actions/setup-node@v2
         with:
           node-version: ${{ matrix.node-version }}
-          cache: "yarn"
+      - name: Cache node modules
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-node-modules
+        with:
+          path: .yarn-cache
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ env.cache-name }}-
+            ${{ runner.os }}-build-
+            ${{ runner.os }}-
+      - run: yarn config set ./.yarn-cache
       - run: yarn install
       - run: yarn build
       - run: yarn test:debug
@@ -40,12 +52,22 @@ jobs:
         uses: actions/setup-node@v2
         with:
           node-version: 16
-          cache: "yarn"
+      - name: Cache node modules
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-node-modules
+        with:
+          path: .yarn-cache
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ env.cache-name }}-
+            ${{ runner.os }}-build-
+            ${{ runner.os }}-
       - name: Download artifacts
         uses: actions/download-artifact@v2
         with:
           name: build
-      - run: yarn install
+      - run: yarn config set ./.yarn-cache
       - run: yarn test --coverage
       - uses: codecov/codecov-action@v2
         with:
@@ -61,11 +83,23 @@ jobs:
         uses: actions/setup-node@v2
         with:
           node-version: 16
-          cache: "yarn"
       - name: Download artifacts
         uses: actions/download-artifact@v2
         with:
           name: build
+      - name: Cache node modules
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-node-modules
+        with:
+          # we use a custom cache folder so that it is the same for all platforms
+          path: .yarn-cache
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ env.cache-name }}-
+            ${{ runner.os }}-build-
+            ${{ runner.os }}-
+      - run: yarn config set ./.yarn-cache
       - run: yarn install
       - name: Release
         env:
