@@ -8,6 +8,7 @@ jobs:
 
     strategy:
       matrix:
+        os: [macos-latest, ubuntu-latest, windows-latest]
         node-version: [12.x, 14.x, 16.x]
 
     steps:
@@ -16,7 +17,18 @@ jobs:
         uses: actions/setup-node@v2
         with:
           node-version: ${{ matrix.node-version }}
-          cache: "yarn"
+      - name: Cache node modules
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-node-modules
+        with:
+          path: .yarn-cache
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ env.cache-name }}-
+            ${{ runner.os }}-build-
+            ${{ runner.os }}-
+      - run: yarn config set ./.yarn-cache
       - run: yarn install
       - run: yarn build
       - run: yarn test
