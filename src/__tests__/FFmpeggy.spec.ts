@@ -1,13 +1,11 @@
-import fs, { createWriteStream, createReadStream } from "fs";
+import { createWriteStream, createReadStream } from "fs";
+import { mkdir, rm, unlink, stat } from "fs/promises";
 import path from "path";
 import ffmpegBin from "ffmpeg-static";
 import { path as ffprobeBin } from "ffprobe-static";
 import { file as tmpFile } from "tempy";
 import { FFmpeggy, FFmpeggyProgressEvent } from "../FFmpeggy";
 import { waitFiles } from "./utils/waitFiles";
-
-// NOTE: "fs/promises" is not available in node 12 =(
-const { mkdir, rmdir, unlink, stat } = fs.promises;
 
 FFmpeggy.DefaultConfig = {
   ...FFmpeggy.DefaultConfig,
@@ -46,7 +44,7 @@ describe("FFmpeggy", () => {
       await Promise.allSettled(tempFiles.map(unlink));
     }
     try {
-      await rmdir(path.join(__dirname, "samples/.temp/"), { recursive: true });
+      await rm(path.join(__dirname, "samples/.temp/"), { recursive: true });
     } catch {
       // Ignore
     }
