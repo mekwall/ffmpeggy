@@ -1,3 +1,12 @@
+## [2.1.5](https://github.com/mekwall/ffmpeggy/compare/v2.1.4...v2.1.5) (2022-05-21)
+
+
+### Bug Fixes
+
+* **deps:** upgrade all the deps ([eb1f8cb](https://github.com/mekwall/ffmpeggy/commit/eb1f8cbe5bf917416918e8122e114572b1970006))
+* error in catch is unknown since TypeScript 4.4 ([096258f](https://github.com/mekwall/ffmpeggy/commit/096258f35dd7f3659a2f1a41acf0ce02f1b93cbe))
+* **FFmpeggy:** interface not compatible with TypedEmitter ([30112c5](https://github.com/mekwall/ffmpeggy/commit/30112c5b33ef80c8732661893ee7476926072049))
+
 ## [2.1.4](https://github.com/mekwall/ffmpeggy/compare/v2.1.3...v2.1.4) (2022-05-21)
 
 
