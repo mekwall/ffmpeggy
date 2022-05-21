@@ -209,7 +209,8 @@ export class FFmpeggy extends (EventEmitter as new () => TypedEmitter<FFmpegEven
       }
 
       this.running = true;
-    } catch (e) {
+    } catch (err) {
+      const e = err as Error;
       this.error = e;
       debug("error: %o", e);
       this.emit("error", e);
