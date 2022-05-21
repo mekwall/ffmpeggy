@@ -27,15 +27,15 @@ export type FFmpeggyProgressEvent = FFmpeggyProgress & {
   percent?: number;
 };
 
-interface FFmpegEvents {
-  start: (ffmpegArgs: readonly string[]) => void;
+type FFmpegEvents = {
   error: (error: Error) => void;
+  start: (ffmpegArgs: readonly string[]) => void;
   done: (file?: string) => void;
   exit: (code?: number | null, error?: Error) => void;
   probe: (probeResult: FFprobeResult) => void;
   progress: (progress: FFmpeggyProgressEvent) => void;
   writing: (file: string) => void;
-}
+};
 
 const debug = createDebug("ffmpeggy");
 export class FFmpeggy extends (EventEmitter as new () => TypedEmitter<FFmpegEvents>) {
