@@ -1,3 +1,10 @@
+## [2.1.6](https://github.com/mekwall/ffmpeggy/compare/v2.1.5...v2.1.6) (2022-06-04)
+
+
+### Bug Fixes
+
+* **deps:** bump npm from 8.10.0 to 8.12.0 ([b00f049](https://github.com/mekwall/ffmpeggy/commit/b00f049ed8a545d3040ba009f6cf6ceac9f7eee7))
+
 ## [2.1.5](https://github.com/mekwall/ffmpeggy/compare/v2.1.4...v2.1.5) (2022-05-21)
 
 
