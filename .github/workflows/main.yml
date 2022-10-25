@@ -63,9 +63,9 @@ jobs:
           path: |
             ${{ steps.yarn-cache-dir-path.outputs.dir }}
             node_modules
-          key: ${{ runner.os }}-16.x-yarn-${{ hashFiles('**/yarn.lock') }}
+          key: ubuntu-latest-16.x-yarn-${{ hashFiles('**/yarn.lock') }}
           restore-keys: |
-            ${{ runner.os }}-16.x-yarn-
+            ubuntu-latest-16.x-yarn-
       - name: Download artifacts
         uses: actions/download-artifact@v3
         with:
@@ -101,9 +101,9 @@ jobs:
           path: |
             ${{ steps.yarn-cache-dir-path.outputs.dir }}
             node_modules
-          key: ${{ runner.os }}-16.x-yarn-${{ hashFiles('**/yarn.lock') }}
+          key: ubuntu-latest-16.x-yarn-${{ hashFiles('**/yarn.lock') }}
           restore-keys: |
-            ${{ runner.os }}-16.x-yarn-
+            ubuntu-latest-16.x-yarn-
       - name: Install dependencies
         run: yarn install
       - name: Release
