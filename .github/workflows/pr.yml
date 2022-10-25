@@ -4,6 +4,7 @@ on: pull_request
 
 jobs:
   build:
+    name: Build and test
     strategy:
       matrix:
         os: [macos-latest, ubuntu-latest, windows-latest]

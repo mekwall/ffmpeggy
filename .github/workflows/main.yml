@@ -8,6 +8,7 @@ on:
 
 jobs:
   build:
+    name: Build and test
     strategy:
       matrix:
         os: [macos-latest, ubuntu-latest, windows-latest]
@@ -35,8 +36,8 @@ jobs:
         run: yarn install
       - name: Build
         run: yarn build
-      # - name: Run tests
-      #   run: yarn test:debug
+      - name: Run tests
+        run: yarn test:debug
       - name: Upload artifacts
         uses: actions/upload-artifact@v3
         with:
@@ -46,6 +47,7 @@ jobs:
             cjs
 
   coverage:
+    name: Test coverage
     needs: build
     runs-on: ubuntu-latest
 
@@ -80,6 +82,7 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
 
   release:
+    name: Release
     needs: build
     runs-on: ubuntu-latest
 
