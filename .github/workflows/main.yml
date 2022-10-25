@@ -22,20 +22,21 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
       - name: Cache node modules
+        id: yarn-cache
         uses: actions/cache@v3
-        env:
-          cache-name: cache-node-modules
         with:
-          path: .yarn-cache
-          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/yarn.lock') }}
+          path: |
+            ${{ steps.yarn-cache-dir-path.outputs.dir }}
+            node_modules
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
           restore-keys: |
-            ${{ runner.os }}-build-${{ env.cache-name }}-
-            ${{ runner.os }}-build-
-            ${{ runner.os }}-
-      - run: yarn config set ./.yarn-cache
-      - run: yarn install
-      - run: yarn build
-      - run: yarn test:debug
+            ${{ runner.os }}-yarn-
+      - name: Install dependencies
+        run: yarn install
+      - name: Build
+        run: yarn build
+      # - name: Run tests
+      #   run: yarn test:debug
       - name: Upload artifacts
         uses: actions/upload-artifact@v2
         with:
@@ -52,25 +53,29 @@ jobs:
       - uses: actions/checkout@v3
       - name: Use Node.js
         uses: volta-cli/action@v3
+      - name: Get yarn cache directory path
+        id: yarn-cache-dir-path
+        run: echo "::set-output name=dir::$(yarn cache dir)"
       - name: Cache node modules
+        id: yarn-cache
         uses: actions/cache@v3
-        env:
-          cache-name: cache-node-modules
         with:
-          path: .yarn-cache
-          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/yarn.lock') }}
+          path: |
+            ${{ steps.yarn-cache-dir-path.outputs.dir }}
+            node_modules
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
           restore-keys: |
-            ${{ runner.os }}-build-${{ env.cache-name }}-
-            ${{ runner.os }}-build-
-            ${{ runner.os }}-
+            ${{ runner.os }}-yarn-
       - name: Download artifacts
         uses: actions/download-artifact@v3
         with:
           name: build
-      - run: yarn config set ./.yarn-cache
-      - run: yarn install
-      - run: yarn test --coverage
-      - uses: codecov/codecov-action@v3
+      - name: Install dependencies
+        run: yarn install
+      - name: Run tests
+        run: yarn test --coverage
+      - name: Upload coverage
+        uses: codecov/codecov-action@v3
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
 
@@ -86,19 +91,21 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           name: build
+      - name: Get yarn cache directory path
+        id: yarn-cache-dir-path
+        run: echo "::set-output name=dir::$(yarn cache dir)"
       - name: Cache node modules
+        id: yarn-cache
         uses: actions/cache@v3
-        env:
-          cache-name: cache-node-modules
         with:
-          path: .yarn-cache
-          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/yarn.lock') }}
+          path: |
+            ${{ steps.yarn-cache-dir-path.outputs.dir }}
+            node_modules
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
           restore-keys: |
-            ${{ runner.os }}-build-${{ env.cache-name }}-
-            ${{ runner.os }}-build-
-            ${{ runner.os }}-
-      - run: yarn config set ./.yarn-cache
-      - run: yarn install
+            ${{ runner.os }}-yarn-
+      - name: Install dependencies
+        run: yarn install
       - name: Release
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}

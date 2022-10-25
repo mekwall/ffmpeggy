@@ -17,18 +17,19 @@ jobs:
         uses: volta-cli/action@v3
         with:
           node-version: ${{ matrix.node-version }}
+      - name: Get yarn cache directory path
+        id: yarn-cache-dir-path
+        run: echo "::set-output name=dir::$(yarn cache dir)"
       - name: Cache node modules
+        id: yarn-cache
         uses: actions/cache@v3
-        env:
-          cache-name: cache-node-modules
         with:
-          path: .yarn-cache
-          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/yarn.lock') }}
+          path: |
+            ${{ steps.yarn-cache-dir-path.outputs.dir }}
+            node_modules
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
           restore-keys: |
-            ${{ runner.os }}-build-${{ env.cache-name }}-
-            ${{ runner.os }}-build-
-            ${{ runner.os }}-
-      - run: yarn config set ./.yarn-cache
+            ${{ runner.os }}-yarn-
       - run: yarn install
       - run: yarn build
       - run: yarn test
