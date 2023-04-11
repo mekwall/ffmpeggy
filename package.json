@@ -29,8 +29,8 @@
   "scripts": {
     "rebuild": "yarn build --clean",
     "build": "tsukuru -c tsconfig.build.json",
-    "test": "cross-env NODE_OPTIONS=--experimental-vm-modules jest --runInBand",
-    "test:debug": "cross-env DEBUG=ffmpeggy NODE_OPTIONS=--experimental-vm-modules jest --runInBand",
+    "test": "yarn node --experimental-vm-modules $(yarn bin jest) --runInBand",
+    "test:debug": "cross-env DEBUG=ffmpeggy yarn node --experimental-vm-modules $(yarn bin jest) --runInBand",
     "semantic-release": "semantic-release",
     "semantic-release:local": "dotenv semantic-release"
   },
