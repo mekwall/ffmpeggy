@@ -235,7 +235,9 @@ export class FFmpeggy extends (EventEmitter as new () => TypedEmitter<FFmpegEven
           const info = parseInfo(txt);
           if (info) {
             debug("info: %o", info);
-            duration = info.duration;
+            if (info.duration) {
+              duration = info.duration;
+            }
           }
         }
         const progress = parseProgress(txt);

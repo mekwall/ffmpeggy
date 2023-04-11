@@ -44,7 +44,7 @@ export function parseProgress(data: string): FFmpeggyProgress | undefined {
 }
 
 interface FFmpegInfo {
-  duration: number;
+  duration?: number;
   start: number;
   bitrate: number;
 }
@@ -57,7 +57,7 @@ export function parseInfo(data: string): FFmpegInfo | undefined {
     return;
   }
   return {
-    duration: timerToSecs(matches[1]),
+    duration: matches[1] ? timerToSecs(matches[1]) : undefined,
     start: Number(matches[2]),
     bitrate: parseBitrate(Number(matches[3]), matches[4]),
   };
