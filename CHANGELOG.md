@@ -1,3 +1,12 @@
+## [2.1.7](https://github.com/mekwall/ffmpeggy/compare/v2.1.6...v2.1.7) (2023-04-11)
+
+
+### Bug Fixes
+
+* **deps:** bump http-cache-semantics from 4.1.0 to 4.1.1 ([#298](https://github.com/mekwall/ffmpeggy/issues/298)) ([edbd22c](https://github.com/mekwall/ffmpeggy/commit/edbd22c0dbc78dc65de31ab3c80c7429c2d7738d))
+* **deps:** bump json5 from 1.0.1 to 1.0.2 ([#293](https://github.com/mekwall/ffmpeggy/issues/293)) ([f5eae42](https://github.com/mekwall/ffmpeggy/commit/f5eae428c523a3e5b0f78c527f82b5e9062e3563))
+* duration is NaN ([a925a97](https://github.com/mekwall/ffmpeggy/commit/a925a97546b9ac6e619f48c345b96b5dead3a836))
+
 ## [2.1.6](https://github.com/mekwall/ffmpeggy/compare/v2.1.5...v2.1.6) (2022-06-04)
 
 
