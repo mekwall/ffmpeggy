@@ -8,18 +8,24 @@ This is a hybrid package built in TypeScript that provides both CommonJS and ES 
 
 ## Installation
 
-```bash
-$ npm install --save ffmpeggy
-$ yarn add ffmpeggy
+```sh
+npm install --save ffmpeggy
+```
+**or**
+```sh
+yarn add ffmpeggy
 ```
 
 ### Installing `ffmpeg` and `ffprobe` binaries
 
 If you don't want to provide your own binaries, you can use the following packages that provides binaries for both ffmpeg and ffprobe:
 
-```bash
-$ npm install --save ffmpeg-static ffprobe-static
-$ yarn add ffmpeg-static ffprobe-static
+```sh
+npm install --save ffmpeg-static ffprobe-static
+```
+**or**
+```sh
+yarn add ffmpeg-static ffprobe-static
 ```
 
 You can then change the default config to use the binaries like this:
