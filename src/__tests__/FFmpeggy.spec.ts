@@ -1,9 +1,9 @@
+import crypto from "crypto";
 import { createWriteStream, createReadStream } from "fs";
-import { mkdir, rm, unlink, stat } from "fs/promises";
+import { mkdir, stat, unlink, rm } from "fs/promises";
 import path from "path";
 import ffmpegBin from "ffmpeg-static";
 import { path as ffprobeBin } from "ffprobe-static";
-import { file as tmpFile } from "tempy";
 import { FFmpeggy, FFmpeggyProgressEvent } from "../FFmpeggy";
 import { waitFiles } from "./utils/waitFiles";
 
@@ -14,24 +14,34 @@ FFmpeggy.DefaultConfig = {
   ffmpegBin,
 };
 
-describe("FFmpeggy", () => {
-  const sampleMkv = path.join(__dirname, "samples/bunny1.mkv");
-  const sampleMp4 = path.join(__dirname, "samples/bunny2.mp4");
-  const sampleMp3 = path.join(__dirname, "samples/audio.mp3");
-  const tempFiles: string[] = [];
+const SAMPLE_DIR = path.join(__dirname, "samples/");
+const TMP_DIR = path.join(SAMPLE_DIR, ".temp/");
 
-  // bump jest timeout since file operations can take some time (especially on CI)
-  jest.setTimeout(60000);
-
-  function getTempFile(extension: string): string {
-    const file = tmpFile({ extension });
-    tempFiles.push(file);
-    return file;
+function tmpFile(extension: string): string {
+  // Ensure the extension starts with a dot
+  if (extension[0] !== ".") {
+    extension = "." + extension;
   }
+
+  // Generate a random file name using current timestamp and random bytes
+  const timestamp = new Date().getTime();
+  const randomBytes = crypto.randomBytes(8).toString("hex");
+  const tempFilename = path.join(
+    TMP_DIR,
+    `temp-${timestamp}-${randomBytes}${extension}`
+  );
+  return tempFilename;
+}
+
+describe("FFmpeggy", () => {
+  const sampleMkv = path.join(SAMPLE_DIR, "bunny1.mkv");
+  const sampleMp4 = path.join(SAMPLE_DIR, "bunny2.mp4");
+  const sampleMp3 = path.join(SAMPLE_DIR, "audio.mp3");
+  const tempFiles: string[] = [];
 
   beforeAll(async () => {
     try {
-      await mkdir(path.join(__dirname, "samples/.temp/"));
+      await mkdir(TMP_DIR);
     } catch {
       // Ignore
     }
@@ -44,11 +54,25 @@ describe("FFmpeggy", () => {
       await Promise.allSettled(tempFiles.map(unlink));
     }
     try {
-      await rm(path.join(__dirname, "samples/.temp/"), { recursive: true });
+      await rm(TMP_DIR, {
+        recursive: true,
+        force: true,
+        // maxRetries: 3,
+        // retryDelay: 1000,
+      });
     } catch {
       // Ignore
     }
   });
+
+  // bump jest timeout since file operations can take some time (especially on CI)
+  jest.setTimeout(60000);
+
+  function getTempFile(extension: string): string {
+    const file = tmpFile(extension);
+    tempFiles.push(file);
+    return file;
+  }
 
   it("should initialize", () => {
     const ffmpeggy = new FFmpeggy();
@@ -157,7 +181,7 @@ describe("FFmpeggy", () => {
     const ffmpeggy = new FFmpeggy();
     ffmpeggy
       .setInput(sampleMp4)
-      .setOutputOptions(["-c:v libx264", "-c:a aac", "-f matroska"])
+      .setOutputOptions(["-c:v libx264", "-c:a aac"])
       .setOutput(tempFile)
       .run();
 
@@ -190,7 +214,7 @@ describe("FFmpeggy", () => {
     const segmentCount = 3;
     const ffmpeggy = new FFmpeggy({
       input: sampleMkv,
-      output: path.join(__dirname, "samples/.temp/temp-%d.mpegts"),
+      output: path.join(TMP_DIR, "temp-%d.mpegts"),
       outputOptions: [
         `-t ${segmentCount}`,
         "-map 0",
@@ -206,7 +230,7 @@ describe("FFmpeggy", () => {
         "-individual_header_trailer 0",
         "-start_at_zero",
         "-segment_list_type m3u8",
-        `-segment_list ${path.join(__dirname, "samples/.temp/playlist.m3u8")}`,
+        `-segment_list ${path.join(TMP_DIR, "playlist.m3u8")}`,
         "-segment_time 1",
         "-segment_format mpegts",
       ],
@@ -214,9 +238,7 @@ describe("FFmpeggy", () => {
 
     const segments = new Array(segmentCount)
       .fill(undefined)
-      .map((_v, idx) =>
-        path.join(__dirname, "samples/.temp/", `temp-${idx}.mpegts`)
-      );
+      .map((_v, idx) => path.join(TMP_DIR, `temp-${idx}.mpegts`));
 
     let writingEvents = 0;
     ffmpeggy.on("writing", (file) => {
