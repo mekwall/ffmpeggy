@@ -39,7 +39,7 @@
   },
   "dependencies": {
     "debug": "^4.3.2",
-    "execa": "^5.1.1",
+    "execa": "^7.1.1",
     "typed-emitter": "^2.1.0"
   },
   "devDependencies": {
