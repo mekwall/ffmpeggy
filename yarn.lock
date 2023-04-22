@@ -2597,16 +2597,16 @@ __metadata:
   linkType: hard
 
 "@semantic-release/changelog@npm:^6.0.1":
-  version: 6.0.1
-  resolution: "@semantic-release/changelog@npm:6.0.1"
+  version: 6.0.3
+  resolution: "@semantic-release/changelog@npm:6.0.3"
   dependencies:
     "@semantic-release/error": ^3.0.0
     aggregate-error: ^3.0.0
-    fs-extra: ^9.0.0
+    fs-extra: ^11.0.0
     lodash: ^4.17.4
   peerDependencies:
     semantic-release: ">=18.0.0"
-  checksum: a7c999f20297f229ebb32dc65f56c3aee237d941b478a1c75f5e904382c66fc4054bf3da93b1f5382e0b689147a825665500332f70807bfed952d312d2f501ac
+  checksum: 63283df7aaff7b2d5c08ac322faf362fd953d4ca4f2d2a1855ca51482ff8e973e38497a4c4a35a5b6ebec8373608895ef74d41072565e5bf3766850b4a6def37
   languageName: node
   linkType: hard
 
@@ -5371,7 +5371,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"fs-extra@npm:^9.0.0, fs-extra@npm:^9.1.0":
+"fs-extra@npm:^9.1.0":
   version: 9.1.0
   resolution: "fs-extra@npm:9.1.0"
   dependencies:
