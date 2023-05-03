@@ -2287,37 +2287,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@oclif/command@npm:^1.8.16":
-  version: 1.8.16
-  resolution: "@oclif/command@npm:1.8.16"
-  dependencies:
-    "@oclif/config": ^1.18.2
-    "@oclif/errors": ^1.3.5
-    "@oclif/help": ^1.0.1
-    "@oclif/parser": ^3.8.6
-    debug: ^4.1.1
-    semver: ^7.3.2
-  peerDependencies:
-    "@oclif/config": ^1
-  checksum: c7cac8e1f9a7e5d9d88a316becc6f7f3bc72fce1a2d583d39b0b08cd98c13f0fe71e256f90ac586d7bd21054c8e76c0fef0b823bb7d108977d777e10c2678e7d
-  languageName: node
-  linkType: hard
-
-"@oclif/config@npm:1.18.2":
-  version: 1.18.2
-  resolution: "@oclif/config@npm:1.18.2"
-  dependencies:
-    "@oclif/errors": ^1.3.3
-    "@oclif/parser": ^3.8.0
-    debug: ^4.1.1
-    globby: ^11.0.1
-    is-wsl: ^2.1.1
-    tslib: ^2.0.0
-  checksum: edb82ae885bb5a7a244d99707f837f8f0c7a3286a9f19e6cda2af599a06c189c21221082acde9927dadf951d060bdc05bee9ea5f9e8223c12688956b94c3b1e0
-  languageName: node
-  linkType: hard
-
-"@oclif/config@npm:^1.18.2, @oclif/config@npm:^1.18.3":
+"@oclif/config@npm:^1.18.3":
   version: 1.18.3
   resolution: "@oclif/config@npm:1.18.3"
   dependencies:
@@ -2328,6 +2298,42 @@ __metadata:
     is-wsl: ^2.1.1
     tslib: ^2.3.1
   checksum: 96b4cde1ec68e82414c456687af2643c500f595b40ff0b0da3dd4aed93de096c07c01887e6d8e93701859956cad491502143b6ab35df86faacddc6a0272c3133
+  languageName: node
+  linkType: hard
+
+"@oclif/core@npm:^1.20.4":
+  version: 1.26.2
+  resolution: "@oclif/core@npm:1.26.2"
+  dependencies:
+    "@oclif/linewrap": ^1.0.0
+    "@oclif/screen": ^3.0.4
+    ansi-escapes: ^4.3.2
+    ansi-styles: ^4.3.0
+    cardinal: ^2.1.1
+    chalk: ^4.1.2
+    clean-stack: ^3.0.1
+    cli-progress: ^3.10.0
+    debug: ^4.3.4
+    ejs: ^3.1.6
+    fs-extra: ^9.1.0
+    get-package-type: ^0.1.0
+    globby: ^11.1.0
+    hyperlinker: ^1.0.0
+    indent-string: ^4.0.0
+    is-wsl: ^2.2.0
+    js-yaml: ^3.14.1
+    natural-orderby: ^2.0.3
+    object-treeify: ^1.1.33
+    password-prompt: ^1.1.2
+    semver: ^7.3.7
+    string-width: ^4.2.3
+    strip-ansi: ^6.0.1
+    supports-color: ^8.1.1
+    supports-hyperlinks: ^2.2.0
+    tslib: ^2.4.1
+    widest-line: ^3.1.0
+    wrap-ansi: ^7.0.0
+  checksum: 1da7f22fff1eb4bba10f17f07a97bad308d317a0b591561be7f1171edff2f40bf84830295965b26cfcb80d3c5df7958df35bbbba4ce030e14a68bbc8e3cedc82
   languageName: node
   linkType: hard
 
@@ -2367,7 +2373,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@oclif/errors@npm:1.3.5, @oclif/errors@npm:^1.3.3, @oclif/errors@npm:^1.3.5":
+"@oclif/errors@npm:^1.3.5":
   version: 1.3.5
   resolution: "@oclif/errors@npm:1.3.5"
   dependencies:
@@ -2380,23 +2386,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@oclif/help@npm:^1.0.1":
-  version: 1.0.1
-  resolution: "@oclif/help@npm:1.0.1"
-  dependencies:
-    "@oclif/config": 1.18.2
-    "@oclif/errors": 1.3.5
-    chalk: ^4.1.2
-    indent-string: ^4.0.0
-    lodash: ^4.17.21
-    string-width: ^4.2.0
-    strip-ansi: ^6.0.0
-    widest-line: ^3.1.0
-    wrap-ansi: ^6.2.0
-  checksum: 26cdde82ca98f34bc57f7c7513b151f5fc2a6332f37b2f1186fe6d946011b7a4cc11e91053c569ebd28ad2b2ea90fd4a0851a21167e7780041a0caf369a8b277
-  languageName: node
-  linkType: hard
-
 "@oclif/linewrap@npm:^1.0.0":
   version: 1.0.0
   resolution: "@oclif/linewrap@npm:1.0.0"
@@ -2404,7 +2393,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@oclif/parser@npm:^3.8.0, @oclif/parser@npm:^3.8.6":
+"@oclif/parser@npm:^3.8.0":
   version: 3.8.7
   resolution: "@oclif/parser@npm:3.8.7"
   dependencies:
@@ -2429,6 +2418,13 @@ __metadata:
   version: 3.0.2
   resolution: "@oclif/screen@npm:3.0.2"
   checksum: 962678c65f1cf5b06864295a212020e3ddda36ab37190ca317e938943325a5acdbf3cb2761c371612daf1565e397fa5ff7bd0563887d746ccfde7c4ab312f005
+  languageName: node
+  linkType: hard
+
+"@oclif/screen@npm:^3.0.4":
+  version: 3.0.4
+  resolution: "@oclif/screen@npm:3.0.4"
+  checksum: 6d662c81edfbc8acb50a30001e3c2261171e8baffcd6010603c331de375c5d0c9ce6b3230f6b0ce24961bfa3531f99e771265ea74d9d7a0ee37fb9357fb436a7
   languageName: node
   linkType: hard
 
@@ -2952,10 +2948,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:^12.12.14":
-  version: 12.20.55
-  resolution: "@types/node@npm:12.20.55"
-  checksum: e4f86785f4092706e0d3b0edff8dca5a13b45627e4b36700acd8dfe6ad53db71928c8dee914d4276c7fd3b6ccd829aa919811c9eb708a2c8e4c6eb3701178c37
+"@types/node@npm:^14.18.13":
+  version: 14.18.43
+  resolution: "@types/node@npm:14.18.43"
+  checksum: 3ef43eda265c346597bc5c8329605255550f7a92300a76e9e3c48e07fd685b4a48d47465997bf6f1a68b235c7339e6e583d73515769efcad70e4f8f4c7f47fd4
   languageName: node
   linkType: hard
 
@@ -3001,6 +2997,13 @@ __metadata:
   version: 2.0.1
   resolution: "@types/stack-utils@npm:2.0.1"
   checksum: 205fdbe3326b7046d7eaf5e494d8084f2659086a266f3f9cf00bccc549c8e36e407f88168ad4383c8b07099957ad669f75f2532ed4bc70be2b037330f7bae019
+  languageName: node
+  linkType: hard
+
+"@types/toposort@npm:^2.0.3":
+  version: 2.0.3
+  resolution: "@types/toposort@npm:2.0.3"
+  checksum: 018a372a899fd417d67ed85cb98bd3f15915020b865257b9e795e443bcfa0df79c6c44693ba88cbdd9e54ca872cecb91bf46764ec03c5b63968b2234804d14d2
   languageName: node
   linkType: hard
 
@@ -5189,9 +5192,9 @@ __metadata:
     ffprobe-static: ^3.0.0
     jest: ^29.0.2
     semantic-release: ^21.0.1
-    tsukuru: ^0.7.2
+    tsukuru: ^0.8.0
     typed-emitter: ^2.1.0
-    typescript: ^4.3.5
+    typescript: ^5.0.4
   languageName: unknown
   linkType: soft
 
@@ -10097,6 +10100,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"toposort@npm:^2.0.2":
+  version: 2.0.2
+  resolution: "toposort@npm:2.0.2"
+  checksum: d64c74b570391c9432873f48e231b439ee56bc49f7cb9780b505cfdf5cb832f808d0bae072515d93834dd6bceca5bb34448b5b4b408335e4d4716eaf68195dcb
+  languageName: node
+  linkType: hard
+
 "tr46@npm:~0.0.3":
   version: 0.0.3
   resolution: "tr46@npm:0.0.3"
@@ -10144,32 +10154,41 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tslib@npm:^2.0.0, tslib@npm:^2.0.3, tslib@npm:^2.1.0, tslib@npm:^2.3.1":
+"tslib@npm:^2.0.3, tslib@npm:^2.1.0, tslib@npm:^2.3.1":
   version: 2.4.0
   resolution: "tslib@npm:2.4.0"
   checksum: 8c4aa6a3c5a754bf76aefc38026134180c053b7bd2f81338cb5e5ebf96fefa0f417bff221592bf801077f5bf990562f6264fecbc42cd3309b33872cb6fc3b113
   languageName: node
   linkType: hard
 
-"tsukuru@npm:^0.7.2":
-  version: 0.7.4
-  resolution: "tsukuru@npm:0.7.4"
+"tslib@npm:^2.4.1":
+  version: 2.5.0
+  resolution: "tslib@npm:2.5.0"
+  checksum: ae3ed5f9ce29932d049908ebfdf21b3a003a85653a9a140d614da6b767a93ef94f460e52c3d787f0e4f383546981713f165037dc2274df212ea9f8a4541004e1
+  languageName: node
+  linkType: hard
+
+"tsukuru@npm:^0.8.0":
+  version: 0.8.0
+  resolution: "tsukuru@npm:0.8.0"
   dependencies:
-    "@oclif/command": ^1.8.16
     "@oclif/config": ^1.18.3
+    "@oclif/core": ^1.20.4
     "@oclif/errors": ^1.3.5
     "@oclif/plugin-help": ^5.1.12
-    "@types/node": ^12.12.14
+    "@types/node": ^14.18.13
     "@types/rimraf": ^3.0.0
+    "@types/toposort": ^2.0.3
     chalk: ^4.1.0
     ora: ^5.1.0
     rimraf: ^3.0.2
+    toposort: ^2.0.2
     tslib: ^2.0.3
   peerDependencies:
-    typescript: ">=4.5.2 <4.7"
+    typescript: ">=4.8.2 <5.1"
   bin:
     tsukuru: lib/cli.js
-  checksum: 9072d54f58ad81f62309c4a84e29465e33e663874b8d9dd60ff9f452aaa34ec0c714a2cf9a73e3296057deb58ef0c26ae1b849b62543a46c35e26149883889e3
+  checksum: 321dc3301f4fa7ac906749d7fd2869cbe551ba5ca378ed79080ab110b8a39ee9744f911fb5c3c7b76b7402c01ca2dfd61f1fa4eca90d94d102bb6f46259e253d
   languageName: node
   linkType: hard
 
@@ -10296,23 +10315,23 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@npm:^4.3.5":
-  version: 4.6.4
-  resolution: "typescript@npm:4.6.4"
+"typescript@npm:^5.0.4":
+  version: 5.0.4
+  resolution: "typescript@npm:5.0.4"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
-  checksum: e7bfcc39cd4571a63a54e5ea21f16b8445268b9900bf55aee0e02ad981be576acc140eba24f1af5e3c1457767c96cea6d12861768fb386cf3ffb34013718631a
+  checksum: 82b94da3f4604a8946da585f7d6c3025fff8410779e5bde2855ab130d05e4fd08938b9e593b6ebed165bda6ad9292b230984f10952cf82f0a0ca07bbeaa08172
   languageName: node
   linkType: hard
 
-"typescript@patch:typescript@^4.3.5#~builtin<compat/typescript>":
-  version: 4.6.4
-  resolution: "typescript@patch:typescript@npm%3A4.6.4#~builtin<compat/typescript>::version=4.6.4&hash=5d3a66"
+"typescript@patch:typescript@^5.0.4#~builtin<compat/typescript>":
+  version: 5.0.4
+  resolution: "typescript@patch:typescript@npm%3A5.0.4#~builtin<compat/typescript>::version=5.0.4&hash=85af82"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
-  checksum: 1cb434fbc637d347be90e3a0c6cd05e33c38f941713c8786d3031faf1842c2c148ba91d2fac01e7276b0ae3249b8633f1660e32686cc7a8c6a8fd5361dc52c66
+  checksum: bb309d320c59a26565fb3793dba550576ab861018ff3fd1b7fccabbe46ae4a35546bc45f342c0a0b6f265c801ccdf64ffd68f548f117ceb7f0eac4b805cd52a9
   languageName: node
   linkType: hard
 
@@ -10639,17 +10658,6 @@ __metadata:
   version: 1.0.0
   resolution: "wordwrap@npm:1.0.0"
   checksum: 2a44b2788165d0a3de71fd517d4880a8e20ea3a82c080ce46e294f0b68b69a2e49cff5f99c600e275c698a90d12c5ea32aff06c311f0db2eb3f1201f3e7b2a04
-  languageName: node
-  linkType: hard
-
-"wrap-ansi@npm:^6.2.0":
-  version: 6.2.0
-  resolution: "wrap-ansi@npm:6.2.0"
-  dependencies:
-    ansi-styles: ^4.0.0
-    string-width: ^4.1.0
-    strip-ansi: ^6.0.0
-  checksum: 6cd96a410161ff617b63581a08376f0cb9162375adeb7956e10c8cd397821f7eb2a6de24eb22a0b28401300bf228c86e50617cd568209b5f6775b93c97d2fe3a
   languageName: node
   linkType: hard
 
