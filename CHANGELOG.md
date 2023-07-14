@@ -1,3 +1,10 @@
+## [2.1.8](https://github.com/mekwall/ffmpeggy/compare/v2.1.7...v2.1.8) (2023-07-14)
+
+
+### Bug Fixes
+
+* **deps:** bump semver from 5.7.1 to 5.7.2 ([#405](https://github.com/mekwall/ffmpeggy/issues/405)) ([7d9209b](https://github.com/mekwall/ffmpeggy/commit/7d9209bd417dc868d9533ead3d421eb7b299bdb1))
+
 ## [2.1.7](https://github.com/mekwall/ffmpeggy/compare/v2.1.6...v2.1.7) (2023-04-11)
 
 
