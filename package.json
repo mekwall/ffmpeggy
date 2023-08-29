@@ -22,6 +22,7 @@
   "types": "./cjs/index.d.ts",
   "exports": {
     ".": {
+      "types": "./cjs/index.d.ts",
       "require": "./cjs/index.js",
       "import": "./es/index.mjs"
     }
