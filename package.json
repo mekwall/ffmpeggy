@@ -26,6 +26,13 @@
       "import": "./es/index.mjs"
     }
   },
+  "files": [
+    "cjs",
+    "es",
+    "CHANGELOG.md",
+    "LICENSE",
+    "README.md"
+  ],
   "scripts": {
     "rebuild": "yarn build --clean",
     "build": "tsukuru -c tsconfig.build.json",
