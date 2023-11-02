@@ -82,8 +82,8 @@ jobs:
           name: build
       - name: Install dependencies
         run: yarn install
-      - name: Release
+      - name: Semantic Release
+        uses: cycjimmy/semantic-release-action@v4
         env:
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: yarn semantic-release
