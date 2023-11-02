@@ -1,3 +1,20 @@
+# [3.0.0](https://github.com/mekwall/ffmpeggy/compare/v2.1.8...v3.0.0) (2023-11-02)
+
+
+### Bug Fixes
+
+* **deps:** bump @babel/traverse from 7.22.5 to 7.23.2 ([#444](https://github.com/mekwall/ffmpeggy/issues/444)) ([880f957](https://github.com/mekwall/ffmpeggy/commit/880f9572796893e19dc19324b50a282ff3d23a7d))
+
+
+### chore
+
+* **yarn/node/ci:** upgrade yarn, node and update ci workflows ([#449](https://github.com/mekwall/ffmpeggy/issues/449)) ([5071888](https://github.com/mekwall/ffmpeggy/commit/5071888002580ca19fa22e8ba940fb6ad06e204a))
+
+
+### BREAKING CHANGES
+
+* **yarn/node/ci:** Package no longer supports node v16 or earlier. It will probably work but will no longer be officially supported.
+
 ## [2.1.8](https://github.com/mekwall/ffmpeggy/compare/v2.1.7...v2.1.8) (2023-07-14)
 
 

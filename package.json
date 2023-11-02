@@ -1,6 +1,6 @@
 {
   "name": "ffmpeggy",
-  "version": "2.1.8",
+  "version": "3.0.0",
   "description": "A minimal yet powerful wrapper around ffmpeg and ffprobe",
   "keywords": [
     "ffmpeg",
