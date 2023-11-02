@@ -13,35 +13,27 @@ jobs:
       matrix:
         os:
           - ubuntu-latest
+          # Times out on GitHub CI :(
           # - macos-latest
           # - windows-latest
-        node-version: [16.x, 18.x, 19.x]
+        node-version: [18, 19, 21]
 
     runs-on: ${{ matrix.os }}
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Use Node.js ${{ matrix.node-version }}
-        uses: volta-cli/action@v3
+        uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
-      - name: Cache node modules
-        id: yarn-cache
-        uses: actions/cache@v3
-        with:
-          path: |
-            ${{ steps.yarn-cache-dir-path.outputs.dir }}
-            node_modules
-          key: ${{ runner.os }}-${{ matrix.node-version }}-yarn-${{ hashFiles('**/yarn.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-${{ matrix.node-version }}-yarn-
+          cache: yarn
       - name: Install dependencies
         run: yarn install
       - name: Build
         run: yarn build
       - name: Run tests
         run: yarn test:debug
-      - name: Upload artifacts
+      - name: Upload build artifacts
         uses: actions/upload-artifact@v3
         with:
           name: build
@@ -55,23 +47,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Use Node.js
-        uses: volta-cli/action@v3
-      - name: Get yarn cache directory path
-        id: yarn-cache-dir-path
-        run: echo "::set-output name=dir::$(yarn cache dir)"
-      - name: Cache node modules
-        id: yarn-cache
-        uses: actions/cache@v3
+        uses: actions/setup-node@v4
         with:
-          path: |
-            ${{ steps.yarn-cache-dir-path.outputs.dir }}
-            node_modules
-          key: ${{ runner.os }}-16.x-yarn-${{ hashFiles('**/yarn.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-16.x-yarn-
-      - name: Download artifacts
+          cache: yarn
+      - name: Download build artifacts
         uses: actions/download-artifact@v3
         with:
           name: build
@@ -90,30 +71,19 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Use Node.js
-        uses: volta-cli/action@v3
-      - name: Download artifacts
-        uses: actions/download-artifact@v2
+        uses: actions/setup-node@v4
+        with:
+          cache: yarn
+      - name: Download build artifacts
+        uses: actions/download-artifact@v3
         with:
           name: build
-      - name: Get yarn cache directory path
-        id: yarn-cache-dir-path
-        run: echo "::set-output name=dir::$(yarn cache dir)"
-      - name: Cache node modules
-        id: yarn-cache
-        uses: actions/cache@v3
-        with:
-          path: |
-            ${{ steps.yarn-cache-dir-path.outputs.dir }}
-            node_modules
-          key: ${{ runner.os }}-16.x-yarn-${{ hashFiles('**/yarn.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-16.x-yarn-
       - name: Install dependencies
         run: yarn install
-      - name: Release
+      - name: Semantic Release
+        uses: cycjimmy/semantic-release-action@v4
         env:
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: yarn semantic-release
