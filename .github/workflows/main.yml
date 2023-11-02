@@ -16,7 +16,7 @@ jobs:
           # Times out on GitHub CI :(
           # - macos-latest
           # - windows-latest
-        node-version: [16, 18, 19, 21]
+        node-version: [18, 19, 21]
 
     runs-on: ${{ matrix.os }}
 
