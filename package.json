@@ -22,10 +22,18 @@
   "types": "./cjs/index.d.ts",
   "exports": {
     ".": {
+      "types": "./cjs/index.d.ts",
       "require": "./cjs/index.js",
       "import": "./es/index.mjs"
     }
   },
+  "files": [
+    "cjs",
+    "es",
+    "CHANGELOG.md",
+    "LICENSE",
+    "README.md"
+  ],
   "scripts": {
     "rebuild": "yarn build --clean",
     "build": "tsukuru -c tsconfig.build.json",
