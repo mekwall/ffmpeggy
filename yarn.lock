@@ -3136,16 +3136,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/glob@npm:*":
-  version: 7.2.0
-  resolution: "@types/glob@npm:7.2.0"
-  dependencies:
-    "@types/minimatch": "npm:*"
-    "@types/node": "npm:*"
-  checksum: 6ae717fedfdfdad25f3d5a568323926c64f52ef35897bcac8aca8e19bc50c0bd84630bbd063e5d52078b2137d8e7d3c26eabebd1a2f03ff350fff8a91e79fc19
-  languageName: node
-  linkType: hard
-
 "@types/graceful-fs@npm:^4.1.3":
   version: 4.1.5
   resolution: "@types/graceful-fs@npm:4.1.5"
@@ -3204,13 +3194,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/minimatch@npm:*":
-  version: 3.0.5
-  resolution: "@types/minimatch@npm:3.0.5"
-  checksum: c41d136f67231c3131cf1d4ca0b06687f4a322918a3a5adddc87ce90ed9dbd175a3610adee36b106ae68c0b92c637c35e02b58c8a56c424f71d30993ea220b92
-  languageName: node
-  linkType: hard
-
 "@types/minimist@npm:^1.2.0":
   version: 1.2.2
   resolution: "@types/minimist@npm:1.2.2"
@@ -3257,16 +3240,6 @@ __metadata:
   version: 2.4.4
   resolution: "@types/normalize-package-data@npm:2.4.4"
   checksum: 65dff72b543997b7be8b0265eca7ace0e34b75c3e5fee31de11179d08fa7124a7a5587265d53d0409532ecb7f7fba662c2012807963e1f9b059653ec2c83ee05
-  languageName: node
-  linkType: hard
-
-"@types/rimraf@npm:^3.0.0":
-  version: 3.0.2
-  resolution: "@types/rimraf@npm:3.0.2"
-  dependencies:
-    "@types/glob": "npm:*"
-    "@types/node": "npm:*"
-  checksum: b47fa302f46434cba704d20465861ad250df79467d3d289f9d6490d3aeeb41e8cb32dd80bd1a8fd833d1e185ac719fbf9be12e05ad9ce9be094d8ee8f1405347
   languageName: node
   linkType: hard
 
@@ -11029,26 +11002,24 @@ __metadata:
   linkType: hard
 
 "tsukuru@npm:^0.8.0":
-  version: 0.8.0
-  resolution: "tsukuru@npm:0.8.0"
+  version: 0.8.1
+  resolution: "tsukuru@npm:0.8.1"
   dependencies:
     "@oclif/config": "npm:^1.18.3"
     "@oclif/core": "npm:^1.20.4"
     "@oclif/errors": "npm:^1.3.5"
     "@oclif/plugin-help": "npm:^5.1.12"
     "@types/node": "npm:^14.18.13"
-    "@types/rimraf": "npm:^3.0.0"
     "@types/toposort": "npm:^2.0.3"
     chalk: "npm:^4.1.0"
     ora: "npm:^5.1.0"
-    rimraf: "npm:^3.0.2"
     toposort: "npm:^2.0.2"
     tslib: "npm:^2.0.3"
   peerDependencies:
     typescript: ">=4.8.2 <5.1"
   bin:
     tsukuru: lib/cli.js
-  checksum: 297ae994f172fd100d2addca4b508d7f0c24b1a246ae469a2921bd7a1b61a92dfd436043f6a78530dfe42938e266978eee0887da67501845096dc245a7df6418
+  checksum: 5e1837402d8996e3051fca47b5b94461354928b88ed890de2e53108b6b00b0e9a59101de2a626c6436f7057b7d4980c145a68003412f567304d77105803e84ed
   languageName: node
   linkType: hard
 
