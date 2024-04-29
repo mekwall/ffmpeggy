@@ -1,3 +1,10 @@
+## [3.0.1](https://github.com/mekwall/ffmpeggy/compare/v3.0.0...v3.0.1) (2024-04-29)
+
+
+### Bug Fixes
+
+* **deps:** bump ip from 1.1.8 to 1.1.9 ([#480](https://github.com/mekwall/ffmpeggy/issues/480)) ([f71774d](https://github.com/mekwall/ffmpeggy/commit/f71774d46f19888f5a120cec981922abba8a639f))
+
 # [3.0.0](https://github.com/mekwall/ffmpeggy/compare/v2.1.8...v3.0.0) (2023-11-02)
 
 
