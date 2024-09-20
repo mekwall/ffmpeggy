@@ -117,9 +117,5 @@
       "cjs"
     ]
   },
-  "volta": {
-    "node": "21.1.0",
-    "yarn": "1.22.19"
-  },
-  "packageManager": "yarn@4.0.1"
+  "packageManager": "yarn@4.5.0"
 }
