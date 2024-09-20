@@ -13,28 +13,30 @@ jobs:
       matrix:
         os:
           - ubuntu-latest
-          # Times out on GitHub CI :(
-          # - macos-latest
-          # - windows-latest
-        node-version: [18, 19, 21]
+        node-version: [18.x, 20.x, 22.x]
 
     runs-on: ${{ matrix.os }}
 
     steps:
       - uses: actions/checkout@v4
-      - name: Use Node.js ${{ matrix.node-version }}
+      - name: Set up Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
-          cache: yarn
+          cache: "yarn"
+
       - name: Install dependencies
-        run: yarn install
+        run: yarn install --frozen-lockfile
+
       - name: Build
         run: yarn build
+
       - name: Run tests
         run: yarn test:debug
-      - name: Upload build artifacts
-        uses: actions/upload-artifact@v3
+
+      - name: Upload build artifacts (only on Node.js 22.x)
+        if: matrix.node-version == '22.x'
+        uses: actions/upload-artifact@v4
         with:
           name: build
           path: |
@@ -48,20 +50,25 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      - name: Use Node.js
+      - name: Set up latest Node.js
         uses: actions/setup-node@v4
         with:
-          cache: yarn
+          node-version: 22.x
+          cache: "yarn"
+
       - name: Download build artifacts
-        uses: actions/download-artifact@v4.1.7
+        uses: actions/download-artifact@v4
         with:
           name: build
+
       - name: Install dependencies
-        run: yarn install
-      - name: Run tests
+        run: yarn install --frozen-lockfile
+
+      - name: Run tests with coverage
         run: yarn test --coverage
-      - name: Upload coverage
-        uses: codecov/codecov-action@v3
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
 
@@ -72,17 +79,22 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      - name: Use Node.js
+
+      - name: Set up latest Node.js
         uses: actions/setup-node@v4
         with:
-          cache: yarn
+          node-version: 22.x
+          cache: "yarn"
+
       - name: Download build artifacts
-        uses: actions/download-artifact@v4.1.7
+        uses: actions/download-artifact@v4
         with:
           name: build
+
       - name: Install dependencies
-        run: yarn install
-      - name: Semantic Release
+        run: yarn install --frozen-lockfile
+
+      - name: Run semantic release
         uses: cycjimmy/semantic-release-action@v4
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
