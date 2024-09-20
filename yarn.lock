@@ -5885,14 +5885,14 @@ __metadata:
   linkType: hard
 
 "ffmpeg-static@npm:^5.0.0":
-  version: 5.1.0
-  resolution: "ffmpeg-static@npm:5.1.0"
+  version: 5.2.0
+  resolution: "ffmpeg-static@npm:5.2.0"
   dependencies:
     "@derhuerst/http-basic": "npm:^8.2.0"
     env-paths: "npm:^2.2.0"
     https-proxy-agent: "npm:^5.0.0"
     progress: "npm:^2.0.3"
-  checksum: d901d68a0299c853eda1adacde9e06e3c8b1e3c4237ddd5b7b9daa854010b2b5c527203af7b4f6711d009dc4f4e61165e01c7f9b125b339a9df73dfc8b8ca217
+  checksum: 34a63e03402497d90f83982e67dd20d785855f64d483ced7ceb12b41ee36a60916df660d927118b4a1a2f0d57c7158178f7a69d140ab91d6420261a2415e87af
   languageName: node
   linkType: hard
 
