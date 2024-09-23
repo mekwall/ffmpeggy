@@ -3476,9 +3476,9 @@ __metadata:
   linkType: hard
 
 "@types/ffmpeg-static@npm:^3.0.0":
-  version: 3.0.1
-  resolution: "@types/ffmpeg-static@npm:3.0.1"
-  checksum: 10/1c7af102b5dc3b1679e5336dabf915f6fc8b3320473635a4359a53530e525f7c23aee316b56a37bb803d82a6382722d8ad8c31695f7c5ea15961b32d747a265e
+  version: 3.0.3
+  resolution: "@types/ffmpeg-static@npm:3.0.3"
+  checksum: 10/52d640fdede75056f41df5abb8c9864a12062bbb944bf1e9e39dea0bc4693548d16c93ec5b698a3eab6e819b615448e1fe25ff7e748c97718e02e33797eaae1e
   languageName: node
   linkType: hard
 
