@@ -9,6 +9,17 @@
 * **deps:** bump micromatch from 4.0.5 to 4.0.8 ([#520](https://github.com/mekwall/ffmpeggy/issues/520)) ([0693f7e](https://github.com/mekwall/ffmpeggy/commit/0693f7e518635080d4bdac7a24c3c16dcf8463ea))
 * **deps:** bump tar from 6.1.11 to 6.2.1 ([#482](https://github.com/mekwall/ffmpeggy/issues/482)) ([f2ea79a](https://github.com/mekwall/ffmpeggy/commit/f2ea79a9c2534c119180544d60e34522fbd6e3a5))
 
+## [3.0.2](https://github.com/mekwall/ffmpeggy/compare/v3.0.1...v3.0.2) (2024-12-29)
+
+
+### Bug Fixes
+
+* **deps:** bump braces from 3.0.2 to 3.0.3 ([#500](https://github.com/mekwall/ffmpeggy/issues/500)) ([6d863b4](https://github.com/mekwall/ffmpeggy/commit/6d863b4c5f3f1e8714518e12bbd7b7b550a0937f))
+* **deps:** bump debug from 4.3.4 to 4.4.0 ([#563](https://github.com/mekwall/ffmpeggy/issues/563)) ([9d80876](https://github.com/mekwall/ffmpeggy/commit/9d808762eddeb0a9ca51b2bce1a1018a20ab120c))
+* **deps:** bump ejs from 3.1.8 to 3.1.10 ([#487](https://github.com/mekwall/ffmpeggy/issues/487)) ([7d2a5be](https://github.com/mekwall/ffmpeggy/commit/7d2a5beb44eb2f0fd332ff0ca7168506f52bdb8f))
+* **deps:** bump micromatch from 4.0.5 to 4.0.8 ([#520](https://github.com/mekwall/ffmpeggy/issues/520)) ([0693f7e](https://github.com/mekwall/ffmpeggy/commit/0693f7e518635080d4bdac7a24c3c16dcf8463ea))
+* **deps:** bump tar from 6.1.11 to 6.2.1 ([#482](https://github.com/mekwall/ffmpeggy/issues/482)) ([f2ea79a](https://github.com/mekwall/ffmpeggy/commit/f2ea79a9c2534c119180544d60e34522fbd6e3a5))
+
 ## [3.0.2](https://github.com/mekwall/ffmpeggy/compare/v3.0.1...v3.0.2) (2024-09-20)
 
 
