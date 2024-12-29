@@ -308,7 +308,7 @@ export class FFmpeggy extends (EventEmitter as new () => TypedEmitter<FFmpegEven
   }
 
   public async done(): Promise<void> {
-    if (this.running) {
+    if (this.running && this.process) {
       await this.process;
     }
   }

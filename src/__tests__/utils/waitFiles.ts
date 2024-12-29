@@ -1,6 +1,5 @@
-import { FSWatcher, watch, promises } from "fs";
-import { dirname, resolve as resolvePath } from "path";
-const { stat } = promises;
+import { resolve as resolvePath } from "path";
+import execa from "execa";
 
 function mapAsync<T, U>(
   array: T[],
@@ -9,88 +8,65 @@ function mapAsync<T, U>(
   return Promise.all(array.map(callbackfn));
 }
 
-async function filterAsync<T>(
-  array: T[],
-  callbackfn: (value: T, index: number, array: T[]) => Promise<boolean>
-): Promise<T[]> {
-  const filterMap = await mapAsync(array, callbackfn);
-  return array.filter((value, index) => filterMap[index]);
-}
-
 export async function waitFiles(
   rawFiles: string[],
-  timeout = 10000
+  timeout = 10000,
+  checkInterval = 1000
 ): Promise<void> {
   const files = rawFiles.map((f) => resolvePath(f));
-  const watchers: FSWatcher[] = [];
-  let timer: NodeJS.Timeout | undefined;
+  const startTime = Date.now();
 
-  let count = 0;
-  const dirsToWatch = (
-    await filterAsync(files, async (f) => {
-      try {
-        const stats = await stat(f);
-        if (stats.size > 0) {
-          count++;
+  const isWindows = process.platform === "win32";
 
-          return false;
-        }
-      } catch {
-        // Ignore
+  async function isFileOpenByFFmpeg(file: string): Promise<boolean> {
+    try {
+      if (isWindows) {
+        // On Windows, use PowerShell to filter processes with the name "ffmpeg"
+        const { stdout } = await execa("powershell", [
+          "-Command",
+          `Get-Process -Name ffmpeg | ForEach-Object { $_.Modules } | Where-Object { $_.FileName -eq '${file}' }`,
+        ]);
+        return stdout.trim().length > 0; // Non-empty output means the file is open by ffmpeg
+      } else {
+        // On Unix-like systems, use lsof to check for files open by "ffmpeg"
+        const { stdout } = await execa("lsof", ["-t", file]);
+        const pids = stdout.trim().split("\n").filter(Boolean); // Get all process IDs using the file
+
+        // Check if any PID corresponds to an ffmpeg process
+        const { stdout: psOutput } = await execa("ps", [
+          "-p",
+          pids.join(","),
+          "-o",
+          "comm=",
+        ]);
+        return psOutput
+          .trim()
+          .split("\n")
+          .map((cmd) => cmd.trim())
+          .some((cmd) => cmd.includes("ffmpeg"));
       }
-      return true;
-    })
-  ).map((f) => dirname(f));
-
-  // We already got all the files so we can early out
-  if (count === files.length) {
-    return;
+    } catch (error) {
+      // On error (e.g., file not found), assume the file is not open by ffmpeg
+      return false;
+    }
   }
 
-  const promise = new Promise<void>((resolve, reject) => {
-    timer = setTimeout(() => {
-      reject(new Error("Files did not show up before the timeout"));
-    }, timeout);
+  async function waitForFile(file: string): Promise<void> {
+    while (true) {
+      if (Date.now() - startTime > timeout) {
+        throw new Error(
+          `Timeout: File "${file}" did not close within ${timeout}ms`
+        );
+      }
 
-    const runningStats = new Set<string>();
-    for (const dir of dirsToWatch) {
-      const watcher = watch(dir, { persistent: true });
-      watcher.on("change", async (event, fileName) => {
-        const fullPath = resolvePath(dir, fileName.toString());
-        if (runningStats.has(fullPath)) {
-          return;
-        }
-        try {
-          runningStats.add(fullPath);
-          const stats = await stat(fullPath);
-          runningStats.delete(fullPath);
-          if (count > rawFiles.length) {
-            return;
-          }
-          if (stats.size > 0) {
-            if (files.includes(fullPath)) {
-              count++;
-              if (count === rawFiles.length) {
-                watcher.close();
-                resolve();
-              }
-            }
-          }
-        } catch {
-          // Ignore
-        }
-      });
-    }
-  });
+      const openByFFmpeg = await isFileOpenByFFmpeg(file);
+      if (!openByFFmpeg) {
+        return; // File is no longer open by ffmpeg
+      }
 
-  promise.finally(() => {
-    if (timer) {
-      clearTimeout(timer);
+      await new Promise((res) => setTimeout(res, checkInterval));
     }
-    for (const watcher of watchers) {
-      watcher.close();
-    }
-  });
+  }
 
-  return promise;
+  await Promise.all(files.map((file) => waitForFile(file)));
 }
