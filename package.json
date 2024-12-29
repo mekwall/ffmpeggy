@@ -38,9 +38,9 @@
     "rebuild": "yarn build --clean",
     "build": "tsukuru -c tsconfig.build.json",
     "test": "yarn build && yarn node --experimental-vm-modules $(yarn bin jest) --runInBand",
-    "test:debug": "cross-env DEBUG=ffmpeggy yarn test --detectOpenHandles",
+    "test:debug": "cross-env DEBUG=ffmpeggy yarn build && yarn node --experimental-vm-modules $(yarn bin jest) --runInBand --detectOpenHandles",
     "semantic-release": "semantic-release",
-    "semantic-release:dry-run": "DRY_RUN=true semantic-release --dry-run --no-ci --debug"
+    "semantic-release:dry-run": "cross-env DRY_RUN=true semantic-release --dry-run --no-ci --debug"
   },
   "engines": {
     "node": ">= 12"
