@@ -43,7 +43,7 @@
     "semantic-release:dry-run": "cross-env DRY_RUN=true semantic-release --dry-run --no-ci --debug"
   },
   "engines": {
-    "node": ">= 12"
+    "node": ">= 18"
   },
   "dependencies": {
     "debug": "^4.3.2",
