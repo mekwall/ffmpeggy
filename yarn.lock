@@ -3554,7 +3554,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:*, @types/node@npm:^20.3.0":
+"@types/node@npm:*":
   version: 20.4.5
   resolution: "@types/node@npm:20.4.5"
   checksum: 10/aa31081f82a2d377f00cfd7ced73925753db1f542fca19e6b0442585a7322b8eacd957fdccaaff65d9976454d213af0980c12390c59a975cf8a368e3f872717a
@@ -3572,6 +3572,15 @@ __metadata:
   version: 14.18.54
   resolution: "@types/node@npm:14.18.54"
   checksum: 10/097e1f786813d7f55288b3b4cf81d831c2e43c4217eb366ece0deb2544324e9c0054f5e47605f74890d0d880bfc67e1a1d606abc481a4e409a999b21af2f8a46
+  languageName: node
+  linkType: hard
+
+"@types/node@npm:^22.10.2":
+  version: 22.10.2
+  resolution: "@types/node@npm:22.10.2"
+  dependencies:
+    undici-types: "npm:~6.20.0"
+  checksum: 10/451adfefed4add58b069407173e616220fd4aaa3307cdde1bb701aa053b65b54ced8483db2f870dcedec7a58cb3b06101fbc19d85852716672ec1fd3660947fa
   languageName: node
   linkType: hard
 
@@ -6178,7 +6187,7 @@ __metadata:
     "@types/ffmpeg-static": "npm:^3.0.0"
     "@types/ffprobe-static": "npm:^2.0.0"
     "@types/jest": "npm:^29.0.0"
-    "@types/node": "npm:^20.3.0"
+    "@types/node": "npm:^22.10.2"
     "@typescript-eslint/eslint-plugin": "npm:^8.6.0"
     "@typescript-eslint/parser": "npm:^7.1.0"
     cross-env: "npm:^7.0.3"
@@ -12023,6 +12032,13 @@ __metadata:
     has-symbols: "npm:^1.1.0"
     which-boxed-primitive: "npm:^1.1.1"
   checksum: 10/fadb347020f66b2c8aeacf8b9a79826fa34cc5e5457af4eb0bbc4e79bd87fed0fa795949825df534320f7c13f199259516ad30abc55a6e7b91d8d996ca069e50
+  languageName: node
+  linkType: hard
+
+"undici-types@npm:~6.20.0":
+  version: 6.20.0
+  resolution: "undici-types@npm:6.20.0"
+  checksum: 10/583ac7bbf4ff69931d3985f4762cde2690bb607844c16a5e2fbb92ed312fe4fa1b365e953032d469fa28ba8b224e88a595f0b10a449332f83fa77c695e567dbe
   languageName: node
   linkType: hard
 
