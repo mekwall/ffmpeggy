@@ -1,3 +1,11 @@
+## [3.0.3](https://github.com/mekwall/ffmpeggy/compare/v3.0.2...v3.0.3) (2024-12-29)
+
+
+### Bug Fixes
+
+* **deps:** bump cross-spawn from 6.0.5 to 6.0.6 ([#555](https://github.com/mekwall/ffmpeggy/issues/555)) ([03ffb1f](https://github.com/mekwall/ffmpeggy/commit/03ffb1f4caf62d8b88b4cac16cae70b24ac25952))
+* **deps:** bump debug from 4.3.4 to 4.4.0 ([#563](https://github.com/mekwall/ffmpeggy/issues/563)) ([9d80876](https://github.com/mekwall/ffmpeggy/commit/9d808762eddeb0a9ca51b2bce1a1018a20ab120c))
+
 ## [3.0.2](https://github.com/mekwall/ffmpeggy/compare/v3.0.1...v3.0.2) (2024-09-20)
 
 ### Bug Fixes
