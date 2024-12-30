@@ -8,6 +8,7 @@ import TypedEmitter from "typed-emitter";
 import { parseInfo, parseWriting, parseProgress } from "./parsers";
 import { FFmpeggyProgress } from "./types/FFmpeggyProgress";
 import { FFprobeResult } from "./types/probeTypes";
+import { parseOptions } from "./utils/parseOptions";
 
 export interface FFmpeggyOptions {
   cwd?: string;
@@ -155,10 +156,10 @@ export class FFmpeggy extends (EventEmitter as new () => TypedEmitter<FFmpegEven
     }
 
     const args = [
-      ...globalOptions.join(" ").split(" "),
-      ...inputOptions.join(" ").split(" "),
+      ...parseOptions(globalOptions),
+      ...parseOptions(inputOptions),
       ...["-i", ffmpegInput],
-      ...outputOptions.join(" ").split(" "),
+      ...parseOptions(outputOptions),
       ffmpegOutput,
     ].filter((a) => !!a);
 
