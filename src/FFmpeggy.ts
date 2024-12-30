@@ -300,7 +300,11 @@ export class FFmpeggy extends (EventEmitter as new () => TypedEmitter<FFmpegEven
         this.process.kill(signal);
         await this.process.finally();
       } catch (e) {
-        this.emit("exit", process.exitCode, this.error);
+        this.emit(
+          "exit",
+          typeof process.exitCode === "number" ? process.exitCode : null,
+          this.error
+        );
       }
     }
     this.process = undefined;
