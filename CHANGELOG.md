@@ -1,3 +1,10 @@
+## [3.0.4](https://github.com/mekwall/ffmpeggy/compare/v3.0.3...v3.0.4) (2025-01-04)
+
+
+### Bug Fixes
+
+* preserve options with quoted strings ([#565](https://github.com/mekwall/ffmpeggy/issues/565)) ([c6be64c](https://github.com/mekwall/ffmpeggy/commit/c6be64cf478a87ff492cfa5980988baa85e82457))
+
 ## [3.0.3](https://github.com/mekwall/ffmpeggy/compare/v3.0.2...v3.0.3) (2024-12-29)
 
 
