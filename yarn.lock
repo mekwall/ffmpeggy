@@ -6615,35 +6615,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"import-from-esm@npm:^1.0.3":
-  version: 1.1.2
-  resolution: "import-from-esm@npm:1.1.2"
-  dependencies:
-    import-meta-resolve: "npm:^4.0.0"
-  checksum: 10/b5a4e63c49a669fe9105e808cef5a1e70d448e98c50fef6d73e59ae961e903f7f1926aae8c04a9e6467c6dfa8aa2a6f0970d2f07996452e1271c589a3953f845
-  languageName: node
-  linkType: hard
-
-"import-from-esm@npm:^2.0.0":
-  version: 2.0.0
-  resolution: "import-from-esm@npm:2.0.0"
-  dependencies:
-    debug: "npm:^4.3.4"
-    import-meta-resolve: "npm:^4.0.0"
-  checksum: 10/6a679eaa4edf7eed44272bb0bd81d784a0d7ee22f3714069eb1506444eb7a3baadaaf7a6ee1dc0e85b6ac001051a14123da418214cb1b34b91e79e945b96c965
-  languageName: node
-  linkType: hard
-
-"import-from-esm@npm:^2.0.0":
-  version: 2.0.0
-  resolution: "import-from-esm@npm:2.0.0"
-  dependencies:
-    debug: "npm:^4.3.4"
-    import-meta-resolve: "npm:^4.0.0"
-  checksum: 10/6a679eaa4edf7eed44272bb0bd81d784a0d7ee22f3714069eb1506444eb7a3baadaaf7a6ee1dc0e85b6ac001051a14123da418214cb1b34b91e79e945b96c965
-  languageName: node
-  linkType: hard
-
 "import-from-esm@npm:^2.0.0":
   version: 2.0.0
   resolution: "import-from-esm@npm:2.0.0"
