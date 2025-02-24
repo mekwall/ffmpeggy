@@ -1,3 +1,12 @@
+## [3.0.5](https://github.com/mekwall/ffmpeggy/compare/v3.0.4...v3.0.5) (2025-02-24)
+
+
+### Bug Fixes
+
+* **deps:** bump @octokit/plugin-paginate-rest from 11.3.6 to 11.4.2 ([#584](https://github.com/mekwall/ffmpeggy/issues/584)) ([28b1a44](https://github.com/mekwall/ffmpeggy/commit/28b1a44fe6995be957c17488eff1b780a3281b9b))
+* **deps:** bump @octokit/request from 9.1.4 to 9.2.2 ([#582](https://github.com/mekwall/ffmpeggy/issues/582)) ([c847d96](https://github.com/mekwall/ffmpeggy/commit/c847d96a98d444f36fed4b60b2f39e8585fe5160))
+* **deps:** bump @octokit/request-error from 6.1.6 to 6.1.7 ([#581](https://github.com/mekwall/ffmpeggy/issues/581)) ([ada2671](https://github.com/mekwall/ffmpeggy/commit/ada26714e17f7386257cbc21e844332895454ff6))
+
 ## [3.0.4](https://github.com/mekwall/ffmpeggy/compare/v3.0.3...v3.0.4) (2025-01-04)
 
 
