@@ -11419,7 +11419,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tslib@npm:^2.0.3, tslib@npm:^2.1.0, tslib@npm:^2.3.1":
+"tslib@npm:^2.1.0, tslib@npm:^2.3.1":
   version: 2.4.0
   resolution: "tslib@npm:2.4.0"
   checksum: 10/d8379e68b36caf082c1905ec25d17df8261e1d68ddc1abfd6c91158a064f6e4402039ae7c02cf4c81d12e3a2a2c7cd8ea2f57b233eb80136a2e3e7279daf2911
@@ -11433,9 +11433,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"tslib@npm:^2.6.2":
+  version: 2.8.1
+  resolution: "tslib@npm:2.8.1"
+  checksum: 10/3e2e043d5c2316461cb54e5c7fe02c30ef6dccb3384717ca22ae5c6b5bc95232a6241df19c622d9c73b809bea33b187f6dbc73030963e29950c2141bc32a79f7
+  languageName: node
+  linkType: hard
+
 "tsukuru@npm:^0.8.0":
-  version: 0.8.1
-  resolution: "tsukuru@npm:0.8.1"
+  version: 0.8.3
+  resolution: "tsukuru@npm:0.8.3"
   dependencies:
     "@oclif/config": "npm:^1.18.3"
     "@oclif/core": "npm:^1.20.4"
@@ -11446,12 +11453,12 @@ __metadata:
     chalk: "npm:^4.1.0"
     ora: "npm:^5.1.0"
     toposort: "npm:^2.0.2"
-    tslib: "npm:^2.0.3"
+    tslib: "npm:^2.6.2"
   peerDependencies:
-    typescript: ">=4.8.2 <5.1"
+    typescript: ">=4.8.2 <5.5"
   bin:
     tsukuru: lib/cli.js
-  checksum: 10/5e1837402d8996e3051fca47b5b94461354928b88ed890de2e53108b6b00b0e9a59101de2a626c6436f7057b7d4980c145a68003412f567304d77105803e84ed
+  checksum: 10/b540e73ab8935cff92568f613cee26b11e46ca915e857ca95a24fd09d75cd11a52d410ec01a1af8b7270a20da4be203c9a530d2d5497641922892d099e5fd307
   languageName: node
   linkType: hard
 
