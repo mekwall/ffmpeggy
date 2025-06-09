@@ -3,62 +3,54 @@ name: main
 on:
   push:
     branches: [main]
-    paths-ignore:
-      - "**.md"
+    paths:
+      - "src/**"
+      - "package.json"
+      - "yarn.lock"
+      - "tsconfig*.json"
+      - "eslint.config.js"
+      - "jest.config.js"
+      - ".node-version"
+      - ".github/workflows/**"
+      - "!**/*.md"
+
+permissions:
+  contents: read
+  checks: write
+  security-events: write
 
 jobs:
   build:
-    name: Build and test
+    uses: ./.github/workflows/build.yml
+    with:
+      os: "ubuntu-latest"
+      debug: true
+
+  test:
+    uses: ./.github/workflows/test.yml
+    needs: build
+    with:
+      node-version: ${{ matrix.node-version }}
+      os: ${{ matrix.os }}
+      debug: true
     strategy:
       matrix:
         os:
           - ubuntu-latest
         node-version: [18.x, 20.x, 22.x, 24.x]
 
-    runs-on: ${{ matrix.os }}
-
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version-file: ".node-version"
-          cache: "yarn"
-
-      - name: Enable corepack
-        run: corepack enable
-
-      - name: Install dependencies
-        run: yarn install
-
-      - name: Run linting
-        run: yarn lint
-
-      - name: Build
-        run: yarn build
-
-      - name: Switch to matrix Node.js version
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ matrix.node-version }}
-          cache: "yarn"
-
-      - name: Run tests
-        run: yarn test:debug
-
-      - name: Upload build artifacts (only on Node.js 22.x)
-        if: matrix.node-version == '22.x'
-        uses: actions/upload-artifact@v4
-        with:
-          name: build
-          path: |
-            es
-            cjs
+  eslint:
+    uses: ./.github/workflows/eslint.yml
+    with:
+      os: "ubuntu-latest"
 
   coverage:
     name: Test coverage
-    needs: build
+    needs: [build, test, eslint]
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      checks: write
 
     steps:
       - uses: actions/checkout@v4
@@ -79,21 +71,22 @@ jobs:
       - name: Install dependencies
         run: yarn install
 
-      - name: Run linting
-        run: yarn lint
-
       - name: Run tests with coverage
         run: yarn test --coverage
 
       - name: Upload coverage to Codecov
+        if: env.CODECOV_TOKEN != ''
         uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
 
   release:
     name: Release
-    needs: build
+    needs: [build, test, eslint, coverage]
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
 
     steps:
       - uses: actions/checkout@v4
@@ -116,6 +109,7 @@ jobs:
         run: yarn install
 
       - name: Run semantic release
+        if: env.NPM_TOKEN != ''
         uses: cycjimmy/semantic-release-action@v4
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

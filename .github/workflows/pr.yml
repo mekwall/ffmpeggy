@@ -1,10 +1,37 @@
 name: pr
 
-on: pull_request
+on:
+  pull_request:
+    paths:
+      - "src/**"
+      - "package.json"
+      - "yarn.lock"
+      - "tsconfig*.json"
+      - "eslint.config.js"
+      - "jest.config.js"
+      - ".node-version"
+      - ".github/workflows/**"
+      - "!**/*.md"
+
+permissions:
+  contents: read
+  checks: write
+  security-events: write
 
 jobs:
   build:
-    name: Build and test
+    uses: ./.github/workflows/build.yml
+    with:
+      os: "ubuntu-latest"
+      debug: false
+
+  test:
+    uses: ./.github/workflows/test.yml
+    needs: build
+    with:
+      node-version: ${{ matrix.node-version }}
+      os: ${{ matrix.os }}
+      debug: false
     strategy:
       matrix:
         os:
@@ -14,33 +41,7 @@ jobs:
           # - windows-latest
         node-version: [18.x, 20.x, 22.x, 24.x]
 
-    runs-on: ${{ matrix.os }}
-
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version-file: ".node-version"
-          cache: "yarn"
-
-      - name: Enable corepack
-        run: corepack enable
-
-      - name: Install dependencies
-        run: yarn install
-
-      - name: Run linting
-        run: yarn lint
-
-      - name: Build
-        run: yarn build
-
-      - name: Switch to matrix Node.js version
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ matrix.node-version }}
-          cache: "yarn"
-
-      - name: Run tests
-        run: yarn test
+  eslint:
+    uses: ./.github/workflows/eslint.yml
+    with:
+      os: "ubuntu-latest"

@@ -1,0 +1,80 @@
+name: ESLint
+
+on:
+  workflow_call:
+    inputs:
+      node-version:
+        required: false
+        type: string
+      os:
+        required: true
+        type: string
+
+jobs:
+  eslint:
+    name: ESLint
+    runs-on: ${{ inputs.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: ".node-version"
+          cache: "yarn"
+
+      - name: Enable corepack
+        run: corepack enable
+
+      - name: Install dependencies
+        run: yarn install
+
+      - name: ESLint check
+        uses: reviewdog/action-eslint@v1
+        with:
+          reporter: github-pr-review
+          eslint_flags: "."
+          fail_on_error: true
+
+      - name: Run ESLint
+        id: eslint
+        run: yarn lint --format json --output-file eslint-results.json
+
+      - name: Create annotations
+        uses: actions/github-script@v7
+        if: always()
+        with:
+          script: |
+            const fs = require('fs');
+            const results = JSON.parse(fs.readFileSync('eslint-results.json', 'utf8'));
+
+            for (const file of results) {
+              for (const message of file.messages) {
+                const level = message.severity === 2 ? 'error' : 'warning';
+                const annotation = {
+                  path: file.filePath,
+                  start_line: message.line,
+                  end_line: message.line,
+                  start_column: message.column,
+                  end_column: message.column,
+                  annotation_level: level,
+                  message: message.message,
+                  title: `ESLint: ${message.ruleId || 'error'}`
+                };
+
+                await github.rest.checks.create({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  name: 'ESLint',
+                  head_sha: context.sha,
+                  status: 'completed',
+                  conclusion: level === 'error' ? 'failure' : 'neutral',
+                  output: {
+                    title: 'ESLint found issues',
+                    summary: 'ESLint found issues in your code',
+                    annotations: [annotation]
+                  }
+                });
+              }
+            }

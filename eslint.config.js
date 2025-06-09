@@ -6,7 +6,7 @@ import tseslint from "typescript-eslint";
 
 export default tseslint.config(
   {
-    ignores: ["es/**", "cjs/**"],
+    ignores: [".yarn/**", "es/**", "cjs/**"],
   },
   eslint.configs.recommended,
   ...tseslint.configs.recommended,

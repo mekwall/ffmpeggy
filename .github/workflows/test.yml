@@ -1,0 +1,59 @@
+name: Test
+
+on:
+  workflow_call:
+    inputs:
+      node-version:
+        required: true
+        type: string
+      os:
+        required: true
+        type: string
+      debug:
+        required: false
+        type: boolean
+        default: false
+
+jobs:
+  test:
+    name: Test
+    runs-on: ${{ inputs.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: ".node-version"
+          cache: "yarn"
+
+      - name: Enable corepack
+        run: corepack enable
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build
+
+      - name: Install dependencies
+        run: yarn install
+
+      - name: Install Jest JUnit reporter
+        run: yarn add -D jest-junit
+
+      - name: Run tests
+        run: yarn test --reporters=default --reporters=jest-junit
+        env:
+          DEBUG: ${{ inputs.debug && '*' || '' }}
+          JEST_JUNIT_OUTPUT_DIR: "."
+          JEST_JUNIT_OUTPUT_NAME: "test-results.xml"
+
+      - name: Publish Test Results
+        uses: dorny/test-reporter@v2
+        if: always()
+        with:
+          name: Jest Tests
+          path: test-results.xml
+          reporter: jest-junit
+          fail-on-error: true
