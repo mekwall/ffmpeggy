@@ -1,6 +1,6 @@
 const isDryRun = process.env.DRY_RUN === "true";
 
-module.exports = {
+export default {
   branches: ["main"],
   dryRun: isDryRun,
   plugins: [
