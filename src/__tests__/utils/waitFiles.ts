@@ -1,5 +1,5 @@
 import { resolve as resolvePath } from "path";
-import execa from "execa";
+import { execa } from "@esm2cjs/execa";
 
 export async function waitFiles(
   rawFiles: string[],
@@ -15,23 +15,26 @@ export async function waitFiles(
     try {
       if (isWindows) {
         // On Windows, use PowerShell to filter processes with the name "ffmpeg"
-        const { stdout } = await execa("powershell", [
-          "-Command",
-          `Get-Process -Name ffmpeg | ForEach-Object { $_.Modules } | Where-Object { $_.FileName -eq '${file}' }`,
-        ]);
+        const { stdout } = await execa(
+          "powershell",
+          [
+            "-Command",
+            `Get-Process -Name ffmpeg | ForEach-Object { $_.Modules } | Where-Object { $_.FileName -eq '${file}' }`,
+          ],
+          { reject: false }
+        );
         return stdout.trim().length > 0; // Non-empty output means the file is open by ffmpeg
       } else {
         // On Unix-like systems, use lsof to check for files open by "ffmpeg"
-        const { stdout } = await execa("lsof", ["-t", file]);
+        const { stdout } = await execa("lsof", ["-t", file], { reject: false });
         const pids = stdout.trim().split("\n").filter(Boolean); // Get all process IDs using the file
 
         // Check if any PID corresponds to an ffmpeg process
-        const { stdout: psOutput } = await execa("ps", [
-          "-p",
-          pids.join(","),
-          "-o",
-          "comm=",
-        ]);
+        const { stdout: psOutput } = await execa(
+          "ps",
+          ["-p", pids.join(","), "-o", "comm="],
+          { reject: false }
+        );
         return psOutput
           .trim()
           .split("\n")

@@ -3,7 +3,11 @@ import { ReadStream, WriteStream } from "fs";
 import { nextTick } from "process";
 import { PassThrough } from "stream";
 import createDebug from "debug";
-import execa from "execa";
+import {
+  execa,
+  type ExecaReturnValue,
+  type ExecaChildProcess,
+} from "@esm2cjs/execa";
 import TypedEmitter from "typed-emitter";
 import { parseInfo, parseWriting, parseProgress } from "./parsers";
 import { FFmpeggyProgress } from "./types/FFmpeggyProgress";
@@ -41,8 +45,8 @@ type FFmpegEvents = {
 const debug = createDebug("ffmpeggy");
 export class FFmpeggy extends (EventEmitter as new () => TypedEmitter<FFmpegEvents>) {
   public running = false;
-  public status?: execa.ExecaReturnValue;
-  public process?: execa.ExecaChildProcess;
+  public status?: ExecaReturnValue;
+  public process?: ExecaChildProcess;
   public error?: Error;
   public currentFile?: string;
   public input: string | ReadStream = "";
@@ -115,7 +119,7 @@ export class FFmpeggy extends (EventEmitter as new () => TypedEmitter<FFmpegEven
     }
   }
 
-  public async run(): Promise<execa.ExecaChildProcess<string> | undefined> {
+  public async run(): Promise<ExecaChildProcess | undefined> {
     // Return any existing process
     if (this.process) {
       debug("returning existing process");
@@ -195,6 +199,7 @@ export class FFmpeggy extends (EventEmitter as new () => TypedEmitter<FFmpegEven
         cwd,
         input: input instanceof ReadStream ? input : undefined,
         stdout: output instanceof WriteStream ? output : undefined,
+        reject: false,
       });
 
       // if (this.process.stdin && input instanceof ReadStream) {
