@@ -12,17 +12,35 @@ jobs:
           # Times out on GitHub CI :(
           # - macos-latest
           # - windows-latest
-        node-version: [18, 19, 21]
+        node-version: [18.x, 20.x, 22.x, 24.x]
 
     runs-on: ${{ matrix.os }}
 
     steps:
       - uses: actions/checkout@v4
-      - name: Use Node.js ${{ matrix.node-version }}
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: ".node-version"
+          cache: "yarn"
+
+      - name: Enable corepack
+        run: corepack enable
+
+      - name: Install dependencies
+        run: yarn install
+
+      - name: Run linting
+        run: yarn lint
+
+      - name: Build
+        run: yarn build
+
+      - name: Switch to matrix Node.js version
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
-      - name: Install dependencies
-        run: yarn install
+          cache: "yarn"
+
       - name: Run tests
         run: yarn test

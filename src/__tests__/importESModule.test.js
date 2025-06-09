@@ -1,4 +1,4 @@
-import { EventEmitter } from "stream";
+import { EventEmitter } from "node:events";
 
 describe("import ES modules", () => {
   it("should be able to import", async () => {
