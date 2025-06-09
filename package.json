@@ -48,8 +48,8 @@
     "node": ">= 18"
   },
   "dependencies": {
+    "@esm2cjs/execa": "^6.1.1-cjs.1",
     "debug": "^4.3.2",
-    "execa": "^5.1.1",
     "typed-emitter": "^2.1.0"
   },
   "devDependencies": {

@@ -1736,6 +1736,76 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@esm2cjs/execa@npm:^6.1.1-cjs.1":
+  version: 6.1.1-cjs.1
+  resolution: "@esm2cjs/execa@npm:6.1.1-cjs.1"
+  dependencies:
+    "@esm2cjs/human-signals": "npm:^3.0.1"
+    "@esm2cjs/is-stream": "npm:^3.0.0"
+    "@esm2cjs/npm-run-path": "npm:^5.1.1-cjs.0"
+    "@esm2cjs/onetime": "npm:^6.0.1-cjs.0"
+    "@esm2cjs/strip-final-newline": "npm:^3.0.1-cjs.0"
+    cross-spawn: "npm:^7.0.3"
+    get-stream: "npm:^6.0.1"
+    merge-stream: "npm:^2.0.0"
+    signal-exit: "npm:^3.0.7"
+  checksum: 10/c61f00c7deafe9007454109014194f4efb4a98b4e7dcf12d5c67b9ad9d85c79d30f980c743ab0a1e9754896ffe5cca0000d6a7d31abfa9e6ba4125536aa55b6c
+  languageName: node
+  linkType: hard
+
+"@esm2cjs/human-signals@npm:^3.0.1":
+  version: 3.0.1
+  resolution: "@esm2cjs/human-signals@npm:3.0.1"
+  checksum: 10/9d38d52655615b2276d96ccb3efc3257f28b9f57f6be4829e72f2e7a799fa1fb08ddea4d3b30b04318e5053deb658b9227b7e15d826ac2a0b74a7b9586dfb87c
+  languageName: node
+  linkType: hard
+
+"@esm2cjs/is-stream@npm:^3.0.0":
+  version: 3.0.0
+  resolution: "@esm2cjs/is-stream@npm:3.0.0"
+  checksum: 10/b122aac5cd8e9b3c258af42007e4fa08bed34abb8b69062b7e756d14cc09a230cee2816a5ef7403695390ace7ce2d8ccdcdc3e06f92023bb6d50aabc34c73681
+  languageName: node
+  linkType: hard
+
+"@esm2cjs/mimic-fn@npm:^4.0.0":
+  version: 4.0.0
+  resolution: "@esm2cjs/mimic-fn@npm:4.0.0"
+  checksum: 10/446d1bb9b3ebbc63d2da5a85e4d2b19e2b24394b6f6c60f0ee2caa7f0287e912c0c3ed6676b242358030431cb5601b28b472c813a883b08c12e3dba80e81649a
+  languageName: node
+  linkType: hard
+
+"@esm2cjs/npm-run-path@npm:^5.1.1-cjs.0":
+  version: 5.1.1-cjs.0
+  resolution: "@esm2cjs/npm-run-path@npm:5.1.1-cjs.0"
+  dependencies:
+    "@esm2cjs/path-key": "npm:^4.0.0"
+  checksum: 10/3ec07c58aa27072fb0992166774fbe1b7e9b8e9ff5fe70e9cc1042b4048f7e1abd50bc63a30d3de79143a72887a0ed2d1bc82d3ca80bcbd4bcdefc6b48b4bc93
+  languageName: node
+  linkType: hard
+
+"@esm2cjs/onetime@npm:^6.0.1-cjs.0":
+  version: 6.0.1-cjs.0
+  resolution: "@esm2cjs/onetime@npm:6.0.1-cjs.0"
+  dependencies:
+    "@esm2cjs/mimic-fn": "npm:^4.0.0"
+  checksum: 10/7a71616f1e1fcbc35f6f9a3793a52607127749891705869d951552236fab80be7f8a767e3d1736b9da4a41f924d65dc2964febce8bcd5db396361ee60971702a
+  languageName: node
+  linkType: hard
+
+"@esm2cjs/path-key@npm:^4.0.0":
+  version: 4.0.0
+  resolution: "@esm2cjs/path-key@npm:4.0.0"
+  checksum: 10/f5207b14c33d8bf09aa3028ddee088d471a58763280e2c78ec14ca7910f07285cb53069c2ef7b1319f2d74ff2685c49267a65658dfac66e225cd614f8e4193ff
+  languageName: node
+  linkType: hard
+
+"@esm2cjs/strip-final-newline@npm:^3.0.1-cjs.0":
+  version: 3.0.1-cjs.0
+  resolution: "@esm2cjs/strip-final-newline@npm:3.0.1-cjs.0"
+  checksum: 10/b840bc29339b4c62372e9d40c0ef9f319859fce9db35a5c49fd9e1d0ba75e560df475a00aa19504793dd5da39a7db1c3e4b9f60d191075a94029ea33e3aaa394
+  languageName: node
+  linkType: hard
+
 "@gar/promisify@npm:^1.1.3":
   version: 1.1.3
   resolution: "@gar/promisify@npm:1.1.3"
@@ -5734,7 +5804,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"execa@npm:^5.0.0, execa@npm:^5.1.1":
+"execa@npm:^5.0.0":
   version: 5.1.1
   resolution: "execa@npm:5.1.1"
   dependencies:
@@ -5939,6 +6009,7 @@ __metadata:
     "@babel/preset-env": "npm:^7.14.8"
     "@babel/preset-typescript": "npm:^7.14.5"
     "@eslint/js": "npm:^9.17.0"
+    "@esm2cjs/execa": "npm:^6.1.1-cjs.1"
     "@semantic-release/changelog": "npm:^6.0.1"
     "@semantic-release/commit-analyzer": "npm:^13.0.0"
     "@semantic-release/git": "npm:^10.0.1"
@@ -5958,7 +6029,6 @@ __metadata:
     eslint-import-resolver-typescript: "npm:^3.6.1"
     eslint-plugin-import: "npm:^2.29.1"
     eslint-plugin-unused-imports: "npm:^3.1.0"
-    execa: "npm:^5.1.1"
     ffmpeg-static: "npm:^5.0.0"
     ffprobe-static: "npm:^3.0.0"
     jest: "npm:^29.0.2"
@@ -6353,7 +6423,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"get-stream@npm:^6.0.0":
+"get-stream@npm:^6.0.0, get-stream@npm:^6.0.1":
   version: 6.0.1
   resolution: "get-stream@npm:6.0.1"
   checksum: 10/781266d29725f35c59f1d214aedc92b0ae855800a980800e2923b3fbc4e56b3cb6e462c42e09a1cf1a00c64e056a78fa407cbe06c7c92b7e5cd49b4b85c2a497
