@@ -1,13 +1,6 @@
 import { resolve as resolvePath } from "path";
 import execa from "execa";
 
-function mapAsync<T, U>(
-  array: T[],
-  callbackfn: (value: T, index: number, array: T[]) => Promise<U>
-): Promise<U[]> {
-  return Promise.all(array.map(callbackfn));
-}
-
 export async function waitFiles(
   rawFiles: string[],
   timeout = 10000,
@@ -45,7 +38,7 @@ export async function waitFiles(
           .map((cmd) => cmd.trim())
           .some((cmd) => cmd.includes("ffmpeg"));
       }
-    } catch (error) {
+    } catch {
       // On error (e.g., file not found), assume the file is not open by ffmpeg
       return false;
     }
