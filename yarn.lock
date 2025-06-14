@@ -4606,11 +4606,11 @@ __metadata:
   linkType: hard
 
 "cli-progress@npm:^3.10.0":
-  version: 3.11.1
-  resolution: "cli-progress@npm:3.11.1"
+  version: 3.12.0
+  resolution: "cli-progress@npm:3.12.0"
   dependencies:
     string-width: "npm:^4.2.3"
-  checksum: 10/cb1b67a6a102f56cdfa23320232e9927e07f5b2d23d5abb0211baeb45d99e67f7b9e3d0f1395f9f78dc661d0034f578acdce78dab6549759ebf2a0df39566d23
+  checksum: 10/a6a549919a7461f5e798b18a4a19f83154bab145d3ec73d7f3463a8db8e311388c545ace1105557760a058cc4999b7f28c9d8d24d9783ee2912befb32544d4b8
   languageName: node
   linkType: hard
 
