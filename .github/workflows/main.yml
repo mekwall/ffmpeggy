@@ -9,7 +9,7 @@ on:
       - "yarn.lock"
       - "tsconfig*.json"
       - "eslint.config.js"
-      - "jest.config.js"
+      - "vitest.config.ts"
       - ".node-version"
       - ".github/workflows/**"
       - "!**/*.md"
@@ -40,6 +40,8 @@ jobs:
     strategy:
       matrix:
         os:
+          - macos-latest
+          - windows-latest
           - ubuntu-latest
         node-version: [18.x, 20.x, 22.x, 24.x]
 

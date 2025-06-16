@@ -8,7 +8,7 @@ on:
       - "yarn.lock"
       - "tsconfig*.json"
       - "eslint.config.js"
-      - "jest.config.js"
+      - "vitest.config.ts"
       - ".node-version"
       - ".github/workflows/**"
       - "!**/*.md"
@@ -36,9 +36,8 @@ jobs:
       matrix:
         os:
           - ubuntu-latest
-          # Times out on GitHub CI :(
-          # - macos-latest
-          # - windows-latest
+          - macos-latest
+          - windows-latest
         node-version: [18.x, 20.x, 22.x, 24.x]
 
   eslint:
