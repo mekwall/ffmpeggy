@@ -1,0 +1,29 @@
+name: "Setup Node.js with Corepack"
+description: "Setup Node.js with Corepack support"
+
+inputs:
+  node-version-file:
+    description: "Path to .node-version file"
+    required: false
+    default: ".node-version"
+  cache:
+    description: "Package manager to cache (npm, yarn, pnpm)"
+    required: false
+    default: "yarn"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Install Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version-file: ${{ inputs.node-version-file }}
+
+    - name: Enable Corepack
+      shell: bash
+      run: corepack enable
+
+    - name: Configure Dependency Cache
+      uses: actions/setup-node@v4
+      with:
+        cache: ${{ inputs.cache }}
