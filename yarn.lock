@@ -8508,9 +8508,9 @@ __metadata:
   linkType: hard
 
 "just-diff-apply@npm:^5.2.0":
-  version: 5.3.1
-  resolution: "just-diff-apply@npm:5.3.1"
-  checksum: 10/b868224de0f9e2249c1a7e01d1c53326a580df37b7b825dd05c1df2a088b6160491e1ebafcf6ae8abb743c8c1497905139ed451ea2743b76e2c6476b82fe6f27
+  version: 5.5.0
+  resolution: "just-diff-apply@npm:5.5.0"
+  checksum: 10/5515c436c89e9ef934f1ea2aac447588c38dd017247ed85254537b005706e64321ca7a9c246fe7106338da1ef3a693f8550ebf11759c854713e9ccffb788a43b
   languageName: node
   linkType: hard
 
