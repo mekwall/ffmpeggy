@@ -1,3 +1,4 @@
+import { describe, expect, it } from "vitest";
 import { secsToTimer } from "../secsToTimer";
 
 describe("secsToTimer", () => {

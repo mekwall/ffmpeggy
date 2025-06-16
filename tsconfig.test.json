@@ -1,0 +1,11 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "types": ["vitest/globals"],
+    "module": "ESNext",
+    "moduleResolution": "node"
+  },
+  "include": ["src/**/*", "vitest.config.ts", "**/*.spec.ts", "**/*.test.ts"],
+  "exclude": ["node_modules"]
+}

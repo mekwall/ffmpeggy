@@ -1,3 +1,4 @@
+import { describe, expect, it } from "vitest";
 import { parseBitrate } from "../parseBitrate";
 
 describe("parseBitrate", () => {

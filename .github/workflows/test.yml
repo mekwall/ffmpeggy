@@ -39,21 +39,16 @@ jobs:
       - name: Install dependencies
         run: yarn install
 
-      - name: Install Jest JUnit reporter
-        run: yarn add -D jest-junit
-
       - name: Run tests
-        run: yarn test --reporters=default --reporters=jest-junit
+        run: yarn test --reporter=verbose --reporter=junit --outputFile=test-results.xml
         env:
           DEBUG: ${{ inputs.debug && '*' || '' }}
-          JEST_JUNIT_OUTPUT_DIR: "."
-          JEST_JUNIT_OUTPUT_NAME: "test-results.xml"
 
       - name: Publish Test Results
         uses: dorny/test-reporter@v2
         if: always()
         with:
-          name: Jest Tests
+          name: Vitest Tests
           path: test-results.xml
-          reporter: jest-junit
-          fail-on-error: true
+          reporter: java-junit
+          fail-on-error: false

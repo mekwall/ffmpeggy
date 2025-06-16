@@ -43,6 +43,9 @@ export default tseslint.config(
           alwaysTryTypes: true,
           project: "./tsconfig.json",
         },
+        node: {
+          extensions: [".js", ".jsx", ".ts", ".tsx"],
+        },
       },
     },
     rules: {
@@ -94,6 +97,11 @@ export default tseslint.config(
         expect: "readonly",
         process: "readonly",
         require: "readonly",
+        vi: "readonly",
+        beforeAll: "readonly",
+        afterAll: "readonly",
+        beforeEach: "readonly",
+        afterEach: "readonly",
       },
     },
     rules: {
