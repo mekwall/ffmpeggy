@@ -37,6 +37,7 @@ jobs:
       node-version: ${{ matrix.node-version }}
       os: ${{ matrix.os }}
       debug: true
+      coverage: ${{ matrix.os == 'ubuntu-latest' && matrix.node-version == '24.x' }}
     strategy:
       matrix:
         os:
@@ -50,45 +51,9 @@ jobs:
     with:
       os: "ubuntu-latest"
 
-  coverage:
-    name: Test coverage
-    needs: [build, test, eslint]
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      checks: write
-
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version-file: ".node-version"
-          cache: "yarn"
-
-      - name: Enable corepack
-        run: corepack enable
-
-      - name: Download build artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: build
-
-      - name: Install dependencies
-        run: yarn install
-
-      - name: Run tests with coverage
-        run: yarn test --coverage
-
-      - name: Upload coverage to Codecov
-        if: env.CODECOV_TOKEN != ''
-        uses: codecov/codecov-action@v5
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-
   release:
     name: Release
-    needs: [build, test, eslint, coverage]
+    needs: [build, test, eslint]
     runs-on: ubuntu-latest
     permissions:
       contents: write
