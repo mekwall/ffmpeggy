@@ -187,12 +187,12 @@ export class FFmpeggy extends (EventEmitter as new () => TypedEmitter<FFmpegEven
             reject(new Error("Timeout waiting for input stream to open"));
           }, 5000);
 
-          input.on("open", () => {
+          input.once("open", () => {
             clearTimeout(timeout);
             resolve(undefined);
           });
 
-          input.on("error", (err) => {
+          input.once("error", (err) => {
             clearTimeout(timeout);
             reject(err);
           });
@@ -207,12 +207,12 @@ export class FFmpeggy extends (EventEmitter as new () => TypedEmitter<FFmpegEven
             reject(new Error("Timeout waiting for output stream to open"));
           }, 5000);
 
-          output.on("open", () => {
+          output.once("open", () => {
             clearTimeout(timeout);
             resolve(undefined);
           });
 
-          output.on("error", (err) => {
+          output.once("error", (err) => {
             clearTimeout(timeout);
             reject(err);
           });
