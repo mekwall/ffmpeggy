@@ -5,6 +5,7 @@ import path from "path";
 import ffmpegBin from "ffmpeg-static";
 import { path as ffprobeBin } from "ffprobe-static";
 import { FFmpeggy, FFmpeggyProgressEvent } from "../FFmpeggy";
+import { FFmpeggyFinalSizes } from "../types/FFmpeggyProgress";
 import { waitFiles } from "./utils/waitFiles";
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 
@@ -156,6 +157,126 @@ describe("FFmpeggy", () => {
         ffmpeggy.on("exit", async (exitCode, error) => {
           expect(exitCode).toBe(0);
           expect(error).toBeUndefined();
+          resolve();
+        });
+      });
+
+      await promise;
+    },
+    TEST_TIMEOUT_MS
+  );
+
+  it(
+    "should emit done event with final sizes",
+    async () => {
+      const ffmpeggy = new FFmpeggy();
+      const tempFile = getTempFile("mp4");
+
+      const promise = new Promise<void>((resolve) => {
+        let finalSizes: FFmpeggyFinalSizes | undefined;
+
+        ffmpeggy
+          .setInput(sampleMp4)
+          .setOutputOptions(["-c:v libx264", "-c:a aac"])
+          .setOutput(tempFile)
+          .run();
+
+        ffmpeggy.on("done", async (file, sizes) => {
+          finalSizes = sizes;
+          await waitFiles([tempFile]);
+          const tempStats = await stat(tempFile);
+          expect(tempStats.size).toBeGreaterThan(0);
+        });
+
+        ffmpeggy.on("exit", async (code, error) => {
+          expect(code).toBe(0);
+          expect(error).toBeUndefined();
+          expect(finalSizes).toBeDefined();
+          if (finalSizes) {
+            expect(finalSizes.video).toBeGreaterThan(0);
+            expect(finalSizes.audio).toBeGreaterThan(0);
+            expect(finalSizes.subtitles).toBeGreaterThanOrEqual(0);
+          }
+          resolve();
+        });
+      });
+
+      await promise;
+    },
+    TEST_TIMEOUT_MS
+  );
+
+  it(
+    "should emit done event with final sizes",
+    async () => {
+      const ffmpeggy = new FFmpeggy();
+      const tempFile = getTempFile("mp4");
+
+      const promise = new Promise<void>((resolve) => {
+        let finalSizes: FFmpeggyFinalSizes | undefined;
+
+        ffmpeggy
+          .setInput(sampleMp4)
+          .setOutputOptions(["-c:v libx264", "-c:a aac"])
+          .setOutput(tempFile)
+          .run();
+
+        ffmpeggy.on("done", async (file, sizes) => {
+          finalSizes = sizes;
+          await waitFiles([tempFile]);
+          const tempStats = await stat(tempFile);
+          expect(tempStats.size).toBeGreaterThan(0);
+        });
+
+        ffmpeggy.on("exit", async (code, error) => {
+          expect(code).toBe(0);
+          expect(error).toBeUndefined();
+          expect(finalSizes).toBeDefined();
+          if (finalSizes) {
+            expect(finalSizes.video).toBeGreaterThan(0);
+            expect(finalSizes.audio).toBeGreaterThan(0);
+            expect(finalSizes.subtitles).toBeGreaterThanOrEqual(0);
+          }
+          resolve();
+        });
+      });
+
+      await promise;
+    },
+    TEST_TIMEOUT_MS
+  );
+
+  it(
+    "should emit done event with final sizes",
+    async () => {
+      const ffmpeggy = new FFmpeggy();
+      const tempFile = getTempFile("mp4");
+
+      const promise = new Promise<void>((resolve) => {
+        let finalSizes: FFmpeggyFinalSizes | undefined;
+
+        ffmpeggy
+          .setInput(sampleMp4)
+          .setOutputOptions(["-c:v libx264", "-c:a aac"])
+          .setOutput(tempFile)
+          .run();
+
+        ffmpeggy.on("done", async (file, sizes) => {
+          finalSizes = sizes;
+          await waitFiles([tempFile]);
+          const tempStats = await stat(tempFile);
+          expect(tempStats.size).toBeGreaterThan(0);
+        });
+
+        ffmpeggy.on("exit", async (code, error) => {
+          expect(code).toBe(0);
+          expect(error).toBeUndefined();
+          expect(finalSizes).toBeDefined();
+          if (finalSizes) {
+            expect(finalSizes.video).toBeGreaterThan(0);
+            expect(finalSizes.audio).toBeGreaterThan(0);
+            expect(finalSizes.subtitles).toBeGreaterThanOrEqual(0);
+          }
           resolve();
         });
       });
