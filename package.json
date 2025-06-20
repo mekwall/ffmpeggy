@@ -75,7 +75,7 @@
     "eslint-config-prettier": "^9.1.0",
     "eslint-import-resolver-typescript": "^4.4.3",
     "eslint-plugin-import": "^2.29.1",
-    "eslint-plugin-unused-imports": "^3.1.0",
+    "eslint-plugin-unused-imports": "^4.1.4",
     "ffmpeg-static": "^5.0.0",
     "ffprobe-static": "^3.0.0",
     "semantic-release": "^24.2.0",
