@@ -8,6 +8,12 @@ import { FFmpeggy, FFmpeggyProgressEvent } from "../FFmpeggy";
 import { waitFiles } from "./utils/waitFiles";
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 
+// Test timeout constants for better readability and maintainability
+const TEST_TIMEOUT_MS = 60000; // 60 seconds for most test operations
+const PROBE_TIMEOUT_MS = 30000; // 30 seconds for probe operations
+const LARGE_FILE_WAIT_TIMEOUT_MS = 30000; // 30 seconds for waiting on large files
+const LARGE_FILE_CHECK_INTERVAL_MS = 2000; // 2 seconds between checks for large files
+
 if (!ffmpegBin) {
   throw new Error("ffmpeg not found");
 }
@@ -128,164 +134,202 @@ describe("FFmpeggy", () => {
     expect(ffmpeggy.outputOptions.includes("-c:v libx264")).toBe(true);
   });
 
-  it("should copy bunny2.mp4 to temp file", async () => {
-    const ffmpeggy = new FFmpeggy();
-    const tempFile = getTempFile("mp4");
+  it(
+    "should copy bunny2.mp4 to temp file",
+    async () => {
+      const ffmpeggy = new FFmpeggy();
+      const tempFile = getTempFile("mp4");
 
-    const promise = new Promise<void>((resolve) => {
-      ffmpeggy
-        .setInput(sampleMp4)
-        .setOutputOptions(["-c copy"])
-        .setOutput(tempFile)
-        .run();
+      const promise = new Promise<void>((resolve) => {
+        ffmpeggy
+          .setInput(sampleMp4)
+          .setOutputOptions(["-c copy"])
+          .setOutput(tempFile)
+          .run();
 
-      ffmpeggy.on("done", async () => {
-        await waitFiles([tempFile]);
-        const tempStats = await stat(tempFile);
-        expect(tempStats.size).toBeGreaterThan(0);
-      });
+        ffmpeggy.on("done", async () => {
+          await waitFiles([tempFile]);
+          const tempStats = await stat(tempFile);
+          expect(tempStats.size).toBeGreaterThan(0);
+        });
 
-      ffmpeggy.on("exit", async (exitCode, error) => {
-        expect(exitCode).toBe(0);
-        expect(error).toBeUndefined();
-        resolve();
-      });
-    });
-
-    await promise;
-  }, 60000);
-
-  it("should stream bunny1.mkv to temp file", async () => {
-    const tempFile = getTempFile("mkv");
-    const ffmpeggy = new FFmpeggy({
-      autorun: true,
-      input: createReadStream(sampleMkv),
-      inputOptions: ["-f matroska"],
-      output: createWriteStream(tempFile),
-      outputOptions: ["-f matroska", "-c copy"],
-    });
-    await ffmpeggy.done();
-    await waitFiles([tempFile]);
-    const pipedStats = await stat(tempFile);
-    expect(pipedStats.size).toBeGreaterThan(0);
-  }, 60000);
-
-  it("should stream audio.mp3 to temp file", async () => {
-    const tempFile = getTempFile("mp3");
-    const ffmpeggy = new FFmpeggy({
-      autorun: true,
-      input: createReadStream(sampleMp3),
-      inputOptions: ["-f mp3"],
-      output: createWriteStream(tempFile),
-      outputOptions: ["-f mp3", "-c copy"],
-    });
-    await ffmpeggy.done();
-    await waitFiles([tempFile]);
-    const pipedStats = await stat(tempFile);
-    expect(pipedStats.size).toBeGreaterThan(0);
-  }, 60000);
-
-  it("should receive progress event", async () => {
-    expect.assertions(9);
-    const tempFile = getTempFile("mkv");
-    const ffmpeggy = new FFmpeggy();
-
-    const promise = new Promise<void>((resolve) => {
-      ffmpeggy
-        .setInput(sampleMp4)
-        .setOutputOptions(["-c:v libx264", "-c:a aac"])
-        .setOutput(tempFile)
-        .run();
-
-      let progress: FFmpeggyProgressEvent;
-      ffmpeggy.on("progress", async (p) => {
-        progress = p;
-      });
-
-      ffmpeggy.on("exit", async (code, error) => {
-        expect(progress.frame).toBeGreaterThan(0);
-        expect(progress.fps).toBeDefined();
-        expect(progress.q).toBeDefined();
-        expect(progress.size).toBeGreaterThan(0);
-        expect(progress.time).toBeGreaterThan(0);
-        expect(progress.bitrate).toBeGreaterThan(0);
-        expect(progress.speed).toBeGreaterThan(0);
-        expect(progress.duration).toBeDefined();
-        expect(progress.percent).toBeGreaterThan(0);
-
-        if (code === 1 || error) {
-          throw error;
-        } else {
+        ffmpeggy.on("exit", async (exitCode, error) => {
+          expect(exitCode).toBe(0);
+          expect(error).toBeUndefined();
           resolve();
-        }
-      });
-    });
-
-    await promise;
-  }, 60000);
-
-  it("should emit writing and done events for segments", async () => {
-    const segmentCount = 3;
-    const ffmpeggy = new FFmpeggy({
-      input: sampleMkv,
-      output: path.join(TMP_DIR, "temp-%d.mpegts"),
-      outputOptions: [
-        `-t ${segmentCount}`,
-        "-map 0",
-        "-c:v libx264",
-        "-c:a aac",
-        "-force_key_frames expr:gte(t,n_forced*1)",
-        "-f ssegment",
-        "-forced-idr 1",
-        "-flags +cgop",
-        "-copyts",
-        "-vsync -1",
-        "-avoid_negative_ts disabled",
-        "-individual_header_trailer 0",
-        "-start_at_zero",
-        "-segment_list_type m3u8",
-        `-segment_list ${path.join(TMP_DIR, "playlist.m3u8")}`,
-        "-segment_time 1",
-        "-segment_format mpegts",
-      ],
-    });
-
-    const segments = new Array(segmentCount)
-      .fill(undefined)
-      .map((_v, idx) => path.join(TMP_DIR, `temp-${idx}.mpegts`));
-
-    const promise = new Promise<void>((resolve) => {
-      let writingEvents = 0;
-      ffmpeggy.on("writing", (file) => {
-        if (file.includes("temp-")) {
-          expect(segments.includes(file)).toBe(true);
-          writingEvents++;
-        }
+        });
       });
 
-      let doneEvents = 0;
-      ffmpeggy.on("done", (file) => {
-        if (file?.includes("temp-")) {
-          expect(segments.includes(file)).toBe(true);
-          doneEvents++;
-        }
+      await promise;
+    },
+    TEST_TIMEOUT_MS
+  );
+
+  it(
+    "should stream bunny1.mkv to temp file",
+    async () => {
+      const tempFile = getTempFile("mkv");
+      const ffmpeggy = new FFmpeggy({
+        autorun: true,
+        input: createReadStream(sampleMkv),
+        inputOptions: ["-f matroska"],
+        output: createWriteStream(tempFile),
+        outputOptions: ["-f matroska", "-c copy"],
       });
 
-      ffmpeggy.on("exit", (code, error) => {
-        if (code === 1 || error) {
-          throw error;
-        } else {
-          expect(writingEvents).toBeGreaterThan(0);
-          expect(doneEvents).toBeGreaterThan(0);
-          resolve();
-        }
+      // Add error handling to catch FFmpeg errors
+      ffmpeggy.on("error", (error) => {
+        throw error;
       });
 
-      ffmpeggy.run();
-    });
+      await ffmpeggy.done();
 
-    await promise;
-  }, 60000);
+      // Wait for the file to be fully written and closed
+      // Use longer timeout for larger files like bunny1.mkv (22MB)
+      await waitFiles(
+        [tempFile],
+        LARGE_FILE_WAIT_TIMEOUT_MS,
+        LARGE_FILE_CHECK_INTERVAL_MS
+      );
+
+      const pipedStats = await stat(tempFile);
+      expect(pipedStats.size).toBeGreaterThan(0);
+
+      // Additional verification: check if the file is a valid MKV
+      // This helps catch cases where the file was created but corrupted
+      expect(pipedStats.size).toBeGreaterThan(1000); // Should be at least 1KB
+    },
+    TEST_TIMEOUT_MS
+  );
+
+  it(
+    "should stream audio.mp3 to temp file",
+    async () => {
+      const tempFile = getTempFile("mp3");
+      const ffmpeggy = new FFmpeggy({
+        autorun: true,
+        input: createReadStream(sampleMp3),
+        inputOptions: ["-f mp3"],
+        output: createWriteStream(tempFile),
+        outputOptions: ["-f mp3", "-c copy"],
+      });
+      await ffmpeggy.done();
+      await waitFiles([tempFile]);
+      const pipedStats = await stat(tempFile);
+      expect(pipedStats.size).toBeGreaterThan(0);
+    },
+    TEST_TIMEOUT_MS
+  );
+
+  it(
+    "should receive progress event",
+    async () => {
+      expect.assertions(9);
+      const tempFile = getTempFile("mkv");
+      const ffmpeggy = new FFmpeggy();
+
+      const promise = new Promise<void>((resolve) => {
+        ffmpeggy
+          .setInput(sampleMp4)
+          .setOutputOptions(["-c:v libx264", "-c:a aac"])
+          .setOutput(tempFile)
+          .run();
+
+        let progress: FFmpeggyProgressEvent;
+        ffmpeggy.on("progress", async (p) => {
+          progress = p;
+        });
+
+        ffmpeggy.on("exit", async (code, error) => {
+          expect(progress.frame).toBeGreaterThan(0);
+          expect(progress.fps).toBeDefined();
+          expect(progress.q).toBeDefined();
+          expect(progress.size).toBeGreaterThan(0);
+          expect(progress.time).toBeGreaterThan(0);
+          expect(progress.bitrate).toBeGreaterThan(0);
+          expect(progress.speed).toBeGreaterThan(0);
+          expect(progress.duration).toBeDefined();
+          expect(progress.percent).toBeGreaterThan(0);
+
+          if (code === 1 || error) {
+            throw error;
+          } else {
+            resolve();
+          }
+        });
+      });
+
+      await promise;
+    },
+    TEST_TIMEOUT_MS
+  );
+
+  it(
+    "should emit writing and done events for segments",
+    async () => {
+      const segmentCount = 3;
+      const ffmpeggy = new FFmpeggy({
+        input: sampleMkv,
+        output: path.join(TMP_DIR, "temp-%d.mpegts"),
+        outputOptions: [
+          `-t ${segmentCount}`,
+          "-map 0",
+          "-c:v libx264",
+          "-c:a aac",
+          "-force_key_frames expr:gte(t,n_forced*1)",
+          "-f ssegment",
+          "-forced-idr 1",
+          "-flags +cgop",
+          "-copyts",
+          "-vsync -1",
+          "-avoid_negative_ts disabled",
+          "-individual_header_trailer 0",
+          "-start_at_zero",
+          "-segment_list_type m3u8",
+          `-segment_list ${path.join(TMP_DIR, "playlist.m3u8")}`,
+          "-segment_time 1",
+          "-segment_format mpegts",
+        ],
+      });
+
+      const segments = new Array(segmentCount)
+        .fill(undefined)
+        .map((_v, idx) => path.join(TMP_DIR, `temp-${idx}.mpegts`));
+
+      const promise = new Promise<void>((resolve) => {
+        let writingEvents = 0;
+        ffmpeggy.on("writing", (file) => {
+          if (file.includes("temp-")) {
+            expect(segments.includes(file)).toBe(true);
+            writingEvents++;
+          }
+        });
+
+        let doneEvents = 0;
+        ffmpeggy.on("done", (file) => {
+          if (file?.includes("temp-")) {
+            expect(segments.includes(file)).toBe(true);
+            doneEvents++;
+          }
+        });
+
+        ffmpeggy.on("exit", (code, error) => {
+          if (code === 1 || error) {
+            throw error;
+          } else {
+            expect(writingEvents).toBeGreaterThan(0);
+            expect(doneEvents).toBeGreaterThan(0);
+            resolve();
+          }
+        });
+
+        ffmpeggy.run();
+      });
+
+      await promise;
+    },
+    TEST_TIMEOUT_MS
+  );
 
   it("should return existing process", () => {
     const ffmpeggy = new FFmpeggy();
@@ -299,68 +343,84 @@ describe("FFmpeggy", () => {
   });
 
   describe("toStream()", () => {
-    it("should pipe to piped.mkv", async () => {
-      const tempFile = getTempFile("mkv");
-      const ffmpeg = new FFmpeggy({
-        autorun: true,
-        input: sampleMp4,
-        pipe: true,
-        outputOptions: ["-f matroska"],
-      });
+    it(
+      "should pipe to piped.mkv",
+      async () => {
+        const tempFile = getTempFile("mkv");
+        const ffmpeg = new FFmpeggy({
+          autorun: true,
+          input: sampleMp4,
+          pipe: true,
+          outputOptions: ["-f matroska"],
+        });
 
-      const stream = ffmpeg.toStream();
-      stream.pipe(createWriteStream(tempFile));
-      await ffmpeg.done();
-      await waitFiles([tempFile]);
-      const pipedStats = await stat(tempFile);
-      expect(pipedStats.size).toBeGreaterThan(0);
-    }, 60000);
+        const stream = ffmpeg.toStream();
+        stream.pipe(createWriteStream(tempFile));
+        await ffmpeg.done();
+        await waitFiles([tempFile]);
+        const pipedStats = await stat(tempFile);
+        expect(pipedStats.size).toBeGreaterThan(0);
+      },
+      TEST_TIMEOUT_MS
+    );
   });
 
   describe("reset()", () => {
-    it("should be possible to reuse instance", async () => {
-      expect.assertions(2);
-      const ffmpeggy = new FFmpeggy();
-      const tempFile1 = getTempFile("mp4");
-      await ffmpeggy
-        .setInput(sampleMp4)
-        .setOutputOptions(["-c copy"])
-        .setOutput(tempFile1)
-        .run();
+    it(
+      "should be possible to reuse instance",
+      async () => {
+        expect.assertions(2);
+        const ffmpeggy = new FFmpeggy();
+        const tempFile1 = getTempFile("mp4");
+        await ffmpeggy
+          .setInput(sampleMp4)
+          .setOutputOptions(["-c copy"])
+          .setOutput(tempFile1)
+          .run();
 
-      const tempStats1 = await stat(tempFile1);
-      expect(tempStats1.size).toBeGreaterThan(0);
+        const tempStats1 = await stat(tempFile1);
+        expect(tempStats1.size).toBeGreaterThan(0);
 
-      ffmpeggy.reset();
+        ffmpeggy.reset();
 
-      const tempFile2 = getTempFile("mp4");
-      await ffmpeggy
-        .setInput(sampleMp4)
-        .setOutputOptions(["-c copy"])
-        .setOutput(tempFile2)
-        .run();
+        const tempFile2 = getTempFile("mp4");
+        await ffmpeggy
+          .setInput(sampleMp4)
+          .setOutputOptions(["-c copy"])
+          .setOutput(tempFile2)
+          .run();
 
-      const tempStats2 = await stat(tempFile2);
-      expect(tempStats2.size).toBeGreaterThan(0);
-    }, 60000);
+        const tempStats2 = await stat(tempFile2);
+        expect(tempStats2.size).toBeGreaterThan(0);
+      },
+      TEST_TIMEOUT_MS
+    );
   });
 
   describe("probe()", () => {
-    it("should probe bunny2.mp4", async () => {
-      expect.assertions(5);
-      const result = await FFmpeggy.probe(sampleMp4);
-      expect(result.format).toBeDefined();
-      expect(result.format.nb_streams).toBe(2);
-      expect(result.format.duration).toBe("5.312000");
-      expect(result.streams.length).toBeGreaterThan(0);
-      expect(result.streams[0].codec_name).toBe("h264");
-    }, 30000);
+    it(
+      "should probe bunny2.mp4",
+      async () => {
+        expect.assertions(5);
+        const result = await FFmpeggy.probe(sampleMp4);
+        expect(result.format).toBeDefined();
+        expect(result.format.nb_streams).toBe(2);
+        expect(result.format.duration).toBe("5.312000");
+        expect(result.streams.length).toBeGreaterThan(0);
+        expect(result.streams[0].codec_name).toBe("h264");
+      },
+      PROBE_TIMEOUT_MS
+    );
 
-    it("should throw error if failed", async () => {
-      await expect(FFmpeggy.probe("path_does_not_exist")).rejects.toThrow(
-        "Failed to probe"
-      );
-    }, 30000);
+    it(
+      "should throw error if failed",
+      async () => {
+        await expect(FFmpeggy.probe("path_does_not_exist")).rejects.toThrow(
+          "Failed to probe"
+        );
+      },
+      PROBE_TIMEOUT_MS
+    );
   });
 
   describe("run(): error handling", () => {

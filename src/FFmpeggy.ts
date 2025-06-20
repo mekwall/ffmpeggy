@@ -27,6 +27,8 @@ export interface FFmpeggyOptions {
   autorun?: boolean;
 }
 
+const DEFAULT_STREAM_OPEN_TIMEOUT_MS = 5000;
+
 export type FFmpeggyProgressEvent = FFmpeggyProgress & {
   duration?: number;
   percent?: number;
@@ -182,16 +184,40 @@ export class FFmpeggy extends (EventEmitter as new () => TypedEmitter<FFmpegEven
       if (input instanceof ReadStream) {
         // We need to wait for the input stream to open before we can pass it
         // More info: https://nodejs.org/dist/latest/docs/api/child_process.html#child_process_options_stdio
-        await new Promise((resolve) => {
-          input.on("open", resolve);
+        await new Promise((resolve, reject) => {
+          const timeout = setTimeout(() => {
+            reject(new Error("Timeout waiting for input stream to open"));
+          }, DEFAULT_STREAM_OPEN_TIMEOUT_MS);
+
+          input.once("open", () => {
+            clearTimeout(timeout);
+            resolve(undefined);
+          });
+
+          input.once("error", (err) => {
+            clearTimeout(timeout);
+            reject(err);
+          });
         });
       }
 
       if (output instanceof WriteStream) {
         // We need to wait for the output stream to open before we can pass it
         // More info:https://nodejs.org/dist/latest/docs/api/child_process.html#child_process_options_stdio
-        await new Promise((resolve) => {
-          output.on("open", resolve);
+        await new Promise((resolve, reject) => {
+          const timeout = setTimeout(() => {
+            reject(new Error("Timeout waiting for output stream to open"));
+          }, DEFAULT_STREAM_OPEN_TIMEOUT_MS);
+
+          output.once("open", () => {
+            clearTimeout(timeout);
+            resolve(undefined);
+          });
+
+          output.once("error", (err) => {
+            clearTimeout(timeout);
+            reject(err);
+          });
         });
       }
 
@@ -319,7 +345,13 @@ export class FFmpeggy extends (EventEmitter as new () => TypedEmitter<FFmpegEven
 
   public async done(): Promise<void> {
     if (this.running && this.process) {
-      await this.process;
+      try {
+        await this.process;
+      } finally {
+        // Always clear the state when done, regardless of success or failure
+        this.running = false;
+        this.process = undefined;
+      }
     }
   }
 
