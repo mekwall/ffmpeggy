@@ -27,6 +27,8 @@ export interface FFmpeggyOptions {
   autorun?: boolean;
 }
 
+const DEFAULT_STREAM_OPEN_TIMEOUT_MS = 5000;
+
 export type FFmpeggyProgressEvent = FFmpeggyProgress & {
   duration?: number;
   percent?: number;
@@ -185,7 +187,7 @@ export class FFmpeggy extends (EventEmitter as new () => TypedEmitter<FFmpegEven
         await new Promise((resolve, reject) => {
           const timeout = setTimeout(() => {
             reject(new Error("Timeout waiting for input stream to open"));
-          }, 5000);
+          }, DEFAULT_STREAM_OPEN_TIMEOUT_MS);
 
           input.once("open", () => {
             clearTimeout(timeout);
@@ -205,7 +207,7 @@ export class FFmpeggy extends (EventEmitter as new () => TypedEmitter<FFmpegEven
         await new Promise((resolve, reject) => {
           const timeout = setTimeout(() => {
             reject(new Error("Timeout waiting for output stream to open"));
-          }, 5000);
+          }, DEFAULT_STREAM_OPEN_TIMEOUT_MS);
 
           output.once("open", () => {
             clearTimeout(timeout);
