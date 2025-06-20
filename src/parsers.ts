@@ -1,4 +1,4 @@
-import { FFmpeggyProgress } from "./types/FFmpeggyProgress";
+import { FFmpeggyProgress, FFmpeggyFinalSizes } from "./types/FFmpeggyProgress";
 import { parseBitrate } from "./utils/parseBitrate";
 import { parseSize } from "./utils/parseSize";
 import { timerToSecs } from "./utils/timerToSecs";
@@ -70,4 +70,65 @@ export function parseWriting(data: string): string | undefined {
     return;
   }
   return matches[1];
+}
+
+export function parseFinalSizes(data: string): FFmpeggyFinalSizes | undefined {
+  const result: FFmpeggyFinalSizes = {
+    video: 0,
+    audio: 0,
+    subtitles: 0,
+    otherStreams: 0,
+    globalHeaders: 0,
+    muxingOverhead: 0,
+  };
+
+  // Match each field individually with a global regex
+  // This handles different field orders, missing fields, and extra fields
+  const regex =
+    /(video|audio|subtitle[s]?|other streams|global headers):\s*(\d+)(kB|MB|B)/g;
+  let match;
+
+  while ((match = regex.exec(data)) !== null) {
+    const key = match[1].toLowerCase();
+    const value = parseSize(Number(match[2]), match[3]);
+
+    switch (key) {
+      case "video":
+        result.video = value;
+        break;
+      case "audio":
+        result.audio = value;
+        break;
+      case "subtitle":
+      case "subtitles":
+        result.subtitles = value;
+        break;
+      case "other streams":
+        result.otherStreams = value;
+        break;
+      case "global headers":
+        result.globalHeaders = value;
+        break;
+    }
+  }
+
+  // Parse muxing overhead percentage if present
+  const muxingRegex = /muxing overhead:\s*([\d.]+)%/;
+  const muxingMatch = muxingRegex.exec(data);
+  if (muxingMatch) {
+    result.muxingOverhead = Number(muxingMatch[1]) / 100; // Convert percentage to decimal
+  }
+
+  // Only return if at least one size field was found
+  if (
+    result.video ||
+    result.audio ||
+    result.subtitles ||
+    result.otherStreams ||
+    result.globalHeaders
+  ) {
+    return result;
+  }
+
+  return;
 }

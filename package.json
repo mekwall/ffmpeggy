@@ -41,7 +41,7 @@
     "lint": "eslint .",
     "test": "yarn build && vitest run",
     "test:watch": "yarn build && vitest",
-    "test:debug": "yarn build && cross-env DEBUG=ffmpeggy vitest run --inspect-brk",
+    "test:debug": "yarn build && cross-env DEBUG=ffmpeggy vitest run",
     "semantic-release": "semantic-release",
     "semantic-release:dry-run": "cross-env DRY_RUN=true semantic-release --dry-run --no-ci --debug"
   },

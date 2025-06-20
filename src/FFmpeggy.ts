@@ -9,8 +9,13 @@ import {
   type ExecaChildProcess,
 } from "@esm2cjs/execa";
 import TypedEmitter from "typed-emitter";
-import { parseInfo, parseWriting, parseProgress } from "./parsers";
-import { FFmpeggyProgress } from "./types/FFmpeggyProgress";
+import {
+  parseInfo,
+  parseWriting,
+  parseProgress,
+  parseFinalSizes,
+} from "./parsers";
+import { FFmpeggyProgress, FFmpeggyFinalSizes } from "./types/FFmpeggyProgress";
 import { FFprobeResult } from "./types/probeTypes";
 import { parseOptions } from "./utils/parseOptions";
 
@@ -37,7 +42,7 @@ export type FFmpeggyProgressEvent = FFmpeggyProgress & {
 type FFmpegEvents = {
   error: (error: Error) => void;
   start: (ffmpegArgs: readonly string[]) => void;
-  done: (file?: string) => void;
+  done: (file?: string, sizes?: FFmpeggyFinalSizes) => void;
   exit: (code?: number | null, error?: Error) => void;
   probe: (probeResult: FFprobeResult) => void;
   progress: (progress: FFmpeggyProgressEvent) => void;
@@ -85,6 +90,7 @@ export class FFmpeggy extends (EventEmitter as new () => TypedEmitter<FFmpegEven
   public log = "";
   private pipedOutput = false;
   private outputStream = new PassThrough();
+  private finalSizes?: FFmpeggyFinalSizes;
 
   public constructor(opts: FFmpeggyOptions = {}) {
     super();
@@ -291,11 +297,16 @@ export class FFmpeggy extends (EventEmitter as new () => TypedEmitter<FFmpegEven
         if (writing) {
           if (this.currentFile && !writing.includes("%d")) {
             debug("done: %o", this.currentFile);
-            this.emit("done", this.currentFile);
+            this.emit("done", this.currentFile, this.finalSizes);
           }
           this.currentFile = writing;
           debug("writing: %o", writing);
           this.emit("writing", writing);
+        }
+        const finalSizes = parseFinalSizes(txt);
+        if (finalSizes) {
+          this.finalSizes = finalSizes;
+          debug("final sizes: %o", finalSizes);
         }
         this.log += txt;
       });
@@ -310,7 +321,7 @@ export class FFmpeggy extends (EventEmitter as new () => TypedEmitter<FFmpegEven
         console.error("FFmpeg failed:", this.log);
       } else {
         debug("done: %s", this.currentFile);
-        this.emit("done", this.currentFile);
+        this.emit("done", this.currentFile, this.finalSizes);
       }
       nextTick(() => {
         // Wait until next tick to emit the exit event
@@ -412,6 +423,7 @@ export class FFmpeggy extends (EventEmitter as new () => TypedEmitter<FFmpegEven
     this.outputOptions = [];
     this.outputStream = new PassThrough();
     this.error = undefined;
+    this.finalSizes = undefined;
     Object.assign(this, FFmpeggy.DefaultConfig);
   }
 
