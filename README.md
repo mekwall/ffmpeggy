@@ -11,7 +11,9 @@ This is a hybrid package built in TypeScript that provides both CommonJS and ES 
 ```sh
 npm install --save ffmpeggy
 ```
+
 **or**
+
 ```sh
 yarn add ffmpeggy
 ```
@@ -23,7 +25,9 @@ If you don't want to provide your own binaries, you can use the following packag
 ```sh
 npm install --save ffmpeg-static ffprobe-static
 ```
+
 **or**
+
 ```sh
 yarn add ffmpeg-static ffprobe-static
 ```
@@ -45,6 +49,14 @@ FFmpeggy.DefaultConfig = {
 
 ffmpeggy comes with an intuitive api that allows you to work with it in your preferred way.
 
+### TypeScript Types
+
+If you're using TypeScript, you can import the types for better type safety:
+
+```ts
+import { FFmpeggy, FFmpeggyFinalSizes } from "ffmpeggy";
+```
+
 ### Using with async/await
 
 The most simple way to use ffmpeggy is with async/await.
@@ -60,6 +72,13 @@ async function main() {
       .setOutput("output.mkv")
       .setOutputOptions(["-c:v h264"])
       .run();
+
+    // Listen for the done event to get final sizes
+    ffmpeggy.on("done", (file, sizes) => {
+      if (sizes) {
+        console.log(`Video: ${sizes.video} bytes, Audio: ${sizes.audio} bytes`);
+      }
+    });
 
     await ffmpeggy.done();
     console.log(`Done =)`);
@@ -91,8 +110,15 @@ new FFmpeggy({
   .on("error", (error) => {
     console.error(`Something went wrong =(`, error);
   })
-  .on("done", (outputFile) => {
+  .on("done", (outputFile, sizes) => {
     console.log(`Done =)`);
+    if (sizes) {
+      console.log(`Video size: ${sizes.video} bytes`);
+      console.log(`Audio size: ${sizes.audio} bytes`);
+      console.log(
+        `Muxing overhead: ${(sizes.muxingOverhead * 100).toFixed(3)}%`
+      );
+    }
   });
 ```
 
@@ -177,9 +203,20 @@ Fires when the ffmpeg process have been started. The `ffmpegArgs` argument conta
 
 Fires when there was an error while running the ffmpeg process.
 
-#### `done` - `(file?: string) => void`
+#### `done` - `(file?: string, sizes?: FFmpeggyFinalSizes) => void`
 
-Fires when the ffmpeg process have successfully completed.
+Fires when the ffmpeg process have successfully completed. The `sizes` parameter contains information about the final sizes of different stream types in the output file:
+
+- `video`: Size of video stream in bytes
+- `audio`: Size of audio stream in bytes
+- `subtitles`: Size of subtitle streams in bytes
+- `otherStreams`: Size of other stream types in bytes
+- `globalHeaders`: Size of global headers in bytes
+- `muxingOverhead`: Muxing overhead as a decimal (e.g., 0.00414726 for 0.414726%)
+
+> Note: Some fields may be 0 or undefined if the corresponding stream type is not present in the output file.
+
+> Note: Final sizes are only available when FFmpeg outputs this information at the end of processing. For some operations (like simple copying), FFmpeg may not provide detailed size breakdowns.
 
 #### `exit` - `(code?: number | null, error?: Error) => void`
 
