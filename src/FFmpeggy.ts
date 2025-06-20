@@ -345,11 +345,10 @@ export class FFmpeggy extends (EventEmitter as new () => TypedEmitter<FFmpegEven
     if (this.running && this.process) {
       try {
         await this.process;
-      } catch (err) {
-        // If the process was killed or failed, we should still mark it as done
+      } finally {
+        // Always clear the state when done, regardless of success or failure
         this.running = false;
         this.process = undefined;
-        throw err;
       }
     }
   }
