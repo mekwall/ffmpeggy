@@ -1,3 +1,15 @@
+# [3.1.0](https://github.com/mekwall/ffmpeggy/compare/v3.0.5...v3.1.0) (2025-06-20)
+
+
+### Bug Fixes
+
+* resolve race condition in FFmpeggy stream handling ([#698](https://github.com/mekwall/ffmpeggy/issues/698)) ([37ce348](https://github.com/mekwall/ffmpeggy/commit/37ce3489c2edfcfb8aad78743b3f26894bbb9c23))
+
+
+### Features
+
+* emit final sizes in done event ([#699](https://github.com/mekwall/ffmpeggy/issues/699)) ([793bceb](https://github.com/mekwall/ffmpeggy/commit/793bceb75420f24394d4c8540d76749b83e17ad8))
+
 ## [3.0.5](https://github.com/mekwall/ffmpeggy/compare/v3.0.4...v3.0.5) (2025-02-24)
 
 
