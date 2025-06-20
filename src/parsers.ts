@@ -119,13 +119,14 @@ export function parseFinalSizes(data: string): FFmpeggyFinalSizes | undefined {
     result.muxingOverhead = Number(muxingMatch[1]) / 100; // Convert percentage to decimal
   }
 
-  // Only return if at least one size field was found
+  // Only return if at least one size field was found or muxing overhead was parsed
   if (
     result.video ||
     result.audio ||
     result.subtitles ||
     result.otherStreams ||
-    result.globalHeaders
+    result.globalHeaders ||
+    (result.muxingOverhead && result.muxingOverhead > 0)
   ) {
     return result;
   }
