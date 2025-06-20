@@ -182,16 +182,40 @@ export class FFmpeggy extends (EventEmitter as new () => TypedEmitter<FFmpegEven
       if (input instanceof ReadStream) {
         // We need to wait for the input stream to open before we can pass it
         // More info: https://nodejs.org/dist/latest/docs/api/child_process.html#child_process_options_stdio
-        await new Promise((resolve) => {
-          input.on("open", resolve);
+        await new Promise((resolve, reject) => {
+          const timeout = setTimeout(() => {
+            reject(new Error("Timeout waiting for input stream to open"));
+          }, 5000);
+
+          input.on("open", () => {
+            clearTimeout(timeout);
+            resolve(undefined);
+          });
+
+          input.on("error", (err) => {
+            clearTimeout(timeout);
+            reject(err);
+          });
         });
       }
 
       if (output instanceof WriteStream) {
         // We need to wait for the output stream to open before we can pass it
         // More info:https://nodejs.org/dist/latest/docs/api/child_process.html#child_process_options_stdio
-        await new Promise((resolve) => {
-          output.on("open", resolve);
+        await new Promise((resolve, reject) => {
+          const timeout = setTimeout(() => {
+            reject(new Error("Timeout waiting for output stream to open"));
+          }, 5000);
+
+          output.on("open", () => {
+            clearTimeout(timeout);
+            resolve(undefined);
+          });
+
+          output.on("error", (err) => {
+            clearTimeout(timeout);
+            reject(err);
+          });
         });
       }
 
@@ -319,7 +343,14 @@ export class FFmpeggy extends (EventEmitter as new () => TypedEmitter<FFmpegEven
 
   public async done(): Promise<void> {
     if (this.running && this.process) {
-      await this.process;
+      try {
+        await this.process;
+      } catch (err) {
+        // If the process was killed or failed, we should still mark it as done
+        this.running = false;
+        this.process = undefined;
+        throw err;
+      }
     }
   }
 

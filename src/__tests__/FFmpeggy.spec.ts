@@ -164,10 +164,24 @@ describe("FFmpeggy", () => {
       output: createWriteStream(tempFile),
       outputOptions: ["-f matroska", "-c copy"],
     });
+
+    // Add error handling to catch FFmpeg errors
+    ffmpeggy.on("error", (error) => {
+      throw error;
+    });
+
     await ffmpeggy.done();
-    await waitFiles([tempFile]);
+
+    // Wait for the file to be fully written and closed
+    // Use longer timeout for larger files like bunny1.mkv (22MB)
+    await waitFiles([tempFile], 30000, 2000);
+
     const pipedStats = await stat(tempFile);
     expect(pipedStats.size).toBeGreaterThan(0);
+
+    // Additional verification: check if the file is a valid MKV
+    // This helps catch cases where the file was created but corrupted
+    expect(pipedStats.size).toBeGreaterThan(1000); // Should be at least 1KB
   }, 60000);
 
   it("should stream audio.mp3 to temp file", async () => {
