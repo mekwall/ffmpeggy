@@ -1,3 +1,10 @@
+## [3.1.2](https://github.com/mekwall/ffmpeggy/compare/v3.1.1...v3.1.2) (2025-06-24)
+
+
+### Bug Fixes
+
+* **parsers:** handle N/A duration values to prevent NaN ([#711](https://github.com/mekwall/ffmpeggy/issues/711)) ([934ecb8](https://github.com/mekwall/ffmpeggy/commit/934ecb8d115ff4b735a40f09dd9d8b222d1effba))
+
 ## [3.1.1](https://github.com/mekwall/ffmpeggy/compare/v3.1.0...v3.1.1) (2025-06-24)
 
 
