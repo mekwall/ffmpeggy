@@ -306,12 +306,13 @@ export class FFmpeggy extends (EventEmitter as new () => TypedEmitter<FFmpegEven
           const progressEvent: FFmpeggyProgressEvent = {
             ...progress,
             duration,
-            percent: Math.min(
-              100,
-              progress.time
-                ? Math.round((progress.time / duration) * 100 * 100) / 100
-                : 0
-            ),
+            percent:
+              duration && duration > 0 && progress.time
+                ? Math.min(
+                    100,
+                    Math.round((progress.time / duration) * 100 * 100) / 100
+                  )
+                : 0,
           };
           debug("progress: %o", progressEvent);
           this.emit("progress", progressEvent);

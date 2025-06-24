@@ -1,6 +1,15 @@
 import { describe, expect, it } from "vitest";
 import { parseProgress, parseFinalSizes, parseInfo } from "../parsers";
 
+function calculateProgressPercentage(
+  progressTime: number | undefined,
+  duration: number | undefined
+): number {
+  return duration && duration > 0 && progressTime
+    ? Math.min(100, Math.round((progressTime / duration) * 100 * 100) / 100)
+    : 0;
+}
+
 describe("parsers", () => {
   it("should parse simple progress", () => {
     const txt =
@@ -191,6 +200,60 @@ describe("parsers", () => {
     it("should return undefined for non-matching text", () => {
       const result = parseInfo("Some random text");
       expect(result).toBeUndefined();
+    });
+  });
+
+  describe("progress percentage calculation", () => {
+    it("should calculate correct percentage when duration is available", () => {
+      const progress = parseProgress(
+        "frame= 3853 fps=246 q=-1.0 size=   25202kB time=00:02:34.08 bitrate=1339.9kbits/s speed=9.82x"
+      );
+      expect(progress).toBeDefined();
+      expect(progress?.time).toBe(154.08);
+
+      const duration = 300; // 5 minutes
+      const percent = calculateProgressPercentage(progress?.time, duration);
+
+      expect(percent).toBe(51.36); // (154.08 / 300) * 100
+    });
+
+    it("should return 0 when duration is not available", () => {
+      const progress = parseProgress(
+        "frame= 3853 fps=246 q=-1.0 size=   25202kB time=00:02:34.08 bitrate=1339.9kbits/s speed=9.82x"
+      );
+      expect(progress).toBeDefined();
+      expect(progress?.time).toBe(154.08);
+
+      const duration = 0;
+      const percent = calculateProgressPercentage(progress?.time, duration);
+
+      expect(percent).toBe(0);
+    });
+
+    it("should return 0 when duration is undefined", () => {
+      const progress = parseProgress(
+        "frame= 3853 fps=246 q=-1.0 size=   25202kB time=00:02:34.08 bitrate=1339.9kbits/s speed=9.82x"
+      );
+      expect(progress).toBeDefined();
+      expect(progress?.time).toBe(154.08);
+
+      const duration = undefined;
+      const percent = calculateProgressPercentage(progress?.time, duration);
+
+      expect(percent).toBe(0);
+    });
+
+    it("should return 0 when progress time is not available", () => {
+      const progress = parseProgress(
+        "frame= 3853 fps=246 q=-1.0 size=   25202kB bitrate=1339.9kbits/s speed=9.82x"
+      );
+      expect(progress).toBeDefined();
+      expect(progress?.time).toBeUndefined();
+
+      const duration = 300;
+      const percent = calculateProgressPercentage(progress?.time, duration);
+
+      expect(percent).toBe(0);
     });
   });
 });
