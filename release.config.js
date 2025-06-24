@@ -7,16 +7,8 @@ export default {
     "@semantic-release/commit-analyzer",
     "@semantic-release/release-notes-generator",
     "@semantic-release/changelog",
-    [
-      "@semantic-release/git",
-      {
-        assets: ["CHANGELOG.md", "package.json"],
-        message:
-          "chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}",
-      },
-    ],
     // Conditionally include plugins based on the dry-run flag
-    !isDryRun && [
+c    !isDryRun && [
       "@semantic-release/npm",
       {
         npmPublish: true,
@@ -27,6 +19,14 @@ export default {
       "@semantic-release/github",
       {
         assets: "ffmpeggy-*.tgz",
+      },
+    ],
+    [
+      "@semantic-release/git",
+      {
+        assets: ["CHANGELOG.md", "package.json"],
+        message:
+          "chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}",
       },
     ],
   ].filter(Boolean),
