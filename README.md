@@ -1,12 +1,24 @@
 # ffmpeggy
 
-[![license](https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square)](https://github.com/mekwall/ffmpeggy/blob/main/LICENSE) [![npm](https://img.shields.io/npm/v/ffmpeggy.svg?style=flat-square&logo=npm)](https://www.npmjs.com/package/ffmpeggy) [![dependencies](https://img.shields.io/librariesio/github/mekwall/ffmpeggy.svg?style=flat-square)](https://github.com/mekwall/ffmpeggy) ![types](https://img.shields.io/npm/types/ffmpeggy.svg?style=flat-square&logo=typescript) [![coverage](https://img.shields.io/codecov/c/github/mekwall/ffmpeggy?style=flat-square)](https://codecov.io/github/mekwall/ffmpeggy?branch=main)
+[![license](https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square)](https://github.com/mekwall/ffmpeggy/blob/main/LICENSE) [![npm](https://img.shields.io/npm/v/ffmpeggy.svg?style=flat-square&logo=npm)](https://www.npmjs.com/package/ffmpeggy) ![npm package size](https://img.shields.io/npm/l/ffmpeggy?style=flat-square) ![node](https://img.shields.io/node/v/ffmpeggy?style=flat-square&logo=node.js) ![TypeScript](https://img.shields.io/badge/TypeScript-5.8+-blue?style=flat-square&logo=typescript) ![FFmpeg](https://img.shields.io/badge/FFmpeg-5.0+-green?style=flat-square&logo=ffmpeg) [![dependencies](https://img.shields.io/librariesio/github/mekwall/ffmpeggy.svg?style=flat-square)](https://github.com/mekwall/ffmpeggy) ![types](https://img.shields.io/npm/types/ffmpeggy.svg?style=flat-square&logo=typescript) [![coverage](https://img.shields.io/codecov/c/github/mekwall/ffmpeggy?style=flat-square)](https://codecov.io/github/mekwall/ffmpeggy?branch=main) ![GitHub last commit](https://img.shields.io/github/last-commit/mekwall/ffmpeggy?style=flat-square&logo=github)
 
-A minimal yet powerful wrapper for [FFmpeg][ffmpeg] and [FFprobe][ffprobe]. Has built-in support for Node.js streams and events that can provide you a detailed progress report.
+A minimal yet powerful wrapper for [FFmpeg][ffmpeg] and [FFprobe][ffprobe]. Has built-in support for Node.js streams and events that can provide you with a detailed progress report.
 
 This is a hybrid package built in TypeScript that provides both CommonJS and ES modules with only a couple of dependencies.
 
-## Installation
+## ✨ Features
+
+- **🚀 Simple API**: Intuitive interface with method chaining
+- **📡 Event-Driven**: Real-time progress updates and status events
+- **🔄 Stream Support**: Native Node.js stream integration for input/output
+- **⚡ TypeScript**: Full TypeScript support with comprehensive type definitions
+- **🔍 Media Probing**: Built-in FFprobe integration for media analysis
+- **🛡️ Error Handling**: Robust error handling with descriptive messages
+- **⚙️ Flexible Configuration**: Support for all FFmpeg options and arguments
+- **📊 Progress Tracking**: Detailed progress events with frame, time, and bitrate info
+- **🎯 Hybrid Package**: Works with both CommonJS and ES modules
+
+## 📦 Installation
 
 ```sh
 npm install --save ffmpeggy
@@ -18,9 +30,9 @@ npm install --save ffmpeggy
 yarn add ffmpeggy
 ```
 
-### Installing `ffmpeg` and `ffprobe` binaries
+### Installing FFmpeg and FFprobe Binaries
 
-If you don't want to provide your own binaries, you can use the following packages that provides binaries for both ffmpeg and ffprobe:
+If you don't want to provide your own binaries, you can use the following packages that provide binaries for both ffmpeg and ffprobe:
 
 ```sh
 npm install --save ffmpeg-static ffprobe-static
@@ -32,7 +44,7 @@ npm install --save ffmpeg-static ffprobe-static
 yarn add ffmpeg-static ffprobe-static
 ```
 
-You can then change the default config to use the binaries like this:
+You can then configure FFmpeggy to use these binaries:
 
 ```ts
 import ffmpegBin from "ffmpeg-static";
@@ -45,76 +57,217 @@ FFmpeggy.DefaultConfig = {
 };
 ```
 
-## Basic usage
+## 🚀 Quick Start
 
-ffmpeggy comes with an intuitive api that allows you to work with it in your preferred way.
-
-### TypeScript Types
-
-If you're using TypeScript, you can import the types for better type safety:
-
-```ts
-import { FFmpeggy, FFmpeggyFinalSizes } from "ffmpeggy";
-```
-
-### Using with async/await
-
-The most simple way to use ffmpeggy is with async/await.
+### Basic Usage
 
 ```ts
 import { FFmpeggy } from "ffmpeggy";
 
-async function main() {
-  const ffmpeggy = new FFmpeggy();
-  try {
-    ffmpeggy
-      .setInput("input.mp4")
-      .setOutput("output.mkv")
-      .setOutputOptions(["-c:v h264"])
-      .run();
+const ffmpeggy = new FFmpeggy();
+try {
+  ffmpeggy
+    .setInput("input.mp4")
+    .setOutput("output.mkv")
+    .setOutputOptions(["-c:v h264"])
+    .run();
 
-    // Listen for the done event to get final sizes
-    ffmpeggy.on("done", (file, sizes) => {
-      if (sizes) {
-        console.log(`Video: ${sizes.video} bytes, Audio: ${sizes.audio} bytes`);
-      }
-    });
-
-    await ffmpeggy.done();
-    console.log(`Done =)`);
-  } catch {
-    console.error(`Something went wrong =(`);
-  }
+  await ffmpeggy.done();
+  console.log("Conversion completed!");
+} catch (error) {
+  console.error("Conversion failed:", error);
 }
 ```
 
-### Using event handlers
-
-To make use of all the bells and whistles of ffmpeggy you can hook into the events that are transmitted. All the events are fully typed!
+### With Constructor Options
 
 ```ts
 import { FFmpeggy } from "ffmpeggy";
 
-new FFmpeggy({
+const ffmpeggy = new FFmpeggy({
   autorun: true,
   input: "input.mp4",
   output: "output.mkv",
   outputOptions: ["-c:v h264"],
-})
+  overwriteExisting: true,
+});
+
+await ffmpeggy.done();
+```
+
+## 📚 API Reference
+
+### Constructor Options
+
+| Option              | Type                    | Description                          | Default         |
+| ------------------- | ----------------------- | ------------------------------------ | --------------- |
+| `cwd`               | `string`                | Working directory for FFmpeg         | `process.cwd()` |
+| `input`             | `string \| ReadStream`  | Input file path or readable stream   | `""`            |
+| `output`            | `string \| WriteStream` | Output file path or writable stream  | `""`            |
+| `pipe`              | `boolean`               | Enable pipe mode (outputs to stream) | `false`         |
+| `globalOptions`     | `string[]`              | FFmpeg global options                | `["-stats"]`    |
+| `inputOptions`      | `string[]`              | FFmpeg input options                 | `[]`            |
+| `outputOptions`     | `string[]`              | FFmpeg output options                | `[]`            |
+| `overwriteExisting` | `boolean`               | Add `-y` flag to overwrite files     | `false`         |
+| `hideBanner`        | `boolean`               | Add `-hide_banner` flag              | `true`          |
+| `autorun`           | `boolean`               | Automatically run FFmpeg after setup | `false`         |
+
+### Method Chaining
+
+FFmpeggy supports method chaining for fluent configuration:
+
+```ts
+const ffmpeggy = new FFmpeggy()
+  .setInput("input.mp4")
+  .setOutput("output.mkv")
+  .setOutputOptions(["-c:v h264", "-c:a aac"])
+  .setOverwriteExisting(true)
+  .setHideBanner(true);
+```
+
+### Events
+
+FFmpeggy extends EventEmitter and provides the following events:
+
+#### `start` - `(ffmpegArgs: readonly string[]) => void`
+
+Fires when the FFmpeg process starts. Provides the arguments passed to FFmpeg.
+
+#### `progress` - `(progress: FFmpeggyProgressEvent) => void`
+
+Fires during processing with detailed progress information:
+
+```ts
+interface FFmpeggyProgressEvent {
+  frame?: number; // Current frame number
+  fps?: number; // Current processing framerate
+  q?: number; // Quality scale (usually 0)
+  size?: number; // Current output size in KB
+  time?: number; // Current processing time in seconds
+  bitrate?: number; // Current bitrate
+  duplicates?: number; // Duplicate frames
+  dropped?: number; // Dropped frames
+  speed?: number; // Processing speed multiplier
+  duration?: number; // Total duration (calculated)
+  percent?: number; // Progress percentage (calculated)
+}
+```
+
+#### `done` - `(file?: string, sizes?: FFmpeggyFinalSizes) => void`
+
+Fires when processing completes successfully:
+
+```ts
+interface FFmpeggyFinalSizes {
+  video?: number; // Video stream size in bytes
+  audio?: number; // Audio stream size in bytes
+  subtitles?: number; // Subtitle stream size in bytes
+  otherStreams?: number; // Other stream types size in bytes
+  globalHeaders?: number; // Global headers size in bytes
+  muxingOverhead?: number; // Muxing overhead as decimal
+}
+```
+
+#### `error` - `(error: Error) => void`
+
+Fires when an error occurs during processing.
+
+#### `exit` - `(code?: number \| null, error?: Error) => void`
+
+Fires when the FFmpeg process exits.
+
+#### `writing` - `(fileName: string) => void`
+
+Fires when FFmpeg begins writing to a file (useful for segmented output).
+
+#### `probe` - `(probeResult: FFprobeResult) => void`
+
+Fires when media probing completes.
+
+### Media Probing
+
+FFmpeggy includes built-in FFprobe integration for media analysis:
+
+```ts
+// Static method
+const probeResult = await FFmpeggy.probe("input.mp4");
+
+// Instance method
+const ffmpeggy = new FFmpeggy({ input: "input.mp4" });
+const probeResult = await ffmpeggy.probe();
+```
+
+The probe result includes detailed information about streams, format, and metadata.
+
+### Stream Support
+
+FFmpeggy supports Node.js streams for both input and output:
+
+```ts
+import { createReadStream, createWriteStream } from "fs";
+import { FFmpeggy } from "ffmpeggy";
+
+// Input stream
+const ffmpeggy = new FFmpeggy({
+  input: createReadStream("input.mp4"),
+  inputOptions: ["-f mp4"], // Format hint for streams
+  output: createWriteStream("output.mkv"),
+  outputOptions: ["-f matroska", "-c:v h264"],
+});
+
+// Output stream
+const ffmpeggy = new FFmpeggy({
+  input: "input.mp4",
+  pipe: true, // Enable pipe mode
+});
+
+const outputStream = ffmpeggy.toStream();
+outputStream.pipe(createWriteStream("output.mkv"));
+```
+
+### Utility Functions
+
+FFmpeggy exports utility functions for time conversion:
+
+```ts
+import { secsToTimer, timerToSecs } from "ffmpeggy";
+
+// Convert seconds to HH:MM:SS.MS format
+const timer = secsToTimer(3661.5); // "01:01:01.50"
+
+// Convert HH:MM:SS.MS format to seconds
+const seconds = timerToSecs("01:01:01.50"); // 3661.5
+```
+
+## 🔧 Advanced Usage
+
+### Event-Driven Processing
+
+```ts
+import { FFmpeggy } from "ffmpeggy";
+
+const ffmpeggy = new FFmpeggy({
+  autorun: true,
+  input: "input.mp4",
+  output: "output.mkv",
+  outputOptions: ["-c:v h264"],
+});
+
+ffmpeggy
   .on("start", (args) => {
-    console.log(`ffmpeg was started with these args:`, args);
+    console.log("FFmpeg started with args:", args);
   })
-  .on("progress", (event) => {
-    console.log(`${event.progress}%`);
+  .on("progress", (progress) => {
+    console.log(`${progress.percent?.toFixed(1)}% - ${progress.time}s`);
   })
   .on("error", (error) => {
-    console.error(`Something went wrong =(`, error);
+    console.error("Processing error:", error.message);
   })
-  .on("done", (outputFile, sizes) => {
-    console.log(`Done =)`);
+  .on("done", (file, sizes) => {
+    console.log("Processing completed!");
     if (sizes) {
-      console.log(`Video size: ${sizes.video} bytes`);
-      console.log(`Audio size: ${sizes.audio} bytes`);
+      console.log(`Video: ${sizes.video} bytes`);
+      console.log(`Audio: ${sizes.audio} bytes`);
       console.log(
         `Muxing overhead: ${(sizes.muxingOverhead * 100).toFixed(3)}%`
       );
@@ -122,153 +275,64 @@ new FFmpeggy({
   });
 ```
 
-### Using with Node.js streams
-
-You can provide streams directly to both input and output.
-
-> **Note:** ffmpeg uses filenames to detect a format and since a stream doesn't have a filename you need to explicitly add that option for each stream.
-
-> **Note:** If you provide a Node.js stream as input or output, `FFmpeggy` will wait for the stream to open before starting FFmpeg. If the stream emits an error or fails to open, the operation will fail with a descriptive error.
+### Process Control
 
 ```ts
-import { FFmpeggy } from "ffmpeggy";
-
-new FFmpeggy({
-  autorun: true,
-  input: createReadStream("input.mkv"),
-  inputOptions: ["-f matroska"],
-  output: createWriteStream("output.mkv"),
-  outputOptions: ["-f matroska", "-c:v h264"],
-});
-```
-
-You can also use the `.toStream()` method to get a stream that you can pipe.
-
-```ts
-import { FFmpeggy } from "ffmpeggy";
-
 const ffmpeggy = new FFmpeggy({
   autorun: true,
-  pipe: true, // shorthand for output set to pipe:0
-  input: createReadStream("input.mp4"),
-  outputOptions: ["-c:v h264"],
+  input: "input.mp4",
+  output: "output.mkv",
 });
 
-const stream = ffmpeggy.toStream();
-stream.pipe(createWriteStream("output.mkv"));
+// Stop processing
+await ffmpeggy.stop();
+
+// Reset instance
+await ffmpeggy.reset();
+
+// Wait for completion
+const result = await ffmpeggy.done();
+console.log("Output file:", result.file);
 ```
 
 ### Error Handling
 
-FFmpeggy provides robust error handling:
-
-- If FFmpeg fails to start, or if an input/output stream emits an error, the `error` event will be emitted and the returned promise will reject.
-- All errors are surfaced in a consistent and descriptive way, making it easier to debug issues with streams or FFmpeg itself.
-- Stream timeouts and errors are properly handled with clear error messages.
-- All events are reliably emitted, even in error scenarios or when streams fail to open.
-
-### Probing
-
-You can call the static `FFmpeg.probe()` method, which returns a promise:
+FFmpeggy provides comprehensive error handling:
 
 ```ts
-import { FFmpeggy } from "ffmpeggy";
+try {
+  const ffmpeggy = new FFmpeggy({
+    input: "nonexistent.mp4",
+    output: "output.mkv",
+  });
 
-const probeResults = await FFmpeggy.probe("input.mkv");
+  await ffmpeggy.run();
+  await ffmpeggy.done();
+} catch (error) {
+  console.error("Error:", error.message);
+  // Error messages are concise and descriptive
+}
 ```
 
-Or you can call `.probe()` on an instance that will then run a probe on provided `input`:
+## 🤔 Why Another FFmpeg Wrapper?
 
-```ts
-import { FFmpeggy } from "ffmpeggy";
+FFmpeggy was created because existing solutions had limitations:
 
-const ffmpeggy = new FFmpeg({
-  input: "input.mkv",
-});
+- **Maintenance**: Many existing wrappers are poorly maintained
+- **TypeScript**: Lack of proper TypeScript support and type definitions
+- **Complexity**: Overly complex APIs that hide FFmpeg's power
+- **Streams**: Limited or no support for Node.js streams
+- **Events**: Missing real-time progress and status events
 
-const probeResults = await ffmpeggy.probe();
-```
+FFmpeggy aims to be:
 
-## Available options
+- **Simple**: Intuitive API that doesn't hide FFmpeg's capabilities
+- **Type-Safe**: Full TypeScript support with comprehensive types
+- **Stream-Ready**: Native Node.js stream integration
+- **Event-Driven**: Real-time progress and status updates
+- **Maintained**: Actively maintained with regular updates
 
-| Name                | Value                      | Description                                           | Default      |
-| ------------------- | -------------------------- | ----------------------------------------------------- | ------------ |
-| `cwd`               | `string`                   | The working directory that ffmpeg will use            | Current cwd  |
-| `input`             | `string \| ReadableStream` | Input path or readable stream                         | Empty string |
-| `output`            | `string \| WritableStream` | Output path or writable stream                        | Empty string |
-| `pipe`              | `boolean`                  | If output should be piped or not                      | Empty string |
-| `globalOptions`     | `string[]`                 | An array of ffmpeg global options                     | Empty array  |
-| `inputOptions`      | `string[]`                 | An array of ffmpeg input options                      | Empty array  |
-| `outputOptions`     | `string[]`                 | An array of ffmpeg output options                     | Empty array  |
-| `autorun`           | `boolean`                  | Will call `run()` in the constructor if set to `true` | `false`      |
-| `overwriteExisting` | `boolean`                  | Shorthand to add `-y` to global options               | `false`      |
-| `hideBanner`        | `boolean`                  | Shorthand to add `-hide_banner` to global options     | `true`       |
-| `ffmpegBin`         | `string`                   | Path to the ffmpeg binary                             | `""`         |
-| `ffprobeBin`        | `string`                   | Path to the ffprobe binary                            | `""`         |
-
-## Available events
-
-#### `start` - `(ffmpegArgs: readonly string[]) => void`
-
-Fires when the ffmpeg process have been started. The `ffmpegArgs` argument contains an array with the arguments that was passed to the ffmpeg process.
-
-#### `error` - `(error: Error) => void`
-
-Fires when there was an error while running the ffmpeg process.
-
-#### `done` - `(file?: string, sizes?: FFmpeggyFinalSizes) => void`
-
-Fires when the ffmpeg process have successfully completed. The `sizes` parameter contains information about the final sizes of different stream types in the output file:
-
-- `video`: Size of video stream in bytes
-- `audio`: Size of audio stream in bytes
-- `subtitles`: Size of subtitle streams in bytes
-- `otherStreams`: Size of other stream types in bytes
-- `globalHeaders`: Size of global headers in bytes
-- `muxingOverhead`: Muxing overhead as a decimal (e.g., 0.00414726 for 0.414726%)
-
-> Note: Some fields may be 0 or undefined if the corresponding stream type is not present in the output file.
-
-> Note: Final sizes are only available when FFmpeg outputs this information at the end of processing. For some operations (like simple copying), FFmpeg may not provide detailed size breakdowns.
-
-#### `exit` - `(code?: number | null, error?: Error) => void`
-
-Fires when the ffmpeg process have exited.
-
-#### `probe` - `(probeResult: FFprobeResult) => void`
-
-Fires when the ffprobe process have returned its result.
-
-#### `progress` - `(progress: FFmpegProgressEvent) => void`
-
-Fires when ffmpeg is outputting it's progress. Most of the properties in `FFmpegProgressEvent` are provided by ffmpeg's output, except `duration` and `percent`:
-
-- `frame`: The current frame (i.e. total frames that have been processed)
-- `fps`: Framerate at which FFmpeg is currently processing
-- `size`: The current size of the output in kilobytes
-- `time`: The time of the current frame in seconds
-- `bitrate`: The current throughput at which FFmpeg is processing
-- `duration`: The duration of the output in seconds
-- `percent`: An estimation of the progress percentage
-- `q`: The current quality scale (qscale). This is rarely used and is often just set to 0.
-
-> Note: If the operation is fast enough ffmpeg might not output a progress report that includes all the values so you need to handle that accordingly. This usually only happens when you copy directly from an input to an output without changing anything.
-
-#### `writing` - `(fileName: string) => void`
-
-Fires when ffmpeg reports that it has begun writing to a file. This can be used to track which fragment ffmpeg is currently writing to or when it updates a playlist.
-
-> Note: ffmpeg may finish before outputting this event for every file so you need to handle that accordingly. Expect it to have successfully written every segment if it exits with error code 0.
-
-## Why another ffmpeg wrapper?
-
-Because I wasn't happy with the ones that already exists. Most of them are badly maintained, and/or lacking TypeScript typings or are too complex for my taste. I started coding on this a while back for another project and it's been working really well so figured it deserved it's own package.
-
-## How does ffmpeggy compare to fluent-ffmpeg?
-
-They strive to solve different problems. Whereas ffmpeggy aims to be lean and simple, fluent-ffmpeg aims to provide an exhaustive and human readable API. I personally don't need all of that but I might revisit it at a later stage. But an extended API will most likely end up in a separate package to keep this one as lean as possible.
-
-## License
+## 📄 License
 
 MIT
 
