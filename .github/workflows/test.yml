@@ -37,9 +37,17 @@ jobs:
         run: yarn install
 
       - name: Run tests
-        run: yarn test ${{ inputs.coverage && '--coverage' || '' }} --reporter=verbose --reporter=junit --outputFile=test-results.xml
+        run: |
+          if [ "${{ inputs.coverage }}" = "true" ]; then
+            echo "Running tests with coverage..."
+            yarn test:coverage --reporter=verbose --reporter=junit --outputFile=test-results.xml
+          else
+            echo "Running tests without coverage..."
+            yarn test --reporter=verbose --reporter=junit --outputFile=test-results.xml
+          fi
         env:
           DEBUG: ${{ inputs.debug && '*' || '' }}
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
       - name: Publish Test Results
         uses: dorny/test-reporter@v2
@@ -50,8 +58,52 @@ jobs:
           reporter: java-junit
           fail-on-error: false
 
+      - name: Verify coverage files
+        if: inputs.coverage
+        run: |
+          echo "Checking for coverage files..."
+          echo "Current directory: $(pwd)"
+          echo "Files in current directory:"
+          ls -la
+
+          if [ -d "coverage" ]; then
+            echo "Coverage directory exists:"
+            ls -la coverage/
+
+            # Check for different coverage file formats
+            if [ -f "coverage/coverage-final.json" ]; then
+              echo "✅ coverage-final.json found"
+              echo "File size: $(wc -c < coverage/coverage-final.json) bytes"
+            fi
+
+            if [ -f "coverage/lcov.info" ]; then
+              echo "✅ lcov.info found"
+              echo "File size: $(wc -c < coverage/lcov.info) bytes"
+            fi
+
+            if [ -f "coverage/index.html" ]; then
+              echo "✅ HTML coverage report found"
+            fi
+
+            # If no coverage files found, show what's in the directory
+            if [ ! -f "coverage/coverage-final.json" ] && [ ! -f "coverage/lcov.info" ]; then
+              echo "❌ No coverage files found in coverage/ directory"
+              echo "Contents of coverage/ directory:"
+              find coverage/ -type f -name "*" | head -10
+              exit 1
+            fi
+          else
+            echo "❌ Coverage directory not found"
+            exit 1
+          fi
+
       - name: Upload coverage to Codecov
         if: inputs.coverage && env.CODECOV_TOKEN != ''
         uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
+          flags: unittests
+          name: codecov-umbrella
+          fail_ci_if_error: false
+          verbose: true
+          directory: ./coverage
