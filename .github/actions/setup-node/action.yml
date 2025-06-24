@@ -1,5 +1,5 @@
 name: "Setup Node.js with Corepack"
-description: "Setup Node.js with Corepack support"
+description: "Setup Node.js with Corepack support and dependency caching"
 
 inputs:
   node-version-file:

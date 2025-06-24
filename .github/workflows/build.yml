@@ -40,6 +40,8 @@ jobs:
         with:
           name: build
           path: |
-            dist/
+            cjs/
+            es/
             package.json
             yarn.lock
+          retention-days: 7

@@ -1,0 +1,51 @@
+name: Coverage
+
+on:
+  workflow_call:
+    inputs:
+      node-version:
+        required: true
+        type: string
+        default: "24.x"
+      os:
+        required: true
+        type: string
+        default: "ubuntu-latest"
+      debug:
+        required: false
+        type: boolean
+        default: false
+
+jobs:
+  coverage:
+    name: Coverage
+    runs-on: ${{ inputs.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ./.github/actions/setup-node
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build
+
+      - name: Install dependencies
+        run: yarn install
+
+      - name: Run tests with coverage
+        shell: bash
+        run: yarn test:coverage
+        env:
+          DEBUG: ${{ inputs.debug && '*' || '' }}
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          flags: unittests
+          name: codecov-umbrella
+          fail_ci_if_error: false
+          verbose: true
+          directory: ./coverage
