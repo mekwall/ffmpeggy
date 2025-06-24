@@ -165,6 +165,17 @@ describe("parsers", () => {
       });
     });
 
+    it("should handle N/A duration", () => {
+      const result = parseInfo(
+        "Duration: N/A, start: 0.000000, bitrate: 1000 kb/s"
+      );
+      expect(result).toEqual({
+        duration: undefined,
+        start: 0,
+        bitrate: 1000,
+      });
+    });
+
     it("should handle missing duration", () => {
       const result = parseInfo("start: 0.000000, bitrate: 1000 kb/s");
       expect(result).toBeUndefined();
