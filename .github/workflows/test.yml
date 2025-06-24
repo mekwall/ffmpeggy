@@ -37,17 +37,28 @@ jobs:
         run: yarn install
 
       - name: Run tests
+        shell: bash
         run: |
           if [ "${{ inputs.coverage }}" = "true" ]; then
             echo "Running tests with coverage..."
-            yarn test:coverage --reporter=verbose --reporter=junit --outputFile=test-results.xml
+            yarn test:coverage
           else
             echo "Running tests without coverage..."
-            yarn test --reporter=verbose --reporter=junit --outputFile=test-results.xml
+            yarn test
           fi
         env:
           DEBUG: ${{ inputs.debug && '*' || '' }}
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
+      - name: List test results
+        shell: bash
+        run: |
+          echo "Current directory: $(pwd)"
+          echo "Files in current directory:"
+          ls -la
+          echo "Looking for test results..."
+          find . -name "*.xml" -type f 2>/dev/null || echo "No XML files found"
+          find . -name "test-results.xml" -type f 2>/dev/null || echo "test-results.xml not found"
 
       - name: Publish Test Results
         uses: dorny/test-reporter@v2
@@ -60,6 +71,7 @@ jobs:
 
       - name: Verify coverage files
         if: inputs.coverage
+        shell: bash
         run: |
           echo "Checking for coverage files..."
           echo "Current directory: $(pwd)"

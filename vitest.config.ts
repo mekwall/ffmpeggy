@@ -17,7 +17,9 @@ export default defineConfig({
     // Use threads pool for better performance and to prevent hanging
     pool: "threads",
     // Add hanging process detection
-    reporters: ["verbose", "hanging-process"],
+    reporters: process.env.GITHUB_ACTIONS
+      ? ["verbose", "hanging-process", "junit"]
+      : ["verbose", "hanging-process"],
     // Add hook timeout for setup/teardown
     hookTimeout: 30000,
     // Add retry logic for flaky tests
@@ -30,6 +32,12 @@ export default defineConfig({
         minThreads: 1,
       },
     },
+    // JUnit reporter configuration (only in CI)
+    ...(process.env.GITHUB_ACTIONS && {
+      outputFile: {
+        junit: "test-results.xml",
+      },
+    }),
     // Coverage configuration
     coverage: {
       provider: "v8",
