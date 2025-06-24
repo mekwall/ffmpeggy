@@ -70,7 +70,6 @@ This project uses [Vitest](https://vitest.dev/) for testing with multiple projec
 - **Unit Tests** (`*.spec.ts`): Basic functionality tests, configuration tests, and error handling
 - **Event Tests** (`*.event.test.ts`): Tests that verify event emission and handling
 - **Async Tests** (`*.async.test.ts`): Tests that use async/await patterns with the `done()` method
-- **Integration Tests** (`*.integration.test.ts`): End-to-end tests (currently not used)
 
 #### Running Tests
 
@@ -81,8 +80,7 @@ yarn test
 # Run specific test types
 yarn test:unit      # Run only unit tests
 yarn test:events    # Run only event-based tests
-yarn test:async     # Run only await-based tests
-yarn test:integration # Run only integration tests
+yarn test:async     # Run only async-based tests
 
 # Watch mode
 yarn test:watch
@@ -112,7 +110,6 @@ The test separation allows for:
   - Use unit tests for configuration, error handling, and utility functions
   - Use event tests for testing event emission and handling
   - Use async tests for testing async/await patterns
-  - Use integration tests for end-to-end scenarios
 
 ### Documentation
 

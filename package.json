@@ -45,7 +45,6 @@
     "test:unit": "yarn build && vitest run --project=unit",
     "test:events": "yarn build && vitest run --project=events",
     "test:async": "yarn build && vitest run --project=async",
-    "test:integration": "yarn build && vitest run --project=integration",
     "test:coverage": "yarn build && vitest run --coverage",
     "test:coverage:watch": "yarn build && vitest --coverage",
     "semantic-release": "semantic-release",
