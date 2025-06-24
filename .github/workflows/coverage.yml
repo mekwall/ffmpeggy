@@ -1,4 +1,4 @@
-name: Coverage
+name: coverage
 
 on:
   workflow_call:
@@ -18,11 +18,10 @@ on:
 
 jobs:
   coverage:
-    name: Coverage
+    name: coverage
     runs-on: ${{ inputs.os }}
     permissions:
       contents: read
-      id-token: write
 
     steps:
       - uses: actions/checkout@v4
@@ -46,10 +45,8 @@ jobs:
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v5
         with:
-          token: ${{ secrets.CODECOV_TOKEN }}
           flags: unittests
           name: codecov-umbrella
           fail_ci_if_error: false
           verbose: true
           directory: ./coverage
-          use_oidc: true

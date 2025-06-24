@@ -1,4 +1,4 @@
-name: Test
+name: test
 
 on:
   workflow_call:
@@ -16,7 +16,7 @@ on:
 
 jobs:
   test:
-    name: Test
+    name: test
     runs-on: ${{ inputs.os }}
 
     steps:
