@@ -1,6 +1,6 @@
 import crypto from "crypto";
 import { createWriteStream, createReadStream } from "fs";
-import { mkdir, stat, unlink, rm } from "fs/promises";
+import { mkdir, stat, unlink, rm, access } from "fs/promises";
 import path from "path";
 import ffmpegBin from "ffmpeg-static";
 import { path as ffprobeBin } from "ffprobe-static";
@@ -28,6 +28,101 @@ const TMP_DIR = path.join(SAMPLE_DIR, ".temp/await");
 
 function wait(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+// Enhanced file waiting function with retries and better error handling
+async function waitForFileExists(
+  filePath: string,
+  maxRetries = 10,
+  retryDelay = 500
+): Promise<void> {
+  for (let i = 0; i < maxRetries; i++) {
+    try {
+      await access(filePath);
+      return; // File exists
+    } catch {
+      if (i === maxRetries - 1) {
+        throw new Error(
+          `File ${filePath} does not exist after ${maxRetries} retries`
+        );
+      }
+      await wait(retryDelay);
+    }
+  }
+}
+
+// Enhanced file size checking with retries
+async function waitForFileSize(
+  filePath: string,
+  minSize = 1,
+  maxRetries = 10,
+  retryDelay = 500
+): Promise<number> {
+  for (let i = 0; i < maxRetries; i++) {
+    try {
+      const stats = await stat(filePath);
+      if (stats.size >= minSize) {
+        return stats.size;
+      }
+      if (i === maxRetries - 1) {
+        throw new Error(
+          `File ${filePath} size (${stats.size}) is less than minimum expected size (${minSize})`
+        );
+      }
+    } catch (error) {
+      if (i === maxRetries - 1) {
+        throw error;
+      }
+    }
+    await wait(retryDelay);
+  }
+  throw new Error(
+    `Failed to check file size for ${filePath} after ${maxRetries} retries`
+  );
+}
+
+// Enhanced stream cleanup function
+interface DestroyableStream {
+  destroy(): void;
+  once(event: string, listener: () => void): void;
+  removeListener(event: string, listener: () => void): void;
+}
+
+function isDestroyableStream(stream: unknown): stream is DestroyableStream {
+  return (
+    stream !== null &&
+    stream !== undefined &&
+    typeof (stream as DestroyableStream).destroy === "function"
+  );
+}
+
+async function cleanupStreams(
+  ...streams: (
+    | NodeJS.ReadableStream
+    | NodeJS.WritableStream
+    | null
+    | undefined
+  )[]
+): Promise<void> {
+  const cleanupPromises = streams.map((stream) => {
+    return new Promise<void>((resolve) => {
+      if (isDestroyableStream(stream)) {
+        // Handle stream errors during cleanup
+        const onError = () => resolve();
+        stream.once("error", onError);
+        stream.destroy();
+        // Resolve after a short delay to allow cleanup
+        setTimeout(() => {
+          stream.removeListener("error", onError);
+          resolve();
+        }, 100);
+      } else {
+        resolve();
+      }
+    });
+  });
+
+  await Promise.all(cleanupPromises);
 }
 
 function tmpFile(extension: string): string {
@@ -166,28 +261,17 @@ describe("FFMpeggy:async", () => {
         const { file } = await ffmpeggy.done();
         // For streaming operations, file is undefined since we're writing to a stream
         expect(file).toBeUndefined();
-        // Final sizes might not be available for streaming operations with -c copy
-        // This is expected behavior - the important thing is that the file is created successfully
 
-        // For streaming operations, we need to wait for the file to be created
-        // Since we're writing to a stream, we'll wait a bit and then check if the file exists
-        await wait(2000); // Longer wait for larger files like bunny1.mkv (22MB)
+        // Wait for file to exist and have proper size
+        // stream.pipeline ensures the output stream is properly closed
+        await waitForFileExists(tempFile);
+        const fileSize = await waitForFileSize(tempFile, 1000); // Should be at least 1KB
 
-        // Check if file exists before trying to stat it
-        try {
-          const pipedStats = await stat(tempFile);
-          expect(pipedStats.size).toBeGreaterThan(0);
-
-          // Additional verification: check if the file is a valid MKV
-          // This helps catch cases where the file was created but corrupted
-          expect(pipedStats.size).toBeGreaterThan(1000); // Should be at least 1KB
-        } catch (error) {
-          throw new Error(`File ${tempFile} was not created. Error: ${error}`);
-        }
+        // Additional verification: check if the file is a valid MKV
+        expect(fileSize).toBeGreaterThan(1000); // Should be at least 1KB
       } finally {
-        // Ensure streams are properly closed
-        inputStream.destroy();
-        outputStream.destroy();
+        // Ensure streams are properly closed with enhanced cleanup
+        await cleanupStreams(inputStream, outputStream);
       }
     },
     TEST_TIMEOUT_MS
@@ -220,24 +304,16 @@ describe("FFMpeggy:async", () => {
         const { file } = await ffmpeggy.done();
         // For streaming operations, file is undefined since we're writing to a stream
         expect(file).toBeUndefined();
-        // Final sizes might not be available for streaming operations with -c copy
-        // This is expected behavior - the important thing is that the file is created successfully
 
-        // For streaming operations, we need to wait for the file to be created
-        // Since we're writing to a stream, we'll wait a bit and then check if the file exists
-        await wait(500);
+        // Wait for file to exist and have proper size
+        // stream.pipeline ensures the output stream is properly closed
+        await waitForFileExists(tempFile);
+        const fileSize = await waitForFileSize(tempFile, 1); // Should be at least 1 byte
 
-        // Check if file exists before trying to stat it
-        try {
-          const pipedStats = await stat(tempFile);
-          expect(pipedStats.size).toBeGreaterThan(0);
-        } catch (error) {
-          throw new Error(`File ${tempFile} was not created. Error: ${error}`);
-        }
+        expect(fileSize).toBeGreaterThan(0);
       } finally {
-        // Ensure streams are properly closed
-        inputStream.destroy();
-        outputStream.destroy();
+        // Ensure streams are properly closed with enhanced cleanup
+        await cleanupStreams(inputStream, outputStream);
       }
     },
     TEST_TIMEOUT_MS
@@ -274,23 +350,19 @@ describe("FFMpeggy:async", () => {
         try {
           const stream = ffmpeg.toStream();
           stream.pipe(outputStream);
+
+          // Wait for FFmpeg to complete
           await ffmpeg.done();
 
-          // For stream operations, wait for the file to be written
-          await wait(500);
+          // Wait for file to exist and have proper size
+          // stream.pipeline ensures the output stream is properly closed
+          await waitForFileExists(tempFile);
+          const fileSize = await waitForFileSize(tempFile, 1); // Should be at least 1 byte
 
-          // Check if file exists before trying to stat it
-          try {
-            const pipedStats = await stat(tempFile);
-            expect(pipedStats.size).toBeGreaterThan(0);
-          } catch (error) {
-            throw new Error(
-              `File ${tempFile} was not created. Error: ${error}`
-            );
-          }
+          expect(fileSize).toBeGreaterThan(0);
         } finally {
-          // Ensure stream is properly closed
-          outputStream.destroy();
+          // Ensure stream is properly closed with enhanced cleanup
+          await cleanupStreams(outputStream);
         }
       },
       TEST_TIMEOUT_MS
