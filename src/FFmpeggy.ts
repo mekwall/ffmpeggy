@@ -91,6 +91,7 @@ export class FFmpeggy extends (EventEmitter as new () => TypedEmitter<FFmpegEven
   private pipedOutput = false;
   private outputStream = new PassThrough();
   private finalSizes?: FFmpeggyFinalSizes;
+  private shouldAutorun = false;
 
   public constructor(opts: FFmpeggyOptions = {}) {
     super();
@@ -123,7 +124,13 @@ export class FFmpeggy extends (EventEmitter as new () => TypedEmitter<FFmpegEven
       this.hideBanner = opts.hideBanner;
     }
     if (opts.autorun) {
-      this.run();
+      this.shouldAutorun = true;
+      // Don't call run() immediately - wait until the binary is set
+      nextTick(() => {
+        if (this.shouldAutorun && this.ffmpegBin) {
+          this.run();
+        }
+      });
     }
   }
 
@@ -156,8 +163,12 @@ export class FFmpeggy extends (EventEmitter as new () => TypedEmitter<FFmpegEven
       throw new Error("No output specified");
     }
 
+    // Handle input: if it's a ReadStream, use "pipe:", otherwise use the file path
     const ffmpegInput = input instanceof ReadStream ? "pipe:" : input;
-    const ffmpegOutput = output instanceof WriteStream ? "pipe:" : output;
+
+    // Handle output: if it's a WriteStream or pipe is set, use "pipe:", otherwise use the file path
+    const ffmpegOutput =
+      output instanceof WriteStream || output === "-" ? "pipe:" : output;
 
     if (this.hideBanner) {
       globalOptions.push("-hide_banner");
@@ -175,9 +186,13 @@ export class FFmpeggy extends (EventEmitter as new () => TypedEmitter<FFmpegEven
       ffmpegOutput,
     ].filter((a) => !!a);
 
-    if (ffmpegOutput.startsWith("pipe:") || output === "-") {
+    // Set pipedOutput flag for stream handling
+    if (ffmpegOutput === "pipe:" || output === "-") {
       this.pipedOutput = true;
-    } else if (!ffmpegOutput.includes("%d")) {
+    } else if (
+      typeof ffmpegOutput === "string" &&
+      !ffmpegOutput.includes("%d")
+    ) {
       this.currentFile = ffmpegOutput;
     }
 
@@ -315,24 +330,38 @@ export class FFmpeggy extends (EventEmitter as new () => TypedEmitter<FFmpegEven
 
   private async awaitStatus() {
     if (this.process) {
-      const status = await this.process;
-      const code = this.process.exitCode;
-      if (code === 1) {
-        console.error("FFmpeg failed:", this.log);
-      } else {
-        debug("done: %s", this.currentFile);
-        this.emit("done", this.currentFile, this.finalSizes);
+      try {
+        const status = await this.process;
+        const code = this.process.exitCode;
+        if (code === 1) {
+          console.error("FFmpeg failed:", this.log);
+          this.error = new Error(
+            `FFmpeg failed with exit code ${code}: ${this.log}`
+          );
+        } else {
+          debug("done: %s", this.currentFile);
+          this.emit("done", this.currentFile, this.finalSizes);
+        }
+        nextTick(() => {
+          // Wait until next tick to emit the exit event
+          // This is to ensure that the done event is emitted
+          // before the exit event
+          this.status = status;
+          this.process = undefined;
+          this.running = false;
+          debug("exit: %o %o", code, this.error);
+          this.emit("exit", code, this.error);
+        });
+      } catch (error) {
+        // Handle process errors
+        this.error = error as Error;
+        debug("process error in awaitStatus: %o", error);
+        nextTick(() => {
+          this.process = undefined;
+          this.running = false;
+          this.emit("exit", null, this.error);
+        });
       }
-      nextTick(() => {
-        // Wait until next tick to emit the exit event
-        // This is to ensure that the done event is emitted
-        // before the exit event
-        this.status = status;
-        this.process = undefined;
-        this.running = false;
-        debug("exit: %o %o", code, this.error);
-        this.emit("exit", code, this.error);
-      });
     }
   }
 
@@ -354,16 +383,40 @@ export class FFmpeggy extends (EventEmitter as new () => TypedEmitter<FFmpegEven
     this.running = false;
   }
 
-  public async done(): Promise<void> {
+  public async done(): Promise<{ file?: string; sizes?: FFmpeggyFinalSizes }> {
     if (this.running && this.process) {
       try {
         await this.process;
+      } catch (error) {
+        // Handle process errors
+        this.error = error as Error;
+        debug("process error: %o", error);
       } finally {
         // Always clear the state when done, regardless of success or failure
         this.running = false;
         this.process = undefined;
       }
     }
+
+    // For streaming operations, file is undefined since we're writing to a stream
+    // For file operations, return the currentFile
+    const file =
+      this.output instanceof WriteStream
+        ? undefined
+        : this.currentFile || this.output;
+
+    // Return the same information as the done event
+    return { file, sizes: this.finalSizes };
+  }
+
+  public async exit(): Promise<{ code?: number | null; error?: Error }> {
+    if (this.running && this.process) {
+      // Wait for the process to complete
+      await this.process;
+    }
+
+    // Return the current status
+    return { code: this.status?.exitCode, error: this.error };
   }
 
   public setCwd(cwd: string): FFmpeggy {
@@ -413,6 +466,13 @@ export class FFmpeggy extends (EventEmitter as new () => TypedEmitter<FFmpegEven
     return this;
   }
 
+  public triggerAutorun(): FFmpeggy {
+    if (this.shouldAutorun && this.ffmpegBin && !this.running) {
+      this.run();
+    }
+    return this;
+  }
+
   public async reset(): Promise<void> {
     if (this.process) {
       await this.stop(15);
@@ -424,6 +484,7 @@ export class FFmpeggy extends (EventEmitter as new () => TypedEmitter<FFmpegEven
     this.outputStream = new PassThrough();
     this.error = undefined;
     this.finalSizes = undefined;
+    this.shouldAutorun = false;
     Object.assign(this, FFmpeggy.DefaultConfig);
   }
 
