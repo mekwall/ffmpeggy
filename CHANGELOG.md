@@ -1,3 +1,10 @@
+## [3.1.1](https://github.com/mekwall/ffmpeggy/compare/v3.1.0...v3.1.1) (2025-06-24)
+
+
+### Bug Fixes
+
+* improve event/streaming ops and error handling ([#710](https://github.com/mekwall/ffmpeggy/issues/710)) ([56a6eec](https://github.com/mekwall/ffmpeggy/commit/56a6eeca58b1b195a15aabca553192f86c1169d5))
+
 # [3.1.0](https://github.com/mekwall/ffmpeggy/compare/v3.0.5...v3.1.0) (2025-06-20)
 
 
