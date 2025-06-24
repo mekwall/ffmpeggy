@@ -126,7 +126,9 @@ new FFmpeggy({
 
 You can provide streams directly to both input and output.
 
-> NOTE: ffmpeg uses filenames to detect a format and since a stream doesn't have a filename you need to explicitly add that option for each stream.
+> **Note:** ffmpeg uses filenames to detect a format and since a stream doesn't have a filename you need to explicitly add that option for each stream.
+
+> **Note:** If you provide a Node.js stream as input or output, `FFmpeggy` will wait for the stream to open before starting FFmpeg. If the stream emits an error or fails to open, the operation will fail with a descriptive error.
 
 ```ts
 import { FFmpeggy } from "ffmpeggy";
@@ -155,6 +157,15 @@ const ffmpeggy = new FFmpeggy({
 const stream = ffmpeggy.toStream();
 stream.pipe(createWriteStream("output.mkv"));
 ```
+
+### Error Handling
+
+FFmpeggy provides robust error handling:
+
+- If FFmpeg fails to start, or if an input/output stream emits an error, the `error` event will be emitted and the returned promise will reject.
+- All errors are surfaced in a consistent and descriptive way, making it easier to debug issues with streams or FFmpeg itself.
+- Stream timeouts and errors are properly handled with clear error messages.
+- All events are reliably emitted, even in error scenarios or when streams fail to open.
 
 ### Probing
 
@@ -192,6 +203,8 @@ const probeResults = await ffmpeggy.probe();
 | `autorun`           | `boolean`                  | Will call `run()` in the constructor if set to `true` | `false`      |
 | `overwriteExisting` | `boolean`                  | Shorthand to add `-y` to global options               | `false`      |
 | `hideBanner`        | `boolean`                  | Shorthand to add `-hide_banner` to global options     | `true`       |
+| `ffmpegBin`         | `string`                   | Path to the ffmpeg binary                             | `""`         |
+| `ffprobeBin`        | `string`                   | Path to the ffprobe binary                            | `""`         |
 
 ## Available events
 

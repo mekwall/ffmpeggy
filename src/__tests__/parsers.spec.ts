@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseProgress, parseFinalSizes } from "../parsers";
+import { parseProgress, parseFinalSizes, parseInfo } from "../parsers";
 
 describe("parsers", () => {
   it("should parse simple progress", () => {
@@ -150,6 +150,36 @@ describe("parsers", () => {
       const txt = "This is not a final sizes line";
       const sizes = parseFinalSizes(txt);
       expect(sizes).toBeUndefined();
+    });
+  });
+
+  describe("parseInfo", () => {
+    it("should parse duration, start, and bitrate", () => {
+      const result = parseInfo(
+        "Duration: 00:00:05.31, start: 0.000000, bitrate: 1000 kb/s"
+      );
+      expect(result).toEqual({
+        duration: 5.31,
+        start: 0,
+        bitrate: 1000,
+      });
+    });
+
+    it("should handle missing duration", () => {
+      const result = parseInfo("start: 0.000000, bitrate: 1000 kb/s");
+      expect(result).toBeUndefined();
+    });
+
+    it("should handle empty duration string", () => {
+      const result = parseInfo(
+        "Duration: , start: 0.000000, bitrate: 1000 kb/s"
+      );
+      expect(result).toBeUndefined();
+    });
+
+    it("should return undefined for non-matching text", () => {
+      const result = parseInfo("Some random text");
+      expect(result).toBeUndefined();
     });
   });
 });

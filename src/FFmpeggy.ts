@@ -2,6 +2,7 @@ import EventEmitter from "events";
 import { ReadStream, WriteStream } from "fs";
 import { nextTick } from "process";
 import { PassThrough } from "stream";
+import { pipeline } from "stream/promises";
 import createDebug from "debug";
 import {
   execa,
@@ -91,6 +92,7 @@ export class FFmpeggy extends (EventEmitter as new () => TypedEmitter<FFmpegEven
   private pipedOutput = false;
   private outputStream = new PassThrough();
   private finalSizes?: FFmpeggyFinalSizes;
+  private shouldAutorun = false;
 
   public constructor(opts: FFmpeggyOptions = {}) {
     super();
@@ -123,7 +125,13 @@ export class FFmpeggy extends (EventEmitter as new () => TypedEmitter<FFmpegEven
       this.hideBanner = opts.hideBanner;
     }
     if (opts.autorun) {
-      this.run();
+      this.shouldAutorun = true;
+      // Don't call run() immediately - wait until the binary is set
+      nextTick(() => {
+        if (this.shouldAutorun && this.ffmpegBin) {
+          this.run();
+        }
+      });
     }
   }
 
@@ -156,8 +164,12 @@ export class FFmpeggy extends (EventEmitter as new () => TypedEmitter<FFmpegEven
       throw new Error("No output specified");
     }
 
+    // Handle input: if it's a ReadStream, use "pipe:", otherwise use the file path
     const ffmpegInput = input instanceof ReadStream ? "pipe:" : input;
-    const ffmpegOutput = output instanceof WriteStream ? "pipe:" : output;
+
+    // Handle output: if it's a WriteStream or pipe is set, use "pipe:", otherwise use the file path
+    const ffmpegOutput =
+      output instanceof WriteStream || output === "-" ? "pipe:" : output;
 
     if (this.hideBanner) {
       globalOptions.push("-hide_banner");
@@ -175,9 +187,13 @@ export class FFmpeggy extends (EventEmitter as new () => TypedEmitter<FFmpegEven
       ffmpegOutput,
     ].filter((a) => !!a);
 
-    if (ffmpegOutput.startsWith("pipe:") || output === "-") {
+    // Set pipedOutput flag for stream handling
+    if (ffmpegOutput === "pipe:" || output === "-") {
       this.pipedOutput = true;
-    } else if (!ffmpegOutput.includes("%d")) {
+    } else if (
+      typeof ffmpegOutput === "string" &&
+      !ffmpegOutput.includes("%d")
+    ) {
       this.currentFile = ffmpegOutput;
     }
 
@@ -234,16 +250,23 @@ export class FFmpeggy extends (EventEmitter as new () => TypedEmitter<FFmpegEven
         reject: false,
       });
 
-      // if (this.process.stdin && input instanceof ReadStream) {
-      //   input.pipe(this.process.stdin);
-      // }
-
+      // Use pipeline for robust stream handling when output is a WriteStream
       if (this.process.stdout && output instanceof WriteStream) {
-        this.process.stdout.pipe(output);
+        // Pipeline will handle proper cleanup and error propagation
+        pipeline(this.process.stdout, output).catch((err) => {
+          debug("Pipeline error: %o", err);
+          this.error = err;
+          this.emit("error", err);
+        });
       }
 
-      if (this.pipedOutput) {
-        this.process.stdout?.pipe(this.outputStream);
+      // Use pipeline for piped output to PassThrough stream
+      if (this.pipedOutput && this.process.stdout) {
+        pipeline(this.process.stdout, this.outputStream).catch((err) => {
+          debug("Pipeline error for piped output: %o", err);
+          this.error = err;
+          this.emit("error", err);
+        });
       }
 
       this.running = true;
@@ -315,25 +338,47 @@ export class FFmpeggy extends (EventEmitter as new () => TypedEmitter<FFmpegEven
 
   private async awaitStatus() {
     if (this.process) {
-      const status = await this.process;
-      const code = this.process.exitCode;
-      if (code === 1) {
-        console.error("FFmpeg failed:", this.log);
-      } else {
-        debug("done: %s", this.currentFile);
-        this.emit("done", this.currentFile, this.finalSizes);
+      try {
+        this.status = await this.process;
+        // Store the process reference and exit code before clearing it
+        const processRef = this.process;
+        const code = processRef.exitCode;
+
+        if (code === 1) {
+          console.error("FFmpeg failed:", this.log);
+          // Extract concise error information from the log
+          const conciseError = this.extractConciseError(this.log);
+          this.error = new Error(
+            `FFmpeg failed with exit code ${code}: ${conciseError}`
+          );
+        } else {
+          debug("done: %s", this.currentFile);
+          this.emit("done", this.currentFile, this.finalSizes);
+        }
+
+        // Cleanup and emit exit event in next tick
+        await this.cleanupAndEmitExit(code);
+      } catch (error) {
+        // Handle process errors
+        this.error = error as Error;
+        debug("process error in awaitStatus: %o", error);
+
+        // Cleanup and emit exit event in next tick
+        await this.cleanupAndEmitExit(null);
       }
+    }
+  }
+
+  private async cleanupAndEmitExit(code: number | null): Promise<void> {
+    return new Promise<void>((resolve) => {
       nextTick(() => {
-        // Wait until next tick to emit the exit event
-        // This is to ensure that the done event is emitted
-        // before the exit event
-        this.status = status;
         this.process = undefined;
         this.running = false;
         debug("exit: %o %o", code, this.error);
         this.emit("exit", code, this.error);
+        resolve();
       });
-    }
+    });
   }
 
   public async stop(signal = 15): Promise<void> {
@@ -354,16 +399,40 @@ export class FFmpeggy extends (EventEmitter as new () => TypedEmitter<FFmpegEven
     this.running = false;
   }
 
-  public async done(): Promise<void> {
+  public async done(): Promise<{ file?: string; sizes?: FFmpeggyFinalSizes }> {
     if (this.running && this.process) {
       try {
         await this.process;
+      } catch (error) {
+        // Handle process errors
+        this.error = error as Error;
+        debug("process error: %o", error);
       } finally {
         // Always clear the state when done, regardless of success or failure
         this.running = false;
         this.process = undefined;
       }
     }
+
+    // For streaming operations, file is undefined since we're writing to a stream
+    // For file operations, return the currentFile
+    const file =
+      this.output instanceof WriteStream
+        ? undefined
+        : this.currentFile || this.output;
+
+    // Return the same information as the done event
+    return { file, sizes: this.finalSizes };
+  }
+
+  public async exit(): Promise<{ code?: number | null; error?: Error }> {
+    if (this.running && this.process) {
+      // Wait for the process to complete
+      await this.process;
+    }
+
+    // Return the current status
+    return { code: this.status?.exitCode, error: this.error };
   }
 
   public setCwd(cwd: string): FFmpeggy {
@@ -413,6 +482,13 @@ export class FFmpeggy extends (EventEmitter as new () => TypedEmitter<FFmpegEven
     return this;
   }
 
+  public triggerAutorun(): FFmpeggy {
+    if (this.shouldAutorun && this.ffmpegBin && !this.running) {
+      this.run();
+    }
+    return this;
+  }
+
   public async reset(): Promise<void> {
     if (this.process) {
       await this.stop(15);
@@ -424,6 +500,7 @@ export class FFmpeggy extends (EventEmitter as new () => TypedEmitter<FFmpegEven
     this.outputStream = new PassThrough();
     this.error = undefined;
     this.finalSizes = undefined;
+    this.shouldAutorun = false;
     Object.assign(this, FFmpeggy.DefaultConfig);
   }
 
@@ -467,5 +544,72 @@ export class FFmpeggy extends (EventEmitter as new () => TypedEmitter<FFmpegEven
     } catch {
       throw Error("Failed to probe");
     }
+  }
+
+  private extractConciseError(
+    log: string,
+    maxLines = 3,
+    maxLength = 250
+  ): string {
+    if (!log) {
+      return "Unknown error (log is empty)";
+    }
+
+    // Split log into lines
+    const lines = log.trim().split("\n");
+    if (!lines.length) {
+      return "Unknown error (log has no content)";
+    }
+
+    // Common error keywords
+    const errorKeywords = [
+      "error",
+      "invalid",
+      "fail",
+      "could not",
+      "no such",
+      "denied",
+      "unsupported",
+      "unable",
+      "can't open",
+      "conversion failed",
+      "not found",
+      "permission",
+    ];
+
+    // Look at the last few lines (default is 3 lines)
+    const start = Math.max(0, lines.length - maxLines);
+    for (let i = lines.length - 1; i >= start; i--) {
+      const line = lines[i].trim();
+      if (!line) continue;
+
+      // If this line contains a keyword, it's likely what we're looking for
+      if (
+        errorKeywords.some((keyword) => line.toLowerCase().includes(keyword))
+      ) {
+        // Add the previous line for context if it exists
+        if (i > 0 && lines[i - 1].trim()) {
+          const result = `${lines[i - 1].trim()}\n${line}`;
+          return result.length > maxLength
+            ? result.substring(0, maxLength) + "..."
+            : result;
+        }
+        return line.length > maxLength
+          ? line.substring(0, maxLength) + "..."
+          : line;
+      }
+    }
+
+    // If no keywords are found, take the last non-empty line
+    for (let i = lines.length - 1; i >= 0; i--) {
+      const line = lines[i].trim();
+      if (line) {
+        return line.length > maxLength
+          ? line.substring(0, maxLength) + "..."
+          : line;
+      }
+    }
+
+    return "Unknown error (no specific problem found)";
   }
 }

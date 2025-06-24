@@ -42,6 +42,11 @@
     "test": "yarn build && vitest run",
     "test:watch": "yarn build && vitest",
     "test:debug": "yarn build && cross-env DEBUG=ffmpeggy vitest run",
+    "test:unit": "yarn build && vitest run --project=unit",
+    "test:events": "yarn build && vitest run --project=events",
+    "test:async": "yarn build && vitest run --project=async",
+    "test:coverage": "yarn build && vitest run --coverage",
+    "test:coverage:watch": "yarn build && vitest --coverage",
     "semantic-release": "semantic-release",
     "semantic-release:dry-run": "cross-env DRY_RUN=true semantic-release --dry-run --no-ci --debug"
   },
