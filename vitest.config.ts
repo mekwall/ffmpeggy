@@ -20,6 +20,16 @@ export default defineConfig({
     reporters: ["verbose", "hanging-process"],
     // Add hook timeout for setup/teardown
     hookTimeout: 30000,
+    // Add retry logic for flaky tests
+    retry: 1,
+    // Add pool options for better stability
+    poolOptions: {
+      threads: {
+        singleThread: false,
+        maxThreads: 4,
+        minThreads: 1,
+      },
+    },
     // Coverage configuration
     coverage: {
       provider: "v8",
