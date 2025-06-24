@@ -1,6 +1,15 @@
 import { describe, expect, it } from "vitest";
 import { parseProgress, parseFinalSizes, parseInfo } from "../parsers";
 
+function calculateProgressPercentage(
+  progressTime: number | undefined,
+  duration: number | undefined
+): number {
+  return duration && duration > 0 && progressTime
+    ? Math.min(100, Math.round((progressTime / duration) * 100 * 100) / 100)
+    : 0;
+}
+
 describe("parsers", () => {
   it("should parse simple progress", () => {
     const txt =
@@ -202,15 +211,8 @@ describe("parsers", () => {
       expect(progress).toBeDefined();
       expect(progress?.time).toBe(154.08);
 
-      // Simulate the percentage calculation from FFmpeggy.ts
       const duration = 300; // 5 minutes
-      const percent =
-        duration && duration > 0 && progress?.time
-          ? Math.min(
-              100,
-              Math.round((progress.time / duration) * 100 * 100) / 100
-            )
-          : 0;
+      const percent = calculateProgressPercentage(progress?.time, duration);
 
       expect(percent).toBe(51.36); // (154.08 / 300) * 100
     });
@@ -222,15 +224,8 @@ describe("parsers", () => {
       expect(progress).toBeDefined();
       expect(progress?.time).toBe(154.08);
 
-      // Simulate the percentage calculation when duration is 0
       const duration = 0;
-      const percent =
-        duration && progress?.time
-          ? Math.min(
-              100,
-              Math.round((progress.time / duration) * 100 * 100) / 100
-            )
-          : 0;
+      const percent = calculateProgressPercentage(progress?.time, duration);
 
       expect(percent).toBe(0);
     });
@@ -242,15 +237,8 @@ describe("parsers", () => {
       expect(progress).toBeDefined();
       expect(progress?.time).toBe(154.08);
 
-      // Simulate the percentage calculation when duration is undefined
       const duration = undefined;
-      const percent =
-        duration && duration > 0 && progress?.time
-          ? Math.min(
-              100,
-              Math.round((progress.time / duration) * 100 * 100) / 100
-            )
-          : 0;
+      const percent = calculateProgressPercentage(progress?.time, duration);
 
       expect(percent).toBe(0);
     });
@@ -262,15 +250,8 @@ describe("parsers", () => {
       expect(progress).toBeDefined();
       expect(progress?.time).toBeUndefined();
 
-      // Simulate the percentage calculation when time is not available
       const duration = 300;
-      const percent =
-        duration && duration > 0 && progress?.time
-          ? Math.min(
-              100,
-              Math.round((progress.time / duration) * 100 * 100) / 100
-            )
-          : 0;
+      const percent = calculateProgressPercentage(progress?.time, duration);
 
       expect(percent).toBe(0);
     });
