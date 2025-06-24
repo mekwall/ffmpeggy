@@ -16,11 +16,17 @@ export default {
       },
     ],
     // Conditionally include plugins based on the dry-run flag
-    !isDryRun && "@semantic-release/npm",
+    !isDryRun && [
+      "@semantic-release/npm",
+      {
+        npmPublish: true,
+        tarballDir: ".",
+      },
+    ],
     !isDryRun && [
       "@semantic-release/github",
       {
-        assets: ["*.tgz"],
+        assets: "ffmpeggy-*.tgz",
       },
     ],
   ].filter(Boolean),
