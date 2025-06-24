@@ -63,9 +63,56 @@ By participating in this project, you agree to maintain a respectful and inclusi
 
 ### Testing
 
+This project uses [Vitest](https://vitest.dev/) for testing with multiple projects that separates different types of tests:
+
+#### Test Types
+
+- **Unit Tests** (`*.spec.ts`): Basic functionality tests, configuration tests, and error handling
+- **Event Tests** (`*.event.test.ts`): Tests that verify event emission and handling
+- **Async Tests** (`*.async.test.ts`): Tests that use async/await patterns with the `done()` method
+- **Integration Tests** (`*.integration.test.ts`): End-to-end tests (currently not used)
+
+#### Running Tests
+
+```bash
+# Run all tests
+yarn test
+
+# Run specific test types
+yarn test:unit      # Run only unit tests
+yarn test:events    # Run only event-based tests
+yarn test:async     # Run only await-based tests
+yarn test:integration # Run only integration tests
+
+# Watch mode
+yarn test:watch
+
+# Debug mode with ffmpeggy debug output
+yarn test:debug
+
+# Run tests with coverage
+yarn test:coverage
+```
+
+#### Test Organization
+
+The test separation allows for:
+
+- **Faster feedback**: Run only the test type you're working on
+- **Better isolation**: Event tests and async tests don't interfere with each other
+- **Different timeouts**: Event tests can have longer timeouts for complex scenarios
+- **Clearer test intent**: Each file focuses on a specific testing pattern
+
+#### Writing Tests
+
 - Write tests for new features
 - Ensure all tests pass before submitting a PR
 - Update tests when fixing bugs
+- Use the appropriate test type for your changes:
+  - Use unit tests for configuration, error handling, and utility functions
+  - Use event tests for testing event emission and handling
+  - Use async tests for testing async/await patterns
+  - Use integration tests for end-to-end scenarios
 
 ### Documentation
 
