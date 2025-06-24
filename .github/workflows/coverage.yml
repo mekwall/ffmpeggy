@@ -20,6 +20,9 @@ jobs:
   coverage:
     name: Coverage
     runs-on: ${{ inputs.os }}
+    permissions:
+      contents: read
+      id-token: write
 
     steps:
       - uses: actions/checkout@v4
@@ -49,3 +52,4 @@ jobs:
           fail_ci_if_error: false
           verbose: true
           directory: ./coverage
+          use_oidc: true
