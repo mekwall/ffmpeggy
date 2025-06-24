@@ -225,7 +225,7 @@ describe("parsers", () => {
       // Simulate the percentage calculation when duration is 0
       const duration = 0;
       const percent =
-        duration && duration > 0 && progress?.time
+        duration && progress?.time
           ? Math.min(
               100,
               Math.round((progress.time / duration) * 100 * 100) / 100
