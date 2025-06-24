@@ -56,8 +56,15 @@ export function parseInfo(data: string): FFmpegInfo | undefined {
   if (!matches) {
     return;
   }
+  const durationStr = matches[1];
+  let duration: number | undefined;
+
+  if (durationStr && durationStr.trim() !== "N/A") {
+    duration = timerToSecs(durationStr);
+  }
+
   return {
-    duration: matches[1] ? timerToSecs(matches[1]) : undefined,
+    duration,
     start: Number(matches[2]),
     bitrate: parseBitrate(Number(matches[3]), matches[4]),
   };
