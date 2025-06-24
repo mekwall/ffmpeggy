@@ -2,6 +2,7 @@ import EventEmitter from "events";
 import { ReadStream, WriteStream } from "fs";
 import { nextTick } from "process";
 import { PassThrough } from "stream";
+import { pipeline } from "stream/promises";
 import createDebug from "debug";
 import {
   execa,
@@ -249,16 +250,23 @@ export class FFmpeggy extends (EventEmitter as new () => TypedEmitter<FFmpegEven
         reject: false,
       });
 
-      // if (this.process.stdin && input instanceof ReadStream) {
-      //   input.pipe(this.process.stdin);
-      // }
-
+      // Use pipeline for robust stream handling when output is a WriteStream
       if (this.process.stdout && output instanceof WriteStream) {
-        this.process.stdout.pipe(output);
+        // Pipeline will handle proper cleanup and error propagation
+        pipeline(this.process.stdout, output).catch((err) => {
+          debug("Pipeline error: %o", err);
+          this.error = err;
+          this.emit("error", err);
+        });
       }
 
-      if (this.pipedOutput) {
-        this.process.stdout?.pipe(this.outputStream);
+      // Use pipeline for piped output to PassThrough stream
+      if (this.pipedOutput && this.process.stdout) {
+        pipeline(this.process.stdout, this.outputStream).catch((err) => {
+          debug("Pipeline error for piped output: %o", err);
+          this.error = err;
+          this.emit("error", err);
+        });
       }
 
       this.running = true;
@@ -332,11 +340,16 @@ export class FFmpeggy extends (EventEmitter as new () => TypedEmitter<FFmpegEven
     if (this.process) {
       try {
         const status = await this.process;
-        const code = this.process.exitCode;
+        // Store the process reference and exit code before clearing it
+        const processRef = this.process;
+        const code = processRef.exitCode;
+
         if (code === 1) {
           console.error("FFmpeg failed:", this.log);
+          // Extract concise error information from the log
+          const conciseError = this.extractConciseError(this.log);
           this.error = new Error(
-            `FFmpeg failed with exit code ${code}: ${this.log}`
+            `FFmpeg failed with exit code ${code}: ${conciseError}`
           );
         } else {
           debug("done: %s", this.currentFile);
@@ -528,5 +541,72 @@ export class FFmpeggy extends (EventEmitter as new () => TypedEmitter<FFmpegEven
     } catch {
       throw Error("Failed to probe");
     }
+  }
+
+  private extractConciseError(
+    log: string,
+    maxLines = 3,
+    maxLength = 250
+  ): string {
+    if (!log) {
+      return "Unknown error (log is empty)";
+    }
+
+    // Split log into lines
+    const lines = log.trim().split("\n");
+    if (!lines.length) {
+      return "Unknown error (log has no content)";
+    }
+
+    // Common error keywords
+    const errorKeywords = [
+      "error",
+      "invalid",
+      "fail",
+      "could not",
+      "no such",
+      "denied",
+      "unsupported",
+      "unable",
+      "can't open",
+      "conversion failed",
+      "not found",
+      "permission",
+    ];
+
+    // Look at the last few lines (default is 3 lines)
+    const start = Math.max(0, lines.length - maxLines);
+    for (let i = lines.length - 1; i >= start; i--) {
+      const line = lines[i].trim();
+      if (!line) continue;
+
+      // If this line contains a keyword, it's likely what we're looking for
+      if (
+        errorKeywords.some((keyword) => line.toLowerCase().includes(keyword))
+      ) {
+        // Add the previous line for context if it exists
+        if (i > 0 && lines[i - 1].trim()) {
+          const result = `${lines[i - 1].trim()}\n${line}`;
+          return result.length > maxLength
+            ? result.substring(0, maxLength) + "..."
+            : result;
+        }
+        return line.length > maxLength
+          ? line.substring(0, maxLength) + "..."
+          : line;
+      }
+    }
+
+    // If no keywords are found, take the last non-empty line
+    for (let i = lines.length - 1; i >= 0; i--) {
+      const line = lines[i].trim();
+      if (line) {
+        return line.length > maxLength
+          ? line.substring(0, maxLength) + "..."
+          : line;
+      }
+    }
+
+    return "Unknown error (no specific problem found)";
   }
 }
