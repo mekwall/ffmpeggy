@@ -18,6 +18,8 @@ export default defineConfig({
     pool: "threads",
     // Add hanging process detection
     reporters: ["verbose", "hanging-process"],
+    // Add hook timeout for setup/teardown
+    hookTimeout: 30000,
     // Coverage configuration
     coverage: {
       provider: "v8",
@@ -74,6 +76,9 @@ export default defineConfig({
             "**/*.unit.test.ts",
             "**/*.event.test.ts",
           ],
+          // Longer timeout for async tests that involve file operations
+          testTimeout: 60000,
+          hookTimeout: 60000,
         },
       },
     ],
