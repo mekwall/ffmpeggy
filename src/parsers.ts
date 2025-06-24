@@ -59,8 +59,11 @@ export function parseInfo(data: string): FFmpegInfo | undefined {
   const durationStr = matches[1];
   let duration: number | undefined;
 
-  if (durationStr && durationStr.trim() !== "N/A") {
-    duration = timerToSecs(durationStr);
+  if (durationStr) {
+    const trimmedDuration = durationStr.trim();
+    if (trimmedDuration !== "N/A") {
+      duration = timerToSecs(trimmedDuration);
+    }
   }
 
   return {
