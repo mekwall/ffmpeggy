@@ -1,3 +1,10 @@
+## [3.1.3](https://github.com/mekwall/ffmpeggy/compare/v3.1.2...v3.1.3) (2025-06-24)
+
+
+### Bug Fixes
+
+* handle progress percentage when duration is not available ([#712](https://github.com/mekwall/ffmpeggy/issues/712)) ([a75a272](https://github.com/mekwall/ffmpeggy/commit/a75a272174ee1da808213c9ff39af192157208ac)), closes [#26](https://github.com/mekwall/ffmpeggy/issues/26)
+
 ## [3.1.2](https://github.com/mekwall/ffmpeggy/compare/v3.1.1...v3.1.2) (2025-06-24)
 
 
