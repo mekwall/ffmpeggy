@@ -339,7 +339,7 @@ export class FFmpeggy extends (EventEmitter as new () => TypedEmitter<FFmpegEven
   private async awaitStatus() {
     if (this.process) {
       try {
-        const status = await this.process;
+        this.status = await this.process;
         // Store the process reference and exit code before clearing it
         const processRef = this.process;
         const code = processRef.exitCode;
@@ -355,27 +355,30 @@ export class FFmpeggy extends (EventEmitter as new () => TypedEmitter<FFmpegEven
           debug("done: %s", this.currentFile);
           this.emit("done", this.currentFile, this.finalSizes);
         }
-        nextTick(() => {
-          // Wait until next tick to emit the exit event
-          // This is to ensure that the done event is emitted
-          // before the exit event
-          this.status = status;
-          this.process = undefined;
-          this.running = false;
-          debug("exit: %o %o", code, this.error);
-          this.emit("exit", code, this.error);
-        });
+
+        // Cleanup and emit exit event in next tick
+        await this.cleanupAndEmitExit(code);
       } catch (error) {
         // Handle process errors
         this.error = error as Error;
         debug("process error in awaitStatus: %o", error);
-        nextTick(() => {
-          this.process = undefined;
-          this.running = false;
-          this.emit("exit", null, this.error);
-        });
+
+        // Cleanup and emit exit event in next tick
+        await this.cleanupAndEmitExit(null);
       }
     }
+  }
+
+  private async cleanupAndEmitExit(code: number | null): Promise<void> {
+    return new Promise<void>((resolve) => {
+      nextTick(() => {
+        this.process = undefined;
+        this.running = false;
+        debug("exit: %o %o", code, this.error);
+        this.emit("exit", code, this.error);
+        resolve();
+      });
+    });
   }
 
   public async stop(signal = 15): Promise<void> {
