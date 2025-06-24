@@ -8,7 +8,7 @@ export default {
     "@semantic-release/release-notes-generator",
     "@semantic-release/changelog",
     // Conditionally include plugins based on the dry-run flag
-c    !isDryRun && [
+    !isDryRun && [
       "@semantic-release/npm",
       {
         npmPublish: true,
