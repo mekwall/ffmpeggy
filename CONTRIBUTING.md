@@ -62,11 +62,11 @@ By participating in this project, you agree to maintain a respectful and inclusi
 
 ### Build System
 
-This project uses [tsukuru](https://github.com/antfu/tsukuru) for building, which provides fast TypeScript compilation and supports both CommonJS and ES modules. The build process generates:
+This project uses [tsup](https://github.com/egoist/tsup) for building, which provides fast TypeScript compilation and supports both CommonJS and ES modules. The build process generates:
 
-- **CommonJS**: `./cjs/` directory with `.js` and `.d.ts` files
-- **ES Modules**: `./es/` directory with `.mjs` files
-- **Type Definitions**: Comprehensive TypeScript definitions
+- **CommonJS**: `./dist/index.cjs` and related files
+- **ES Modules**: `./dist/index.js` (or `index.mjs` if configured)
+- **Type Definitions**: Comprehensive TypeScript definitions in `./dist/`
 
 ### Code Style
 
