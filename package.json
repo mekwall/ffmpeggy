@@ -18,40 +18,41 @@
     "type": "git",
     "url": "https://github.com/mekwall/ffmpeggy.git"
   },
-  "main": "./cjs/index.js",
-  "module": "./es/index.mjs",
-  "types": "./cjs/index.d.ts",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
   "imports": {
     "#/*": "./src/*"
   },
   "exports": {
     ".": {
-      "types": "./cjs/index.d.ts",
-      "require": "./cjs/index.js",
-      "import": "./es/index.mjs"
+      "types": "./dist/index.d.ts",
+      "require": "./dist/index.cjs",
+      "import": "./dist/index.mjs"
     }
   },
   "files": [
-    "cjs",
-    "es",
+    "dist",
     "CHANGELOG.md",
     "LICENSE",
     "README.md"
   ],
   "scripts": {
-    "rebuild": "yarn build --clean",
-    "build": "tsukuru -c tsconfig.build.json",
+    "rebuild": "yarn build",
+    "build:clean": "rimraf dist",
+    "build": "yarn build:clean && tsup src/index.ts --dts --format esm,cjs --out-dir dist",
     "lint": "eslint .",
     "test": "yarn build && vitest run",
     "test:watch": "yarn build && vitest",
     "test:debug": "cross-env DEBUG=ffmpeggy vitest run",
-    "test:unit": "yarn build && vitest run --project=unit",
-    "test:integration": "yarn build && vitest run --project=integration",
-    "test:probe": "yarn build && vitest run --project=probe:integration",
-    "test:events": "yarn build && vitest run --project=events:integration",
-    "test:async": "yarn build && vitest run --project=async:integration",
-    "test:multi": "yarn build && vitest run --project=multi:integration",
+    "test:unit": "vitest run --project=unit",
+    "test:integration": "vitest run --project=integration",
+    "test:probe": "vitest run --project=probe:integration",
+    "test:events": "vitest run --project=events:integration",
+    "test:async": "vitest run --project=async:integration",
+    "test:multi": "vitest run --project=multi:integration",
     "test:coverage": "yarn build && vitest run --coverage",
+    "test:cjs": "yarn build && vitest run --project=cjs:integration",
     "semantic-release": "semantic-release",
     "semantic-release:dry-run": "cross-env DRY_RUN=true semantic-release --dry-run --no-ci --debug"
   },
@@ -64,9 +65,6 @@
     "typed-emitter": "^2.1.0"
   },
   "devDependencies": {
-    "@babel/core": "^7.14.8",
-    "@babel/preset-env": "^7.14.8",
-    "@babel/preset-typescript": "^7.14.5",
     "@eslint/js": "^9.17.0",
     "@semantic-release/changelog": "^6.0.1",
     "@semantic-release/commit-analyzer": "^13.0.0",
@@ -89,8 +87,9 @@
     "eslint-plugin-unused-imports": "^4.1.4",
     "ffmpeg-static": "^5.0.0",
     "ffprobe-static": "^3.0.0",
+    "rimraf": "^6.0.1",
     "semantic-release": "^24.2.0",
-    "tsukuru": "^0.8.0",
+    "tsup": "^8.5.0",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.33.1",
     "vitest": "^3.2.3"
