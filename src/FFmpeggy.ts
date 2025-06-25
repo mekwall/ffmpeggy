@@ -2081,7 +2081,10 @@ export class FFmpeggy extends EventEmitter {
       }
       const { stdout, exitCode } = await execa(
         FFmpeggy.DefaultConfig.ffprobeBin,
-        args
+        args,
+        {
+          timeout: 30000, // 30 second timeout to prevent hanging
+        }
       );
       if (exitCode === 1) {
         throw Error("Failed to probe");
