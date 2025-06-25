@@ -76,8 +76,6 @@ export default defineConfig({
         },
       },
     },
-    // Add global setup to handle unhandled errors
-    // setupFiles: ["./vitest.setup.ts"],
     // Add environment variables to suppress verbose output
     env: {
       NODE_ENV: "test",
