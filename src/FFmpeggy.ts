@@ -15,7 +15,7 @@ import {
   parseWriting,
   parseProgress,
   parseFinalSizes,
-} from "#/parsers.js";
+} from "#/parsers";
 import type {
   FFmpeggyFinalSizes,
   FFmpeggyProgressEvent,
@@ -26,7 +26,7 @@ import type {
   FileOutput,
   StreamOutput,
 } from "#/types";
-import { parseOptions } from "#/utils/parseOptions.js";
+import { parseOptions } from "#/utils/parseOptions";
 
 const DEFAULT_STREAM_OPEN_TIMEOUT_MS = 5000;
 

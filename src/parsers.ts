@@ -1,10 +1,7 @@
-import {
-  FFmpeggyProgress,
-  FFmpeggyFinalSizes,
-} from "./types/FFmpeggyProgress.js";
-import { parseBitrate } from "./utils/parseBitrate.js";
-import { parseSize } from "./utils/parseSize.js";
-import { timerToSecs } from "./utils/timerToSecs.js";
+import { FFmpeggyProgress, FFmpeggyFinalSizes } from "./types/FFmpeggyProgress";
+import { parseBitrate } from "#/utils/parseBitrate";
+import { parseSize } from "#/utils/parseSize";
+import { timerToSecs } from "#/utils/timerToSecs";
 
 const progressRxp =
   /(?:frame=\s*(?<frame>[\d]+)\s+)?(?:fps=\s*(?<fps>[\d.]+)\s+)?(?:q=(?<q>[0-9.-]+)\s+)?(L?)size=\s*(?<size>[0-9]+|N\/A)(?<sizeunit>kB|mB|b)?\s*(?:time=\s*(?<time>\d\d:\d\d:\d\d\.\d\d)\s*)?bitrate=\s*(?<bitrate>N\/A|[\d.]+)(?<bitrateunit>bits\/s|mbits\/s|kbits\/s)?.*(dup=(?<duplicates>\d+)\s*)?(drop=(?<dropped>\d+)\s*)?speed=\s*(?<speed>[\d.e+]+)x/;

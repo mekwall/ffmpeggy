@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseBitrate } from "#/utils/parseBitrate.js";
+import { parseBitrate } from "#/utils/parseBitrate";
 
 describe("parseBitrate", () => {
   it("should convert mbit/s to kbit/s", () => {
