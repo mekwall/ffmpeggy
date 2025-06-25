@@ -1412,6 +1412,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/ffprobe-static@npm:^2.0.3":
+  version: 2.0.3
+  resolution: "@types/ffprobe-static@npm:2.0.3"
+  checksum: 10/59bcb81b035b50914d21110a97102f9bca0a4733830992694bc95133c7354907be42ba9edb9ce0a44097f7e85742cbee77a6fb76ae507af9f83bed8ec169d767
+  languageName: node
+  linkType: hard
+
 "@types/json-schema@npm:^7.0.15":
   version: 7.0.15
   resolution: "@types/json-schema@npm:7.0.15"
@@ -3532,6 +3539,7 @@ __metadata:
     "@semantic-release/release-notes-generator": "npm:^14.0.1"
     "@tsconfig/node24": "npm:^24.0.1"
     "@types/debug": "npm:^4.1.7"
+    "@types/ffprobe-static": "npm:^2.0.3"
     "@types/node": "npm:^24.0.3"
     "@typescript-eslint/eslint-plugin": "npm:^8.33.1"
     "@typescript-eslint/parser": "npm:^8.33.1"

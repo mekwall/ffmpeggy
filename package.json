@@ -40,7 +40,9 @@
   "scripts": {
     "rebuild": "yarn build",
     "build:clean": "rimraf dist",
-    "build": "yarn build:clean && tsup src/index.ts --dts --format esm,cjs --out-dir dist",
+    "check": "tsc --noEmit",
+    "check:ci": "tsc --noEmit --pretty",
+    "build": "yarn build:clean && yarn check && tsup src/index.ts --dts --format esm,cjs --out-dir dist",
     "lint": "eslint .",
     "test": "yarn build && vitest run",
     "test:watch": "yarn build && vitest",
@@ -72,6 +74,7 @@
     "@semantic-release/release-notes-generator": "^14.0.1",
     "@tsconfig/node24": "^24.0.1",
     "@types/debug": "^4.1.7",
+    "@types/ffprobe-static": "^2.0.3",
     "@types/node": "^24.0.3",
     "@typescript-eslint/eslint-plugin": "^8.33.1",
     "@typescript-eslint/parser": "^8.33.1",
