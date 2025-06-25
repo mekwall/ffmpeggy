@@ -30,6 +30,9 @@ jobs:
       - name: Run linting
         run: yarn lint
 
+      - name: Type check
+        run: yarn check:ci
+
       - name: Build
         run: yarn build
         env:
