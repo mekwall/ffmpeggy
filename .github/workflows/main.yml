@@ -37,6 +37,7 @@ jobs:
       node-version: ${{ matrix.node-version }}
       os: ${{ matrix.os }}
       debug: true
+      coverage: ${{ matrix.os == 'ubuntu-latest' && matrix.node-version == '24.x' }}
     strategy:
       matrix:
         os:
@@ -44,14 +45,6 @@ jobs:
           - windows-latest
           - ubuntu-latest
         node-version: [18.x, 20.x, 22.x, 24.x]
-
-  coverage:
-    uses: ./.github/workflows/coverage.yml
-    needs: build
-    with:
-      node-version: "24.x"
-      os: "ubuntu-latest"
-      debug: true
 
   eslint:
     uses: ./.github/workflows/eslint.yml

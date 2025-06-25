@@ -54,7 +54,7 @@
     "test:async": "vitest run --project=async:integration",
     "test:multi": "vitest run --project=multi:integration",
     "test:coverage": "yarn build && vitest run --coverage",
-    "test:cjs": "yarn build && vitest run --project=cjs:integration",
+    "test:cjs": "vitest run --project=cjs:integration",
     "semantic-release": "semantic-release",
     "semantic-release:dry-run": "cross-env DRY_RUN=true semantic-release --dry-run --no-ci --debug"
   },
