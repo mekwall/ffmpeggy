@@ -1,10 +1,10 @@
 import path from "path";
 import { defineConfig } from "vitest/config";
-import { TEST_TIMEOUTS } from "./src/__tests__/utils/testTimeouts.js";
+import { TEST_TIMEOUTS, isCI } from "./src/__tests__/utils/testTimeouts.js";
 
 // Thread pool configuration
 const THREAD_POOL = {
-  MAX_THREADS: process.env.GITHUB_ACTIONS ? 2 : 4,
+  MAX_THREADS: isCI ? 2 : 4,
   MIN_THREADS: 1,
 } as const;
 
@@ -31,7 +31,7 @@ export default defineConfig({
     // Use threads pool for better performance and to prevent hanging
     pool: "threads",
     // Add hanging process detection
-    reporters: process.env.GITHUB_ACTIONS
+    reporters: isCI
       ? ["verbose", "hanging-process", "junit"]
       : ["verbose", "hanging-process"],
     // Add hook timeout for setup/teardown
@@ -47,7 +47,7 @@ export default defineConfig({
       },
     },
     // JUnit reporter configuration (only in CI)
-    ...(process.env.GITHUB_ACTIONS && {
+    ...(isCI && {
       outputFile: {
         junit: "test-results.xml",
       },

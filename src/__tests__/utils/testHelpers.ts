@@ -17,7 +17,7 @@ import type {
   FFmpeggyProgressEvent,
   FFprobeResult,
 } from "#/types";
-import { TEST_TIMEOUTS } from "./testTimeouts.js";
+import { TEST_TIMEOUTS, isCI } from "./testTimeouts.js";
 
 // Legacy exports for backward compatibility
 export const TEST_TIMEOUT_MS = TEST_TIMEOUTS.TEST_OPERATION;
@@ -82,8 +82,8 @@ export function wait(ms: number): Promise<void> {
 // Enhanced file waiting function with retries and better error handling
 export async function waitForFileExists(
   filePath: string,
-  maxRetries = 10,
-  retryDelay = 500
+  maxRetries = isCI ? 30 : 10,
+  retryDelay = isCI ? 1000 : 500
 ): Promise<void> {
   for (let i = 0; i < maxRetries; i++) {
     try {
@@ -104,8 +104,8 @@ export async function waitForFileExists(
 export async function waitForFileSize(
   filePath: string,
   minSize = 1,
-  maxRetries = 10,
-  retryDelay = 500
+  maxRetries = isCI ? 30 : 10,
+  retryDelay = isCI ? 1000 : 500
 ): Promise<number> {
   for (let i = 0; i < maxRetries; i++) {
     try {
