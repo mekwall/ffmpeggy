@@ -227,6 +227,10 @@ export async function cleanupStreams(
         }
 
         // Destroy the stream after a short delay to allow graceful shutdown
+        // Use shorter delays in CI environments
+        const destroyDelay = isCI ? 50 : 100;
+        const finalCleanupDelay = isCI ? 25 : 50;
+
         setTimeout(() => {
           try {
             stream.destroy();
@@ -235,8 +239,8 @@ export async function cleanupStreams(
           }
 
           // Ensure cleanup is called even if destroy doesn't trigger events
-          setTimeout(cleanup, 50);
-        }, 100);
+          setTimeout(cleanup, finalCleanupDelay);
+        }, destroyDelay);
       } else {
         resolve();
       }
@@ -282,17 +286,56 @@ export class TestFileManager {
           attempt++
         ) {
           try {
-            await Promise.allSettled(this.tempFiles.map(unlink));
-            break; // Success, exit retry loop
+            // Delete files individually to handle partial failures
+            const deletionResults = await Promise.allSettled(
+              this.tempFiles.map(async (file) => {
+                try {
+                  await unlink(file);
+                  return { file, success: true };
+                } catch (error) {
+                  return { file, success: false, error };
+                }
+              })
+            );
+
+            // Check if all deletions succeeded
+            const failedDeletions = deletionResults
+              .map((result, index) => ({ result, file: this.tempFiles[index] }))
+              .filter(
+                ({ result }) =>
+                  result.status === "rejected" ||
+                  (result.status === "fulfilled" && !result.value.success)
+              );
+
+            if (failedDeletions.length === 0) {
+              break; // All files deleted successfully
+            }
+
+            if (attempt === TEST_TIMEOUTS.CLEANUP.FILE_DELETION_RETRIES - 1) {
+              // Last attempt failed, log detailed failure information
+              console.warn(
+                `Failed to delete ${failedDeletions.length} temp files after ${TEST_TIMEOUTS.CLEANUP.FILE_DELETION_RETRIES} attempts:`
+              );
+              failedDeletions.forEach(({ file, result }) => {
+                const error =
+                  result.status === "rejected"
+                    ? result.reason
+                    : result.value.error;
+                console.warn(`  - ${file}: ${error}`);
+              });
+            } else {
+              // Wait before retry with exponential backoff
+              await wait(
+                Math.pow(2, attempt) * TEST_TIMEOUTS.CLEANUP.RETRY_DELAY_BASE
+              );
+            }
           } catch (error) {
             if (attempt === TEST_TIMEOUTS.CLEANUP.FILE_DELETION_RETRIES - 1) {
-              // Last attempt failed, log but don't throw
               console.warn(
                 `Failed to delete temp files after ${TEST_TIMEOUTS.CLEANUP.FILE_DELETION_RETRIES} attempts:`,
                 error
               );
             } else {
-              // Wait before retry with exponential backoff
               await wait(
                 Math.pow(2, attempt) * TEST_TIMEOUTS.CLEANUP.RETRY_DELAY_BASE
               );
@@ -448,7 +491,10 @@ export class FFmpeggyTestHelpers {
     ffmpeggy: FFmpeggy
   ): Promise<{ file?: string; sizes?: FFmpeggyFinalSizes }> {
     ffmpeggy.triggerAutorun();
-    return await ffmpeggy.done();
+    const result = await ffmpeggy.done();
+    // Wait for the FFmpeg process to fully exit before proceeding
+    await ffmpeggy.exit();
+    return result;
   }
 
   static async runWithEvents(
@@ -495,7 +541,18 @@ export class FFmpeggyTestHelpers {
       }
 
       // Default handlers for resolve/reject
-      ffmpeggy.on("done", () => resolve());
+      ffmpeggy.on("done", async () => {
+        // Wait for the FFmpeg process to fully exit before resolving
+        try {
+          await ffmpeggy.exit();
+        } catch (error) {
+          // Ignore exit errors, but log them in debug mode
+          if (process.env.DEBUG) {
+            console.warn("FFmpeg exit error (non-critical):", error);
+          }
+        }
+        resolve();
+      });
       ffmpeggy.on("error", (error) => reject(error));
 
       ffmpeggy.run().catch(reject);
@@ -540,11 +597,25 @@ export class TestAssertions {
     }
   }
 
-  static expectFileExists(filePath: string): Promise<void> {
-    return waitForFileExists(filePath);
+  static async expectFileExists(filePath: string): Promise<void> {
+    // First wait for the file to exist
+    await waitForFileExists(filePath);
+    // Then verify it actually exists at the time of assertion
+    const fs = await import("fs/promises");
+    try {
+      await fs.access(filePath);
+    } catch (error) {
+      throw new Error(`File ${filePath} does not exist: ${error}`);
+    }
   }
 
-  static expectFileSize(filePath: string, minSize: number): Promise<number> {
+  static async expectFileSize(
+    filePath: string,
+    minSize: number
+  ): Promise<number> {
+    // First ensure the file exists
+    await waitForFileExists(filePath);
+    // Then check its size
     return waitForFileSize(filePath, minSize);
   }
 
