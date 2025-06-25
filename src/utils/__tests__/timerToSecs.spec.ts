@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { timerToSecs } from "../timerToSecs";
+import { timerToSecs } from "#/utils/timerToSecs.js";
 
 describe("timerToSecs", () => {
   it("should convert HH:MM:SS.MS to seconds", () => {

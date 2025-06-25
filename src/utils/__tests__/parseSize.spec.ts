@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseSize } from "../parseSize";
+import { parseSize } from "#/utils/parseSize.js";
 
 describe("sizeUnits", () => {
   it("should convert kB to bytes", () => {

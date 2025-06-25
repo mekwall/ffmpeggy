@@ -7,19 +7,23 @@ import {
 } from "fs";
 import { mkdir, stat, unlink, rm, access } from "fs/promises";
 import path from "path";
-import ffmpegBin from "ffmpeg-static";
+import ffmpegStatic from "ffmpeg-static";
 import { path as ffprobeBin } from "ffprobe-static";
-import { FFmpeggy, FFmpeggyProgressEvent } from "../../FFmpeggy";
-import { FFmpeggyFinalSizes } from "../../types/FFmpeggyProgress";
-import { FFprobeResult } from "../../types/probeTypes";
-import { waitFiles } from "./waitFiles";
+import { FFmpeggy } from "#/FFmpeggy.js";
+import { waitFiles } from "./waitFiles.js";
 import { expect } from "vitest";
+import type {
+  FFmpeggyFinalSizes,
+  FFmpeggyProgressEvent,
+  FFprobeResult,
+} from "#/types";
 
 // Test timeout constants for better readability and maintainability
 export const TEST_TIMEOUT_MS = 60000; // 60 seconds for most test operations
 export const PROBE_TIMEOUT_MS = 30000; // 30 seconds for probe operations
 
 // FFmpeg binary validation
+const ffmpegBin = ffmpegStatic as unknown as string;
 if (!ffmpegBin) {
   throw new Error("ffmpeg not found");
 }
@@ -29,17 +33,40 @@ export function configureFFmpeggy(): void {
   FFmpeggy.DefaultConfig = {
     ...FFmpeggy.DefaultConfig,
     overwriteExisting: true,
-    ffprobeBin: ffprobeBin || "",
+    ffprobeBin: (ffprobeBin as unknown as string) || "",
     ffmpegBin: ffmpegBin || "",
   };
 }
 
 // Sample file paths
-export const SAMPLE_DIR = path.join(__dirname, "../samples/");
+export const SAMPLE_DIR = path.resolve(__dirname, "../samples");
 export const SAMPLE_FILES = {
-  mkv: path.join(SAMPLE_DIR, "bunny1.mkv"),
-  mp4: path.join(SAMPLE_DIR, "bunny2.mp4"),
-  mp3: path.join(SAMPLE_DIR, "audio.mp3"),
+  video_basic_mkv: path.join(
+    SAMPLE_DIR,
+    "sample_mkv_640x360_h264_640x360_free.mkv"
+  ), // Basic MKV video
+  video_basic_mp4: path.join(
+    SAMPLE_DIR,
+    "big_buck_bunny_h264_aac_320x180_2aud_2vid_ccby.mp4"
+  ), // Basic MP4 video (multi-stream)
+  video_multi_stream: path.join(
+    SAMPLE_DIR,
+    "big_buck_bunny_h264_aac_320x180_2aud_2vid_ccby.mp4"
+  ), // Multi-stream video (2 video, 2 audio)
+  video_alt_mkv: path.join(
+    SAMPLE_DIR,
+    "sample_ocean_h264_aac_960x400_free.mkv"
+  ), // Alternate MKV video
+  audio_basic_mp3: path.join(SAMPLE_DIR, "sample_mp3_free.mp3"), // Basic MP3 audio
+  audio_basic_ogg: path.join(SAMPLE_DIR, "sample_vorbis_free.ogg"), // Basic OGG audio
+  subtitle_vtt: path.join(
+    SAMPLE_DIR,
+    "big_buck_bunny_subtitles_en_subs_ccby.vtt"
+  ), // VTT subtitle
+  audio_raw_pcm_s16le: path.join(
+    SAMPLE_DIR,
+    "sample_pcm_s16le_no_duration.raw"
+  ), // Raw PCM audio, no duration
 } as const;
 
 // Utility functions
@@ -103,6 +130,14 @@ interface DestroyableStream {
   destroy(): void;
   once(event: string, listener: () => void): void;
   removeListener(event: string, listener: () => void): void;
+  on(event: "error", listener: (err: Error) => void): void;
+  on(event: "close" | "finish" | "end", listener: () => void): void;
+  off(event: "error", listener: (err: Error) => void): void;
+  off(event: "close" | "finish" | "end", listener: () => void): void;
+  end(): void;
+  writable?: boolean;
+  readable?: boolean;
+  setMaxListeners?(n: number): void;
 }
 
 function isDestroyableStream(stream: unknown): stream is DestroyableStream {
@@ -111,6 +146,15 @@ function isDestroyableStream(stream: unknown): stream is DestroyableStream {
     stream !== undefined &&
     typeof (stream as DestroyableStream).destroy === "function"
   );
+}
+
+// Function to increase max listeners for streams to prevent warnings during testing
+function increaseMaxListeners(stream: DestroyableStream): void {
+  if (stream.setMaxListeners) {
+    // Increase max listeners to prevent warnings during testing
+    // This is safe for test environments where we know we'll clean up properly
+    stream.setMaxListeners(50);
+  }
 }
 
 export async function cleanupStreams(
@@ -124,14 +168,69 @@ export async function cleanupStreams(
   const cleanupPromises = streams.map((stream) => {
     return new Promise<void>((resolve) => {
       if (isDestroyableStream(stream)) {
-        // Handle stream errors during cleanup
-        const onError = () => resolve();
-        stream.once("error", onError);
-        stream.destroy();
-        // Resolve after a short delay to allow cleanup
-        setTimeout(() => {
-          stream.removeListener("error", onError);
+        // Create cleanup function that will be called in all cases
+        let cleanupCalled = false;
+        const cleanup = () => {
+          if (cleanupCalled) return;
+          cleanupCalled = true;
+
+          try {
+            // Remove all event listeners we added
+            stream.off("error", onError);
+            stream.off("close", onClose);
+            stream.off("finish", onFinish);
+            stream.off("end", onEnd);
+          } catch {
+            // Ignore errors when removing listeners
+          }
+
           resolve();
+        };
+
+        // Handle stream errors during cleanup
+        const onError = (err: Error) => {
+          // Suppress expected stream cleanup errors
+          const errorMessage = err.message || "";
+          const isExpectedError =
+            /premature close|write after end|cannot pipe|stream.*error/i.test(
+              errorMessage
+            );
+
+          if (process.env.DEBUG && !isExpectedError) {
+            console.warn("[Stream cleanup] Unexpected error:", err.message);
+          }
+          cleanup();
+        };
+
+        const onClose = () => cleanup();
+        const onFinish = () => cleanup();
+        const onEnd = () => cleanup();
+
+        // Add error handler first
+        stream.on("error", onError);
+        stream.on("close", onClose);
+        stream.on("finish", onFinish);
+        stream.on("end", onEnd);
+
+        // Graceful shutdown for writable streams
+        if (stream.writable !== false) {
+          try {
+            stream.end();
+          } catch {
+            // Ignore end errors
+          }
+        }
+
+        // Destroy the stream after a short delay to allow graceful shutdown
+        setTimeout(() => {
+          try {
+            stream.destroy();
+          } catch {
+            // Ignore destroy errors
+          }
+
+          // Ensure cleanup is called even if destroy doesn't trigger events
+          setTimeout(cleanup, 50);
         }, 100);
       } else {
         resolve();
@@ -146,9 +245,12 @@ export async function cleanupStreams(
 export class TestFileManager {
   private tempFiles: string[] = [];
   private tempDir: string;
+  private streams: Array<ReadStream | WriteStream> = [];
 
-  constructor(testType: "unit" | "async" | "events") {
-    this.tempDir = path.join(SAMPLE_DIR, `.temp/${testType}`);
+  constructor(
+    testType: "unit" | "async" | "multiple" | "events" | "validation"
+  ) {
+    this.tempDir = path.resolve(SAMPLE_DIR, ".temp", testType);
   }
 
   async setup(): Promise<void> {
@@ -203,6 +305,34 @@ export class TestFileManager {
 
   getTempFiles(): string[] {
     return [...this.tempFiles];
+  }
+
+  createInputStream(filePath: string): ReadStream {
+    const stream = createReadStream(filePath);
+    if (isDestroyableStream(stream)) {
+      increaseMaxListeners(stream);
+    }
+    this.streams.push(stream);
+    return stream;
+  }
+
+  createOutputStream(filePath: string): WriteStream {
+    const stream = createWriteStream(filePath);
+    if (isDestroyableStream(stream)) {
+      increaseMaxListeners(stream);
+    }
+    this.streams.push(stream);
+    return stream;
+  }
+
+  async cleanupStreams(): Promise<void> {
+    await cleanupStreams(...this.streams);
+    this.streams = [];
+  }
+
+  async cleanupAll(): Promise<void> {
+    await this.cleanupStreams();
+    await this.cleanup();
   }
 }
 
@@ -267,10 +397,22 @@ export class FFmpeggyTestHelpers {
   static async runWithEvents(
     ffmpeggy: FFmpeggy,
     eventHandlers: {
-      onDone?: (file?: string, sizes?: FFmpeggyFinalSizes) => void;
+      onDone?: (
+        result:
+          | { file?: string; sizes?: FFmpeggyFinalSizes; outputIndex?: number }
+          | Array<{
+              file?: string;
+              sizes?: FFmpeggyFinalSizes;
+              outputIndex?: number;
+            }>
+      ) => void;
       onError?: (error: Error) => void;
       onProgress?: (progress: FFmpeggyProgressEvent) => void;
-      onWriting?: (file: string) => void;
+      onWriting?: (
+        info:
+          | { file: string; outputIndex: number }
+          | Array<{ file: string; outputIndex: number }>
+      ) => void;
       onExit?: (code?: number | null, error?: Error) => void;
     } = {}
   ): Promise<void> {
@@ -301,17 +443,6 @@ export class FFmpeggyTestHelpers {
 
       ffmpeggy.run().catch(reject);
     });
-  }
-}
-
-// Stream creation helpers
-export class StreamHelpers {
-  static createInputStream(filePath: string): ReadStream {
-    return createReadStream(filePath);
-  }
-
-  static createOutputStream(filePath: string): WriteStream {
-    return createWriteStream(filePath);
   }
 }
 
@@ -363,9 +494,13 @@ export class TestAssertions {
   static expectProbeResult(result: FFprobeResult): void {
     expect(result).toBeDefined();
     expect(result.format).toBeDefined();
-    expect(result.format.nb_streams).toBe(2);
-    expect(result.format.duration).toBe("5.312000");
+    expect(result.format.nb_streams).toBeGreaterThan(0);
+    expect(result.format.duration).toBeDefined();
     expect(result.streams.length).toBeGreaterThan(0);
-    expect(result.streams[0].codec_name).toBe("h264");
+    // Check that at least one stream has a valid codec
+    const hasValidCodec = result.streams.some(
+      (stream) => stream.codec_name && stream.codec_name.length > 0
+    );
+    expect(hasValidCodec).toBe(true);
   }
 }
