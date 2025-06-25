@@ -94,6 +94,8 @@ export default defineConfig({
           ],
           exclude: [...sharedExclude, "**/integration/**"],
           pool: "threads",
+          testTimeout: TEST_TIMEOUTS.UNIT_TEST,
+          hookTimeout: TEST_TIMEOUTS.HOOK,
         },
       },
       {
