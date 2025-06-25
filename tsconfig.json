@@ -1,28 +1,18 @@
 {
   "$schema": "https://json.schemastore.org/tsconfig",
+  "extends": "@tsconfig/node24/tsconfig.json",
   "compilerOptions": {
-    "target": "ES2020",
     "module": "ESNext",
-    "lib": ["ES2020"],
-    "declaration": true,
-    "outDir": "./cjs",
-    "strict": true,
-    "esModuleInterop": true,
-    "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
-    "moduleResolution": "node",
-    "resolveJsonModule": true,
-    "isolatedModules": true,
+    "moduleResolution": "bundler",
     "baseUrl": ".",
     "paths": {
-      "*": ["src/*"]
-    }
+      "#/*": ["src/*"]
+    },
+    "types": ["vitest/globals"],
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "strict": true
   },
-  "include": ["src/**/*"],
-  "exclude": [
-    "node_modules",
-    "**/*.spec.ts",
-    "**/*.test.ts",
-    "vitest.config.ts"
-  ]
+  "include": ["src/**/*", "vitest.config.ts", "**/*.spec.ts", "**/*.test.ts"],
+  "exclude": ["node_modules"]
 }
