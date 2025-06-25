@@ -809,19 +809,3 @@ MIT
 
 [ffmpeg]: http://ffmpeg.org/
 [ffprobe]: https://ffmpeg.org/ffprobe.html
-
-## 🛠️ Build (for contributors)
-
-This project uses [tsup](https://github.com/egoist/tsup) to build both CommonJS and ESModule outputs, as well as type declarations. The build output is in the `dist/` directory.
-
-To build the project:
-
-```sh
-yarn build
-```
-
-This will clean the `dist/` directory and generate:
-
-- `dist/index.cjs` (CommonJS)
-- `dist/index.js` (ESM)
-- `dist/index.d.ts` (TypeScript types)
