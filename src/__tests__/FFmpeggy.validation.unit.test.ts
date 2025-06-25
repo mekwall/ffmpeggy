@@ -4,6 +4,7 @@ import {
   configureFFmpeggy,
   SAMPLE_FILES,
   TestFileManager,
+  HOOK_TIMEOUT_MS,
 } from "./utils/testHelpers.js";
 
 // Configure FFmpeggy with binaries
@@ -18,7 +19,7 @@ describe("FFmpeggy:validation", () => {
 
   afterAll(async () => {
     await fileManager.cleanup();
-  });
+  }, HOOK_TIMEOUT_MS);
 
   describe("Constructor validation", () => {
     describe("Incompatible combinations", () => {

@@ -7,6 +7,7 @@ import {
   TestFileManager,
   FFmpeggyTestHelpers,
   TestAssertions,
+  HOOK_TIMEOUT_MS,
 } from "../utils/testHelpers.js";
 
 // Configure FFmpeggy with binaries
@@ -21,7 +22,7 @@ describe("FFmpeggy:async", () => {
 
   afterAll(async () => {
     await fileManager.cleanup();
-  });
+  }, HOOK_TIMEOUT_MS);
 
   afterEach(async () => {
     await fileManager.cleanupStreams();

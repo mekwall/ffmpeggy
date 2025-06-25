@@ -6,6 +6,7 @@ import {
   TEST_TIMEOUT_MS,
   TestFileManager,
   TestAssertions,
+  HOOK_TIMEOUT_MS,
 } from "../utils/testHelpers.js";
 import { writeFile } from "fs/promises";
 
@@ -21,7 +22,7 @@ describe("FFmpeggy:probe", () => {
 
   afterAll(async () => {
     await fileManager.cleanup();
-  });
+  }, HOOK_TIMEOUT_MS);
 
   afterEach(async () => {
     await fileManager.cleanupStreams();
