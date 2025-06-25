@@ -2,6 +2,7 @@ import eslint from "@eslint/js";
 import prettierConfig from "eslint-config-prettier";
 import importPlugin from "eslint-plugin-import";
 import unusedImportsPlugin from "eslint-plugin-unused-imports";
+import vitestPlugin from "eslint-plugin-vitest";
 import tseslint from "typescript-eslint";
 
 export default tseslint.config(
@@ -33,6 +34,7 @@ export default tseslint.config(
     plugins: {
       import: importPlugin,
       "unused-imports": unusedImportsPlugin,
+      vitest: vitestPlugin,
     },
     settings: {
       "import/parsers": {
@@ -89,7 +91,7 @@ export default tseslint.config(
     },
   },
   {
-    files: ["**/*.test.js", "**/*.spec.ts", "**/*.test.cjs"],
+    files: ["**/*.test.js", "**/*.spec.ts", "**/*.test.cjs", "**/*.test.ts"],
     languageOptions: {
       globals: {
         describe: "readonly",
@@ -104,8 +106,6 @@ export default tseslint.config(
         afterEach: "readonly",
       },
     },
-    rules: {
-      "@typescript-eslint/no-var-requires": "off",
-    },
+    ...vitestPlugin.configs.recommended,
   }
 );
