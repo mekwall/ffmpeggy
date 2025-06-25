@@ -1,3 +1,4 @@
+import path from "path";
 import { defineConfig } from "vitest/config";
 
 // Shared exclude patterns for all projects
@@ -10,7 +11,13 @@ const sharedExclude = [
 ];
 
 export default defineConfig({
+  resolve: {
+    alias: {
+      "#": path.resolve(__dirname, "./src"),
+    },
+  },
   test: {
+    include: ["**/*.test.ts", "**/*.spec.ts"],
     exclude: sharedExclude,
     // Add global timeout to prevent infinite hanging
     testTimeout: 30000,
@@ -42,7 +49,7 @@ export default defineConfig({
     coverage: {
       provider: "v8",
       reporter: ["text", "json", "html", "lcov"],
-      include: ["src/**/*.{ts,js}"],
+      include: ["src/**/*.ts"],
       exclude: [
         ...sharedExclude,
         "**/*.d.ts",
@@ -62,39 +69,79 @@ export default defineConfig({
         },
       },
     },
+    // Add global setup to handle unhandled errors
+    // setupFiles: ["./vitest.setup.ts"],
+    // Add environment variables to suppress verbose output
+    env: {
+      NODE_ENV: "test",
+      // Suppress verbose stream error output
+      DEBUG: process.env.DEBUG || "",
+    },
     projects: [
       {
         test: {
           name: "unit",
-          include: ["**/*.unit.test.ts", "**/*.spec.ts"],
-          exclude: [
-            ...sharedExclude,
-            "**/*.event.test.ts",
-            "**/*.async.test.ts",
+          include: [
+            "**/*.unit.test.ts",
+            "**/integration/FFmpeggy.timeout.integration.test.ts",
           ],
+          exclude: [...sharedExclude, "**/integration/**"],
+          pool: "threads",
         },
       },
       {
         test: {
-          name: "events",
-          include: ["**/*.event.test.ts"],
-          exclude: [
-            ...sharedExclude,
-            "**/*.unit.test.ts",
-            "**/*.async.test.ts",
-          ],
+          name: "async:integration",
+          include: ["**/integration/FFmpeggy.async.integration.test.ts"],
+          exclude: [...sharedExclude],
+          pool: "threads",
+          testTimeout: 60000,
+          hookTimeout: 60000,
         },
       },
       {
         test: {
-          name: "async",
-          include: ["**/*.async.test.ts"],
+          name: "multi:integration",
+          include: ["**/integration/FFmpeggy.multi.integration.test.ts"],
+          exclude: [...sharedExclude],
+          pool: "threads",
+          testTimeout: 60000,
+          hookTimeout: 60000,
+        },
+      },
+      {
+        test: {
+          name: "events:integration",
+          include: ["**/integration/FFmpeggy.events.integration.test.ts"],
+          exclude: [...sharedExclude],
+          pool: "threads",
+          testTimeout: 60000,
+          hookTimeout: 60000,
+        },
+      },
+      {
+        test: {
+          name: "probe:integration",
+          include: ["**/integration/FFmpeggy.probe.integration.test.ts"],
+          exclude: [...sharedExclude],
+          pool: "threads",
+          testTimeout: 60000,
+          hookTimeout: 60000,
+        },
+      },
+      {
+        test: {
+          name: "integration",
+          include: ["**/integration/**/*.integration.test.ts"],
           exclude: [
             ...sharedExclude,
-            "**/*.unit.test.ts",
-            "**/*.event.test.ts",
+            "**/integration/FFmpeggy.async.integration.test.ts",
+            "**/integration/FFmpeggy.multi.integration.test.ts",
+            "**/integration/FFmpeggy.events.integration.test.ts",
+            "**/integration/FFmpeggy.probe.integration.test.ts",
+            "**/integration/FFmpeggy.timeout.integration.test.ts",
           ],
-          // Longer timeout for async tests that involve file operations
+          pool: "threads",
           testTimeout: 60000,
           hookTimeout: 60000,
         },
