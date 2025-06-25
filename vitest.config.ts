@@ -1,13 +1,6 @@
 import path from "path";
 import { defineConfig } from "vitest/config";
-
-// Timeout constants
-const TIMEOUTS = {
-  UNIT_TEST: 30000,
-  INTEGRATION_TEST: 60000,
-  HOOK: 30000,
-  INTEGRATION_HOOK: 60000,
-} as const;
+import { TEST_TIMEOUTS } from "./src/__tests__/utils/testTimeouts.js";
 
 // Thread pool configuration
 const THREAD_POOL = {
@@ -34,7 +27,7 @@ export default defineConfig({
     include: ["**/*.test.ts", "**/*.spec.ts"],
     exclude: sharedExclude,
     // Add global timeout to prevent infinite hanging
-    testTimeout: TIMEOUTS.UNIT_TEST,
+    testTimeout: TEST_TIMEOUTS.UNIT_TEST,
     // Use threads pool for better performance and to prevent hanging
     pool: "threads",
     // Add hanging process detection
@@ -42,7 +35,7 @@ export default defineConfig({
       ? ["verbose", "hanging-process", "junit"]
       : ["verbose", "hanging-process"],
     // Add hook timeout for setup/teardown
-    hookTimeout: TIMEOUTS.HOOK,
+    hookTimeout: TEST_TIMEOUTS.HOOK,
     // Add retry logic for flaky tests
     retry: 1,
     // Add pool options for better stability
@@ -109,8 +102,8 @@ export default defineConfig({
           include: ["**/integration/FFmpeggy.async.integration.test.ts"],
           exclude: [...sharedExclude],
           pool: "threads",
-          testTimeout: TIMEOUTS.INTEGRATION_TEST,
-          hookTimeout: TIMEOUTS.INTEGRATION_HOOK,
+          testTimeout: TEST_TIMEOUTS.INTEGRATION_TEST,
+          hookTimeout: TEST_TIMEOUTS.INTEGRATION_HOOK,
         },
       },
       {
@@ -119,8 +112,8 @@ export default defineConfig({
           include: ["**/integration/FFmpeggy.multi.integration.test.ts"],
           exclude: [...sharedExclude],
           pool: "threads",
-          testTimeout: TIMEOUTS.INTEGRATION_TEST,
-          hookTimeout: TIMEOUTS.INTEGRATION_HOOK,
+          testTimeout: TEST_TIMEOUTS.INTEGRATION_TEST,
+          hookTimeout: TEST_TIMEOUTS.INTEGRATION_HOOK,
         },
       },
       {
@@ -129,8 +122,8 @@ export default defineConfig({
           include: ["**/integration/FFmpeggy.events.integration.test.ts"],
           exclude: [...sharedExclude],
           pool: "threads",
-          testTimeout: TIMEOUTS.INTEGRATION_TEST,
-          hookTimeout: TIMEOUTS.INTEGRATION_HOOK,
+          testTimeout: TEST_TIMEOUTS.INTEGRATION_TEST,
+          hookTimeout: TEST_TIMEOUTS.INTEGRATION_HOOK,
         },
       },
       {
@@ -139,8 +132,8 @@ export default defineConfig({
           include: ["**/integration/FFmpeggy.probe.integration.test.ts"],
           exclude: [...sharedExclude],
           pool: "threads",
-          testTimeout: TIMEOUTS.INTEGRATION_TEST,
-          hookTimeout: TIMEOUTS.INTEGRATION_HOOK,
+          testTimeout: TEST_TIMEOUTS.INTEGRATION_TEST,
+          hookTimeout: TEST_TIMEOUTS.INTEGRATION_HOOK,
         },
       },
       {
@@ -149,8 +142,8 @@ export default defineConfig({
           include: ["**/integration/requireCommonJSModule.integration.test.ts"],
           exclude: [...sharedExclude],
           pool: "threads",
-          testTimeout: TIMEOUTS.INTEGRATION_TEST,
-          hookTimeout: TIMEOUTS.INTEGRATION_HOOK,
+          testTimeout: TEST_TIMEOUTS.INTEGRATION_TEST,
+          hookTimeout: TEST_TIMEOUTS.INTEGRATION_HOOK,
         },
       },
       {
@@ -167,8 +160,8 @@ export default defineConfig({
             "**/integration/requireCommonJSModule.integration.test.ts",
           ],
           pool: "threads",
-          testTimeout: TIMEOUTS.INTEGRATION_TEST,
-          hookTimeout: TIMEOUTS.INTEGRATION_HOOK,
+          testTimeout: TEST_TIMEOUTS.INTEGRATION_TEST,
+          hookTimeout: TEST_TIMEOUTS.INTEGRATION_HOOK,
         },
       },
     ],

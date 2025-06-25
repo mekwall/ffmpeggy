@@ -17,10 +17,15 @@ import type {
   FFmpeggyProgressEvent,
   FFprobeResult,
 } from "#/types";
+import { TEST_TIMEOUTS } from "./testTimeouts.js";
 
-// Test timeout constants for better readability and maintainability
-export const TEST_TIMEOUT_MS = 60000; // 60 seconds for most test operations
-export const PROBE_TIMEOUT_MS = 30000; // 30 seconds for probe operations
+// Legacy exports for backward compatibility
+export const TEST_TIMEOUT_MS = TEST_TIMEOUTS.TEST_OPERATION;
+export const PROBE_TIMEOUT_MS = TEST_TIMEOUTS.PROBE_OPERATION;
+export const HOOK_TIMEOUT_MS = TEST_TIMEOUTS.HOOK_OPERATION;
+
+// Re-export TEST_TIMEOUTS for convenience
+export { TEST_TIMEOUTS };
 
 // FFmpeg binary validation
 const ffmpegBin = ffmpegStatic as unknown as string;
@@ -262,26 +267,78 @@ export class TestFileManager {
   }
 
   async cleanup(): Promise<void> {
-    // Clean up temp files
-    await wait(500); // Longer wait to ensure all processes are done
+    // Longer wait in CI environments to ensure all processes are done
+    await wait(TEST_TIMEOUTS.CLEANUP.WAIT_TIME);
 
     if (this.tempFiles.length > 0) {
       try {
+        // Wait for files to be available for deletion
         await waitFiles(this.tempFiles);
-        await Promise.allSettled(this.tempFiles.map(unlink));
-      } catch {
+
+        // Retry file deletion with exponential backoff for CI environments
+        for (
+          let attempt = 0;
+          attempt < TEST_TIMEOUTS.CLEANUP.FILE_DELETION_RETRIES;
+          attempt++
+        ) {
+          try {
+            await Promise.allSettled(this.tempFiles.map(unlink));
+            break; // Success, exit retry loop
+          } catch (error) {
+            if (attempt === TEST_TIMEOUTS.CLEANUP.FILE_DELETION_RETRIES - 1) {
+              // Last attempt failed, log but don't throw
+              console.warn(
+                `Failed to delete temp files after ${TEST_TIMEOUTS.CLEANUP.FILE_DELETION_RETRIES} attempts:`,
+                error
+              );
+            } else {
+              // Wait before retry with exponential backoff
+              await wait(
+                Math.pow(2, attempt) * TEST_TIMEOUTS.CLEANUP.RETRY_DELAY_BASE
+              );
+            }
+          }
+        }
+      } catch (error) {
         // If waitFiles fails, try to unlink anyway
+        console.warn("waitFiles failed, attempting direct deletion:", error);
         await Promise.allSettled(this.tempFiles.map(unlink));
       }
     }
 
-    try {
-      await rm(this.tempDir, {
-        recursive: true,
-        force: true,
-      });
-    } catch {
-      // Ignore cleanup errors
+    // Clean up streams if any
+    if (this.streams.length > 0) {
+      try {
+        await this.cleanupStreams();
+      } catch (error) {
+        console.warn("Failed to cleanup streams:", error);
+      }
+    }
+
+    // Remove temp directory with retry logic for CI
+    for (
+      let attempt = 0;
+      attempt < TEST_TIMEOUTS.CLEANUP.DIR_DELETION_RETRIES;
+      attempt++
+    ) {
+      try {
+        await rm(this.tempDir, {
+          recursive: true,
+          force: true,
+        });
+        break; // Success, exit retry loop
+      } catch (error) {
+        if (attempt === TEST_TIMEOUTS.CLEANUP.DIR_DELETION_RETRIES - 1) {
+          // Last attempt failed, log but don't throw
+          console.warn(
+            `Failed to remove temp directory after ${TEST_TIMEOUTS.CLEANUP.DIR_DELETION_RETRIES} attempts:`,
+            error
+          );
+        } else {
+          // Wait before retry
+          await wait(TEST_TIMEOUTS.CLEANUP.RETRY_DELAY_BASE);
+        }
+      }
     }
   }
 
