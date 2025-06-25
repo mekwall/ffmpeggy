@@ -145,6 +145,16 @@ export default defineConfig({
       },
       {
         test: {
+          name: "cjs:integration",
+          include: ["**/integration/requireCommonJSModule.integration.test.ts"],
+          exclude: [...sharedExclude],
+          pool: "threads",
+          testTimeout: TIMEOUTS.INTEGRATION_TEST,
+          hookTimeout: TIMEOUTS.INTEGRATION_HOOK,
+        },
+      },
+      {
+        test: {
           name: "integration",
           include: ["**/integration/**/*.integration.test.ts"],
           exclude: [
@@ -154,6 +164,7 @@ export default defineConfig({
             "**/integration/FFmpeggy.events.integration.test.ts",
             "**/integration/FFmpeggy.probe.integration.test.ts",
             "**/integration/FFmpeggy.timeout.integration.test.ts",
+            "**/integration/requireCommonJSModule.integration.test.ts",
           ],
           pool: "threads",
           testTimeout: TIMEOUTS.INTEGRATION_TEST,
