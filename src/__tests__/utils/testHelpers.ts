@@ -17,7 +17,7 @@ import type {
   FFmpeggyProgressEvent,
   FFprobeResult,
 } from "#/types";
-import { TEST_TIMEOUTS, isCI } from "./testTimeouts.js";
+import { TEST_TIMEOUTS, isCI, isWindows } from "./testTimeouts.js";
 
 // Legacy exports for backward compatibility
 export const TEST_TIMEOUT_MS = TEST_TIMEOUTS.TEST_OPERATION;
@@ -227,9 +227,9 @@ export async function cleanupStreams(
         }
 
         // Destroy the stream after a short delay to allow graceful shutdown
-        // Use shorter delays in CI environments
-        const destroyDelay = isCI ? 50 : 100;
-        const finalCleanupDelay = isCI ? 25 : 50;
+        // Use longer delays on Windows due to file handle release timing
+        const destroyDelay = isCI ? 50 : isWindows ? 200 : 100;
+        const finalCleanupDelay = isCI ? 25 : isWindows ? 100 : 50;
 
         setTimeout(() => {
           try {
@@ -278,74 +278,131 @@ export class TestFileManager {
       try {
         // Wait for files to be available for deletion
         await waitFiles(this.tempFiles);
+      } catch (error) {
+        // If waitFiles fails, log but continue with cleanup
+        console.warn(
+          "waitFiles failed, proceeding with direct deletion:",
+          error
+        );
+      }
 
-        // Retry file deletion with exponential backoff for CI environments
-        for (
-          let attempt = 0;
-          attempt < TEST_TIMEOUTS.CLEANUP.FILE_DELETION_RETRIES;
-          attempt++
-        ) {
-          try {
-            // Delete files individually to handle partial failures
-            const deletionResults = await Promise.allSettled(
-              this.tempFiles.map(async (file) => {
+      // Retry file deletion with exponential backoff for CI environments
+      for (
+        let attempt = 0;
+        attempt < TEST_TIMEOUTS.CLEANUP.FILE_DELETION_RETRIES;
+        attempt++
+      ) {
+        try {
+          // Delete files individually to handle partial failures
+          const deletionResults = await Promise.allSettled(
+            this.tempFiles.map(async (file) => {
+              try {
+                // Check if file exists before attempting deletion
                 try {
-                  await unlink(file);
-                  return { file, success: true };
-                } catch (error) {
-                  return { file, success: false, error };
+                  await access(file);
+                } catch {
+                  // File doesn't exist, consider this a successful "deletion"
+                  return { file, success: true, alreadyDeleted: true };
                 }
-              })
+
+                await unlink(file);
+                return { file, success: true, alreadyDeleted: false };
+              } catch (error) {
+                // Handle ENOENT errors gracefully (file already deleted)
+                if (
+                  error &&
+                  typeof error === "object" &&
+                  "code" in error &&
+                  error.code === "ENOENT"
+                ) {
+                  return { file, success: true, alreadyDeleted: true };
+                }
+
+                // Handle EBUSY errors on Windows - these are common and often resolve with retries
+                if (
+                  error &&
+                  typeof error === "object" &&
+                  "code" in error &&
+                  error.code === "EBUSY"
+                ) {
+                  return { file, success: false, error, isBusy: true };
+                }
+
+                return { file, success: false, error };
+              }
+            })
+          );
+
+          // Check if all deletions succeeded
+          const failedDeletions = deletionResults
+            .map((result, index) => ({ result, file: this.tempFiles[index] }))
+            .filter(
+              ({ result }) =>
+                result.status === "rejected" ||
+                (result.status === "fulfilled" && !result.value.success)
             );
 
-            // Check if all deletions succeeded
-            const failedDeletions = deletionResults
-              .map((result, index) => ({ result, file: this.tempFiles[index] }))
-              .filter(
-                ({ result }) =>
-                  result.status === "rejected" ||
-                  (result.status === "fulfilled" && !result.value.success)
-              );
+          if (failedDeletions.length === 0) {
+            break; // All files deleted successfully
+          }
 
-            if (failedDeletions.length === 0) {
-              break; // All files deleted successfully
-            }
+          // Check if we only have EBUSY errors (which are often transient on Windows)
+          const onlyBusyErrors = failedDeletions.every(({ result }) => {
+            if (result.status === "rejected") return false;
+            return result.value.isBusy === true;
+          });
 
-            if (attempt === TEST_TIMEOUTS.CLEANUP.FILE_DELETION_RETRIES - 1) {
-              // Last attempt failed, log detailed failure information
-              console.warn(
-                `Failed to delete ${failedDeletions.length} temp files after ${TEST_TIMEOUTS.CLEANUP.FILE_DELETION_RETRIES} attempts:`
-              );
-              failedDeletions.forEach(({ file, result }) => {
-                const error =
-                  result.status === "rejected"
-                    ? result.reason
-                    : result.value.error;
-                console.warn(`  - ${file}: ${error}`);
-              });
-            } else {
-              // Wait before retry with exponential backoff
-              await wait(
-                Math.pow(2, attempt) * TEST_TIMEOUTS.CLEANUP.RETRY_DELAY_BASE
-              );
-            }
-          } catch (error) {
-            if (attempt === TEST_TIMEOUTS.CLEANUP.FILE_DELETION_RETRIES - 1) {
-              console.warn(
-                `Failed to delete temp files after ${TEST_TIMEOUTS.CLEANUP.FILE_DELETION_RETRIES} attempts:`,
-                error
-              );
-            } else {
-              await wait(
-                Math.pow(2, attempt) * TEST_TIMEOUTS.CLEANUP.RETRY_DELAY_BASE
-              );
-            }
+          if (attempt === TEST_TIMEOUTS.CLEANUP.FILE_DELETION_RETRIES - 1) {
+            // Last attempt failed, log detailed failure information
+            console.warn(
+              `Failed to delete ${failedDeletions.length} temp files after ${TEST_TIMEOUTS.CLEANUP.FILE_DELETION_RETRIES} attempts:`
+            );
+            failedDeletions.forEach(({ file, result }) => {
+              const error =
+                result.status === "rejected"
+                  ? result.reason
+                  : result.value.error;
+              console.warn(`  - ${file}: ${error}`);
+            });
+          } else {
+            // Wait before retry with exponential backoff
+            // Use longer delays for EBUSY errors on Windows
+            const baseDelay = onlyBusyErrors
+              ? Math.max(TEST_TIMEOUTS.CLEANUP.RETRY_DELAY_BASE * 1.5, 1000)
+              : TEST_TIMEOUTS.CLEANUP.RETRY_DELAY_BASE;
+
+            // Use exponential backoff but cap the maximum delay to prevent timeouts
+            const maxDelay = 8000; // Cap at 8 seconds
+            const delay = Math.min(
+              Math.pow(1.5, attempt) * baseDelay,
+              maxDelay
+            );
+            console.warn(
+              `Retrying file deletion in ${Math.round(delay)}ms (attempt ${
+                attempt + 1
+              }/${TEST_TIMEOUTS.CLEANUP.FILE_DELETION_RETRIES})`
+            );
+            await wait(delay);
+          }
+        } catch (error) {
+          if (attempt === TEST_TIMEOUTS.CLEANUP.FILE_DELETION_RETRIES - 1) {
+            console.warn(
+              `Failed to delete temp files after ${TEST_TIMEOUTS.CLEANUP.FILE_DELETION_RETRIES} attempts:`,
+              error
+            );
+          } else {
+            const delay = Math.min(
+              Math.pow(1.5, attempt) * TEST_TIMEOUTS.CLEANUP.RETRY_DELAY_BASE,
+              8000
+            );
+            console.warn(
+              `Retrying file deletion in ${Math.round(delay)}ms (attempt ${
+                attempt + 1
+              }/${TEST_TIMEOUTS.CLEANUP.FILE_DELETION_RETRIES})`
+            );
+            await wait(delay);
           }
         }
-      } catch (error) {
-        // If waitFiles fails, try to unlink anyway
-        console.warn("waitFiles failed, attempting direct deletion:", error);
-        await Promise.allSettled(this.tempFiles.map(unlink));
       }
     }
 
@@ -371,6 +428,24 @@ export class TestFileManager {
         });
         break; // Success, exit retry loop
       } catch (error) {
+        // Handle EBUSY errors on Windows more gracefully
+        if (
+          error &&
+          typeof error === "object" &&
+          "code" in error &&
+          error.code === "EBUSY"
+        ) {
+          console.warn(
+            `Directory busy, retrying removal in ${
+              TEST_TIMEOUTS.CLEANUP.RETRY_DELAY_BASE
+            }ms (attempt ${attempt + 1}/${
+              TEST_TIMEOUTS.CLEANUP.DIR_DELETION_RETRIES
+            })`
+          );
+          await wait(TEST_TIMEOUTS.CLEANUP.RETRY_DELAY_BASE);
+          continue;
+        }
+
         if (attempt === TEST_TIMEOUTS.CLEANUP.DIR_DELETION_RETRIES - 1) {
           // Last attempt failed, log but don't throw
           console.warn(
@@ -426,8 +501,19 @@ export class TestFileManager {
   }
 
   async cleanupStreams(): Promise<void> {
-    await cleanupStreams(...this.streams);
-    this.streams = [];
+    if (this.streams.length === 0) return;
+
+    try {
+      await cleanupStreams(...this.streams);
+      this.streams = [];
+
+      // Add a small delay after stream cleanup to allow file handles to be released
+      // This is especially important on Windows where file handles can remain open briefly
+      await wait(100);
+    } catch (error) {
+      console.warn("Failed to cleanup streams:", error);
+      this.streams = [];
+    }
   }
 
   async cleanupAll(): Promise<void> {
