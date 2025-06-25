@@ -21,6 +21,9 @@
   "main": "./cjs/index.js",
   "module": "./es/index.mjs",
   "types": "./cjs/index.d.ts",
+  "imports": {
+    "#/*": "./src/*"
+  },
   "exports": {
     ".": {
       "types": "./cjs/index.d.ts",
@@ -41,12 +44,14 @@
     "lint": "eslint .",
     "test": "yarn build && vitest run",
     "test:watch": "yarn build && vitest",
-    "test:debug": "yarn build && cross-env DEBUG=ffmpeggy vitest run",
+    "test:debug": "cross-env DEBUG=ffmpeggy vitest run",
     "test:unit": "yarn build && vitest run --project=unit",
-    "test:events": "yarn build && vitest run --project=events",
-    "test:async": "yarn build && vitest run --project=async",
+    "test:integration": "yarn build && vitest run --project=integration",
+    "test:probe": "yarn build && vitest run --project=probe:integration",
+    "test:events": "yarn build && vitest run --project=events:integration",
+    "test:async": "yarn build && vitest run --project=async:integration",
+    "test:multi": "yarn build && vitest run --project=multi:integration",
     "test:coverage": "yarn build && vitest run --coverage",
-    "test:coverage:watch": "yarn build && vitest --coverage",
     "semantic-release": "semantic-release",
     "semantic-release:dry-run": "cross-env DRY_RUN=true semantic-release --dry-run --no-ci --debug"
   },
@@ -67,6 +72,7 @@
     "@semantic-release/commit-analyzer": "^13.0.0",
     "@semantic-release/git": "^10.0.1",
     "@semantic-release/release-notes-generator": "^14.0.1",
+    "@tsconfig/node24": "^24.0.1",
     "@types/debug": "^4.1.7",
     "@types/ffmpeg-static": "^3.0.0",
     "@types/ffprobe-static": "^2.0.0",
