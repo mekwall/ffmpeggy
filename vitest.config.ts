@@ -9,6 +9,12 @@ const TIMEOUTS = {
   INTEGRATION_HOOK: 60000,
 } as const;
 
+// Thread pool configuration
+const THREAD_POOL = {
+  MAX_THREADS: process.env.GITHUB_ACTIONS ? 2 : 4,
+  MIN_THREADS: 1,
+} as const;
+
 // Shared exclude patterns for all projects
 const sharedExclude = [
   "**/node_modules/**",
@@ -43,8 +49,8 @@ export default defineConfig({
     poolOptions: {
       threads: {
         singleThread: false,
-        maxThreads: 4,
-        minThreads: 1,
+        maxThreads: THREAD_POOL.MAX_THREADS,
+        minThreads: THREAD_POOL.MIN_THREADS,
       },
     },
     // JUnit reporter configuration (only in CI)
