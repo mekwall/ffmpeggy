@@ -1,0 +1,34 @@
+version = 1
+
+test_patterns = [
+  "src/**.test.ts",
+  "src/**.spec.ts"
+]
+
+exclude_patterns = [
+  ".github/**",
+  ".vscode/**",
+  ".yarn/**",
+  "coverage/**",
+  "dist/**",
+  "node_modules/**",
+  "**/*.d.ts",
+  "src/types/**",
+  "src/**.test.ts",
+  "src/**.spec.ts"
+]
+
+[[analyzers]]
+name = "javascript"
+
+  [analyzers.meta]
+  environment = ["nodejs"]
+
+[[analyzers]]
+name = "test-coverage"
+
+[[analyzers]]
+name = "secrets"
+
+[[transformers]]
+name = "prettier"
