@@ -1,0 +1,48 @@
+name: coverage
+
+on:
+  workflow_run:
+    workflows: ["pr", "main"]
+    types:
+      - completed
+
+concurrency:
+  group: coverage-${{ github.event.workflow_run.id }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  checks: write
+
+jobs:
+  merge-coverage:
+    name: merge-coverage
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ./.github/actions/setup-node
+        with:
+          node-version: 24.x
+
+      - name: Install dependencies
+        run: yarn install
+
+      - name: Download all coverage artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: coverage-${{ github.event.workflow_run.id }}-*
+          merge-multiple: true
+          path: coverage/
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          flags: unittests
+          name: codecov-umbrella
+          fail_ci_if_error: false
+          verbose: true
+          directory: ./coverage

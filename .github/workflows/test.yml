@@ -43,7 +43,7 @@ jobs:
         if: inputs.coverage
         uses: actions/upload-artifact@v4
         with:
-          name: coverage-unit
+          name: coverage-${{ github.run_id }}-unit
           path: coverage/
 
       - name: Publish Test Results
@@ -79,7 +79,7 @@ jobs:
         if: inputs.coverage
         uses: actions/upload-artifact@v4
         with:
-          name: coverage-async
+          name: coverage-${{ github.run_id }}-async
           path: coverage/
 
       - name: Publish Test Results
@@ -115,7 +115,7 @@ jobs:
         if: inputs.coverage
         uses: actions/upload-artifact@v4
         with:
-          name: coverage-events
+          name: coverage-${{ github.run_id }}-events
           path: coverage/
 
       - name: Publish Test Results
@@ -151,7 +151,7 @@ jobs:
         if: inputs.coverage
         uses: actions/upload-artifact@v4
         with:
-          name: coverage-multi
+          name: coverage-${{ github.run_id }}-multi
           path: coverage/
 
       - name: Publish Test Results
@@ -187,7 +187,7 @@ jobs:
         if: inputs.coverage
         uses: actions/upload-artifact@v4
         with:
-          name: coverage-probe
+          name: coverage-${{ github.run_id }}-probe
           path: coverage/
 
       - name: Publish Test Results
@@ -228,7 +228,7 @@ jobs:
         if: inputs.coverage
         uses: actions/upload-artifact@v4
         with:
-          name: coverage-cjs
+          name: coverage-${{ github.run_id }}-cjs
           path: coverage/
 
       - name: Publish Test Results
@@ -239,43 +239,3 @@ jobs:
           path: test-results.xml
           reporter: java-junit
           fail-on-error: false
-
-  merge-coverage:
-    name: merge-coverage
-    needs:
-      [
-        test-unit,
-        test-async-integration,
-        test-events-integration,
-        test-multi-integration,
-        test-probe-integration,
-        test-cjs-integration,
-      ]
-    runs-on: ${{ inputs.os }}
-    if: inputs.coverage
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: ./.github/actions/setup-node
-        with:
-          node-version: ${{ inputs.node-version }}
-
-      - name: Install dependencies
-        run: yarn install
-
-      - name: Download all coverage artifacts
-        uses: actions/download-artifact@v4
-        with:
-          pattern: coverage-*
-          merge-multiple: true
-          path: coverage/
-
-      - name: Upload to Codecov
-        uses: codecov/codecov-action@v5
-        with:
-          flags: unittests
-          name: codecov-umbrella
-          fail_ci_if_error: false
-          verbose: true
-          directory: ./coverage
