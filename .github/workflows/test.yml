@@ -39,12 +39,14 @@ jobs:
         env:
           DEBUG: ${{ inputs.debug && '*' || '' }}
 
-      - name: Upload coverage (if generated)
+      - name: Report test coverage to DeepSource
         if: inputs.coverage
-        uses: actions/upload-artifact@v4
+        uses: deepsourcelabs/test-coverage-action@master
         with:
-          name: coverage-${{ github.run_id }}-unit
-          path: coverage/
+          key: javascript
+          coverage-file: coverage/lcov.info
+          dsn: ${{ secrets.DEEPSOURCE_DSN }}
+          fail-ci-on-error: false
 
       - name: Publish Test Results
         uses: dorny/test-reporter@v2
@@ -75,12 +77,14 @@ jobs:
         env:
           DEBUG: ${{ inputs.debug && '*' || '' }}
 
-      - name: Upload coverage (if generated)
+      - name: Report test coverage to DeepSource
         if: inputs.coverage
-        uses: actions/upload-artifact@v4
+        uses: deepsourcelabs/test-coverage-action@master
         with:
-          name: coverage-${{ github.run_id }}-async
-          path: coverage/
+          key: javascript
+          coverage-file: coverage/lcov.info
+          dsn: ${{ secrets.DEEPSOURCE_DSN }}
+          fail-ci-on-error: false
 
       - name: Publish Test Results
         uses: dorny/test-reporter@v2
@@ -111,12 +115,14 @@ jobs:
         env:
           DEBUG: ${{ inputs.debug && '*' || '' }}
 
-      - name: Upload coverage (if generated)
+      - name: Report test coverage to DeepSource
         if: inputs.coverage
-        uses: actions/upload-artifact@v4
+        uses: deepsourcelabs/test-coverage-action@master
         with:
-          name: coverage-${{ github.run_id }}-events
-          path: coverage/
+          key: javascript
+          coverage-file: coverage/lcov.info
+          dsn: ${{ secrets.DEEPSOURCE_DSN }}
+          fail-ci-on-error: false
 
       - name: Publish Test Results
         uses: dorny/test-reporter@v2
@@ -147,12 +153,14 @@ jobs:
         env:
           DEBUG: ${{ inputs.debug && '*' || '' }}
 
-      - name: Upload coverage (if generated)
+      - name: Report test coverage to DeepSource
         if: inputs.coverage
-        uses: actions/upload-artifact@v4
+        uses: deepsourcelabs/test-coverage-action@master
         with:
-          name: coverage-${{ github.run_id }}-multi
-          path: coverage/
+          key: javascript
+          coverage-file: coverage/lcov.info
+          dsn: ${{ secrets.DEEPSOURCE_DSN }}
+          fail-ci-on-error: false
 
       - name: Publish Test Results
         uses: dorny/test-reporter@v2
@@ -183,12 +191,14 @@ jobs:
         env:
           DEBUG: ${{ inputs.debug && '*' || '' }}
 
-      - name: Upload coverage (if generated)
+      - name: Report test coverage to DeepSource
         if: inputs.coverage
-        uses: actions/upload-artifact@v4
+        uses: deepsourcelabs/test-coverage-action@master
         with:
-          name: coverage-${{ github.run_id }}-probe
-          path: coverage/
+          key: javascript
+          coverage-file: coverage/lcov.info
+          dsn: ${{ secrets.DEEPSOURCE_DSN }}
+          fail-ci-on-error: false
 
       - name: Publish Test Results
         uses: dorny/test-reporter@v2
@@ -224,12 +234,14 @@ jobs:
         env:
           DEBUG: ${{ inputs.debug && '*' || '' }}
 
-      - name: Upload coverage (if generated)
+      - name: Report test coverage to DeepSource
         if: inputs.coverage
-        uses: actions/upload-artifact@v4
+        uses: deepsourcelabs/test-coverage-action@master
         with:
-          name: coverage-${{ github.run_id }}-cjs
-          path: coverage/
+          key: javascript
+          coverage-file: coverage/lcov.info
+          dsn: ${{ secrets.DEEPSOURCE_DSN }}
+          fail-ci-on-error: false
 
       - name: Publish Test Results
         uses: dorny/test-reporter@v2
