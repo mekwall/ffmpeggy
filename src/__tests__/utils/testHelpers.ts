@@ -189,24 +189,8 @@ export async function cleanupStreams(
       if (isDestroyableStream(stream)) {
         // Create cleanup function that will be called in all cases
         let cleanupCalled = false;
-        const cleanup = () => {
-          if (cleanupCalled) return;
-          cleanupCalled = true;
 
-          try {
-            // Remove all event listeners we added
-            stream.off("error", onError);
-            stream.off("close", onClose);
-            stream.off("finish", onFinish);
-            stream.off("end", onEnd);
-          } catch {
-            // Ignore errors when removing listeners
-          }
-
-          resolve();
-        };
-
-        // Handle stream errors during cleanup
+        // Define all event handlers first
         const onError = (err: Error) => {
           // Suppress expected stream cleanup errors
           const errorMessage = err.message || "";
@@ -224,6 +208,23 @@ export async function cleanupStreams(
         const onClose = () => cleanup();
         const onFinish = () => cleanup();
         const onEnd = () => cleanup();
+
+        const cleanup = () => {
+          if (cleanupCalled) return;
+          cleanupCalled = true;
+
+          try {
+            // Remove all event listeners we added
+            stream.off("error", onError);
+            stream.off("close", onClose);
+            stream.off("finish", onFinish);
+            stream.off("end", onEnd);
+          } catch {
+            // Ignore errors when removing listeners
+          }
+
+          resolve();
+        };
 
         // Add error handler first
         stream.on("error", onError);
