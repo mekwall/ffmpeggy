@@ -32,7 +32,7 @@ export type FFmpegEvents = {
           file?: string;
           sizes?: FFmpeggyFinalSizes;
           outputIndex?: number;
-        }>
+        }>,
   ) => void;
   /**
    * Emitted when the FFmpeg process exits.
@@ -60,6 +60,6 @@ export type FFmpegEvents = {
   writing: (
     info:
       | { file: string; outputIndex: number }
-      | Array<{ file: string; outputIndex: number }>
+      | Array<{ file: string; outputIndex: number }>,
   ) => void;
 };

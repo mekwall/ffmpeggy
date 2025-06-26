@@ -145,7 +145,6 @@ When writing tests, follow these guidelines:
 ##### **Choose the Right Test Type**
 
 - **Use Unit Tests for**:
-
   - Configuration and constructor tests
   - Validation logic
   - Utility functions (parsers, formatters)
