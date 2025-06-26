@@ -3,7 +3,7 @@ import { parseProgress, parseFinalSizes, parseInfo } from "#/parsers.js";
 
 function calculateProgressPercentage(
   progressTime: number | undefined,
-  duration: number | undefined
+  duration: number | undefined,
 ): number {
   return duration && duration > 0 && progressTime
     ? Math.min(100, Math.round((progressTime / duration) * 100 * 100) / 100)
@@ -165,7 +165,7 @@ describe("parsers", () => {
   describe("parseInfo", () => {
     it("should parse duration, start, and bitrate", () => {
       const result = parseInfo(
-        "Duration: 00:00:05.31, start: 0.000000, bitrate: 1000 kb/s"
+        "Duration: 00:00:05.31, start: 0.000000, bitrate: 1000 kb/s",
       );
       expect(result).toEqual({
         duration: 5.31,
@@ -176,7 +176,7 @@ describe("parsers", () => {
 
     it("should handle N/A duration", () => {
       const result = parseInfo(
-        "Duration: N/A, start: 0.000000, bitrate: 1000 kb/s"
+        "Duration: N/A, start: 0.000000, bitrate: 1000 kb/s",
       );
       expect(result).toEqual({
         duration: undefined,
@@ -192,7 +192,7 @@ describe("parsers", () => {
 
     it("should handle empty duration string", () => {
       const result = parseInfo(
-        "Duration: , start: 0.000000, bitrate: 1000 kb/s"
+        "Duration: , start: 0.000000, bitrate: 1000 kb/s",
       );
       expect(result).toBeUndefined();
     });
@@ -206,7 +206,7 @@ describe("parsers", () => {
   describe("progress percentage calculation", () => {
     it("should calculate correct percentage when duration is available", () => {
       const progress = parseProgress(
-        "frame= 3853 fps=246 q=-1.0 size=   25202kB time=00:02:34.08 bitrate=1339.9kbits/s speed=9.82x"
+        "frame= 3853 fps=246 q=-1.0 size=   25202kB time=00:02:34.08 bitrate=1339.9kbits/s speed=9.82x",
       );
       expect(progress).toBeDefined();
       expect(progress?.time).toBe(154.08);
@@ -219,7 +219,7 @@ describe("parsers", () => {
 
     it("should return 0 when duration is not available", () => {
       const progress = parseProgress(
-        "frame= 3853 fps=246 q=-1.0 size=   25202kB time=00:02:34.08 bitrate=1339.9kbits/s speed=9.82x"
+        "frame= 3853 fps=246 q=-1.0 size=   25202kB time=00:02:34.08 bitrate=1339.9kbits/s speed=9.82x",
       );
       expect(progress).toBeDefined();
       expect(progress?.time).toBe(154.08);
@@ -232,7 +232,7 @@ describe("parsers", () => {
 
     it("should return 0 when duration is undefined", () => {
       const progress = parseProgress(
-        "frame= 3853 fps=246 q=-1.0 size=   25202kB time=00:02:34.08 bitrate=1339.9kbits/s speed=9.82x"
+        "frame= 3853 fps=246 q=-1.0 size=   25202kB time=00:02:34.08 bitrate=1339.9kbits/s speed=9.82x",
       );
       expect(progress).toBeDefined();
       expect(progress?.time).toBe(154.08);
@@ -245,7 +245,7 @@ describe("parsers", () => {
 
     it("should return 0 when progress time is not available", () => {
       const progress = parseProgress(
-        "frame= 3853 fps=246 q=-1.0 size=   25202kB bitrate=1339.9kbits/s speed=9.82x"
+        "frame= 3853 fps=246 q=-1.0 size=   25202kB bitrate=1339.9kbits/s speed=9.82x",
       );
       expect(progress).toBeDefined();
       expect(progress?.time).toBeUndefined();

@@ -1,14 +1,13 @@
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import { ReadStream } from "fs";
-import { FFmpeggy } from "#/FFmpeggy.js";
+import { FFmpeggy } from "#/FFmpeggy";
 import {
   configureFFmpeggy,
   SAMPLE_FILES,
   TestFileManager,
   FFmpeggyTestHelpers,
-  TestAssertions,
   HOOK_TIMEOUT_MS,
-} from "./utils/testHelpers.js";
+} from "./utils/testHelpers";
 
 // Configure FFmpeggy with binaries
 configureFFmpeggy();
@@ -26,25 +25,26 @@ describe("FFmpeggy:core", () => {
 
   it("should initialize", () => {
     const ffmpeggy = FFmpeggyTestHelpers.createBasicFFmpeggy();
-    TestAssertions.expectFFmpeggyInstance(ffmpeggy);
+    expect(ffmpeggy).toBeDefined();
   });
 
   it("should pass in options in constructor", () => {
-    const ffmpeggy = FFmpeggyTestHelpers.createFFmpeggyWithOptions({
+    const opts = {
       cwd: __dirname,
       overwriteExisting: false,
       pipe: true,
       hideBanner: false,
       globalOptions: ["-max_alloc 1024", "-vol 512"],
-    });
+    };
 
-    TestAssertions.expectConstructorOptions(ffmpeggy, {
-      cwd: __dirname,
-      overwriteExisting: false,
-      output: "-", // pipe = true
-      hideBanner: false,
-      globalOptions: ["-max_alloc 1024", "-vol 512"],
-    });
+    const ffmpeggy = FFmpeggyTestHelpers.createFFmpeggyWithOptions(opts);
+    expect(ffmpeggy.cwd).toBe(opts.cwd);
+    expect(ffmpeggy.overwriteExisting).toBe(opts.overwriteExisting);
+    expect(ffmpeggy.output).toBe("-");
+    expect(ffmpeggy.hideBanner).toBe(opts.hideBanner);
+    // -stats is always added to globalOptions
+    expect(ffmpeggy.globalOptions).toEqual(["-stats", ...opts.globalOptions]);
+    expect(ffmpeggy).toBeDefined();
   });
 
   it("should set options with methods", () => {
@@ -68,7 +68,7 @@ describe("FFmpeggy:core", () => {
 
     ffmpeggy.setInputOptions([`-i ${SAMPLE_FILES.video_basic_mp4}`]);
     expect(
-      ffmpeggy.inputOptions.includes(`-i ${SAMPLE_FILES.video_basic_mp4}`)
+      ffmpeggy.inputOptions.includes(`-i ${SAMPLE_FILES.video_basic_mp4}`),
     ).toBe(true);
 
     ffmpeggy.setOutputOptions(["-f mp4", "-c:v libx264"]);
@@ -92,7 +92,7 @@ describe("FFmpeggy:core", () => {
       const ffmpeggy = FFmpeggyTestHelpers.createBasicFFmpeggy();
       ffmpeggy.ffmpegBin = "";
       await expect(ffmpeggy.run()).rejects.toThrow(
-        "Missing path to ffmpeg binary"
+        "Missing path to ffmpeg binary",
       );
     });
 
@@ -125,18 +125,8 @@ describe("FFmpeggy:core", () => {
 
       // This should fail with a clear error message before FFmpeg is even called
       await expect(ffmpeggy.run()).rejects.toThrow(
-        "Input file does not exist: nonexistent_file.mp4"
+        "Input file does not exist: nonexistent_file.mp4",
       );
-    });
-
-    it.skip("should throw timeout error if input stream never opens", async () => {
-      // This test is impractical to implement reliably
-      // Stream timeouts are handled by the OS and are not easily testable
-    });
-
-    it.skip("should throw timeout error if output stream never opens", async () => {
-      // This test is impractical to implement reliably
-      // Stream timeouts are handled by the OS and are not easily testable
     });
   });
 
@@ -236,7 +226,7 @@ describe("FFmpeggy:core", () => {
       });
       ffmpeggy.input = {} as ReadStream;
       await expect(ffmpeggy.probe()).rejects.toThrow(
-        "Probe can only accept strings. Use static FFmpeg.probe() directly."
+        "Probe can only accept strings. Use static FFmpeg.probe() directly.",
       );
     });
   });
@@ -248,7 +238,7 @@ describe("FFmpeggy:core", () => {
 
       try {
         await expect(FFmpeggy.probe("test.mp4")).rejects.toThrow(
-          "Failed to probe"
+          "Failed to probe",
         );
       } finally {
         FFmpeggy.DefaultConfig.ffprobeBin = originalBin;
@@ -257,7 +247,7 @@ describe("FFmpeggy:core", () => {
 
     it("should throw error if ffprobe fails", async () => {
       await expect(FFmpeggy.probe("nonexistent.mp4")).rejects.toThrow(
-        "Failed to probe"
+        "Failed to probe",
       );
     });
   });

@@ -33,7 +33,7 @@ describe("FFmpeggy:validation", () => {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           new FFmpeggy(invalidOptions as any);
         }).toThrow(
-          "Cannot use both 'input' and 'inputs' options. Use either 'input' for single input or 'inputs' for multiple inputs."
+          "Cannot use both 'input' and 'inputs' options. Use either 'input' for single input or 'inputs' for multiple inputs.",
         );
       });
 
@@ -50,7 +50,7 @@ describe("FFmpeggy:validation", () => {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           new FFmpeggy(invalidOptions as any);
         }).toThrow(
-          "Cannot use both 'output' and 'outputs' options. Use either 'output' for single output or 'outputs' for multiple outputs."
+          "Cannot use both 'output' and 'outputs' options. Use either 'output' for single output or 'outputs' for multiple outputs.",
         );
       });
 
@@ -69,7 +69,7 @@ describe("FFmpeggy:validation", () => {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           new FFmpeggy(invalidOptions as any);
         }).toThrow(
-          "Cannot use both 'input' and 'inputs' options. Use either 'input' for single input or 'inputs' for multiple inputs."
+          "Cannot use both 'input' and 'inputs' options. Use either 'input' for single input or 'inputs' for multiple inputs.",
         );
       });
     });
@@ -170,7 +170,7 @@ describe("FFmpeggy:validation", () => {
         expect(() => {
           ffmpeggy.setInput("input3.mp4");
         }).toThrow(
-          "Cannot use setInput() when multiple inputs are already configured. Use setInputs() or clearInputs() first."
+          "Cannot use setInput() when multiple inputs are already configured. Use setInputs() or clearInputs() first.",
         );
       });
 
@@ -259,7 +259,7 @@ describe("FFmpeggy:validation", () => {
         expect(() => {
           ffmpeggy.setOutput("output3.mp4");
         }).toThrow(
-          "Cannot use setOutput() when multiple outputs are already configured. Use setOutputs() or clearOutputs() first."
+          "Cannot use setOutput() when multiple outputs are already configured. Use setOutputs() or clearOutputs() first.",
         );
       });
 
@@ -469,7 +469,7 @@ describe("FFmpeggy:validation", () => {
         output: "output.mp4",
       });
       await expect(ffmpeggy.run()).rejects.toThrow(
-        "Input file does not exist: nonexistent_file.mp4"
+        "Input file does not exist: nonexistent_file.mp4",
       );
     });
   });

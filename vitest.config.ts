@@ -1,6 +1,8 @@
 import path from "path";
+
 import { defineConfig } from "vitest/config";
-import { TEST_TIMEOUTS, isCI } from "./src/__tests__/utils/testTimeouts.js";
+
+import { TEST_TIMEOUTS, isCI } from "#/__tests__/utils/testTimeouts";
 
 // Thread pool configuration
 const THREAD_POOL = {
@@ -102,6 +104,12 @@ export default defineConfig({
           include: ["**/integration/FFmpeggy.async.integration.test.ts"],
           exclude: [...sharedExclude],
           pool: "threads",
+          poolOptions: {
+            threads: {
+              isolate: true,
+              singleThread: true,
+            },
+          },
           testTimeout: TEST_TIMEOUTS.INTEGRATION_TEST,
           hookTimeout: TEST_TIMEOUTS.INTEGRATION_HOOK,
         },
@@ -112,6 +120,12 @@ export default defineConfig({
           include: ["**/integration/FFmpeggy.multi.integration.test.ts"],
           exclude: [...sharedExclude],
           pool: "threads",
+          poolOptions: {
+            threads: {
+              isolate: true,
+              singleThread: true,
+            },
+          },
           testTimeout: TEST_TIMEOUTS.INTEGRATION_TEST,
           hookTimeout: TEST_TIMEOUTS.INTEGRATION_HOOK,
         },
@@ -122,6 +136,12 @@ export default defineConfig({
           include: ["**/integration/FFmpeggy.events.integration.test.ts"],
           exclude: [...sharedExclude],
           pool: "threads",
+          poolOptions: {
+            threads: {
+              isolate: true,
+              singleThread: true,
+            },
+          },
           testTimeout: TEST_TIMEOUTS.INTEGRATION_TEST,
           hookTimeout: TEST_TIMEOUTS.INTEGRATION_HOOK,
         },
@@ -132,6 +152,12 @@ export default defineConfig({
           include: ["**/integration/FFmpeggy.probe.integration.test.ts"],
           exclude: [...sharedExclude],
           pool: "threads",
+          poolOptions: {
+            threads: {
+              isolate: true,
+              singleThread: true,
+            },
+          },
           testTimeout: TEST_TIMEOUTS.INTEGRATION_TEST,
           hookTimeout: TEST_TIMEOUTS.INTEGRATION_HOOK,
         },
