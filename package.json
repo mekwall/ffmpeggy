@@ -93,6 +93,7 @@
     "eslint-plugin-vitest": "^0.5.4",
     "ffmpeg-static": "^5.0.0",
     "ffprobe-static": "^3.0.0",
+    "jiti": "^2.4.2",
     "rimraf": "^6.0.1",
     "semantic-release": "^24.2.0",
     "tsup": "^8.5.0",
