@@ -269,7 +269,7 @@ ffmpeggy
       console.log(`Video: ${sizes.video} bytes`);
       console.log(`Audio: ${sizes.audio} bytes`);
       console.log(
-        `Muxing overhead: ${(sizes.muxingOverhead * 100).toFixed(3)}%`
+        `Muxing overhead: ${(sizes.muxingOverhead * 100).toFixed(3)}%`,
       );
     }
   });

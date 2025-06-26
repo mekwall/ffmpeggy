@@ -30,49 +30,49 @@ describe("timerToSecs", () => {
 
   it("should throw error for N/A input", () => {
     expect(() => timerToSecs("N/A")).toThrow(
-      'Invalid time string: cannot parse "N/A" or empty string'
+      'Invalid time string: cannot parse "N/A" or empty string',
     );
   });
 
   it("should throw error for empty string", () => {
     expect(() => timerToSecs("")).toThrow(
-      "Invalid input: must be a non-empty string"
+      "Invalid input: must be a non-empty string",
     );
     expect(() => timerToSecs("   ")).toThrow(
-      'Invalid time string: cannot parse "N/A" or empty string'
+      'Invalid time string: cannot parse "N/A" or empty string',
     );
   });
 
   it("should throw error for null/undefined input", () => {
     expect(() => timerToSecs(null as unknown as string)).toThrow(
-      "Invalid input: must be a non-empty string"
+      "Invalid input: must be a non-empty string",
     );
     expect(() => timerToSecs(undefined as unknown as string)).toThrow(
-      "Invalid input: must be a non-empty string"
+      "Invalid input: must be a non-empty string",
     );
   });
 
   it("should throw error for invalid format", () => {
     expect(() => timerToSecs("12:34")).toThrow(
-      'Invalid time format: expected "HH:MM:SS.MS", got "12:34"'
+      'Invalid time format: expected "HH:MM:SS.MS", got "12:34"',
     );
     expect(() => timerToSecs("12:34:56:78")).toThrow(
-      'Invalid time format: expected "HH:MM:SS.MS", got "12:34:56:78"'
+      'Invalid time format: expected "HH:MM:SS.MS", got "12:34:56:78"',
     );
     expect(() => timerToSecs("invalid")).toThrow(
-      'Invalid time format: expected "HH:MM:SS.MS", got "invalid"'
+      'Invalid time format: expected "HH:MM:SS.MS", got "invalid"',
     );
   });
 
   it("should throw error for non-numeric values", () => {
     expect(() => timerToSecs("aa:bb:cc.dd")).toThrow(
-      'Invalid time values: cannot parse "aa:bb:cc.dd"'
+      'Invalid time values: cannot parse "aa:bb:cc.dd"',
     );
     expect(() => timerToSecs("12:bb:cc.dd")).toThrow(
-      'Invalid time values: cannot parse "12:bb:cc.dd"'
+      'Invalid time values: cannot parse "12:bb:cc.dd"',
     );
     expect(() => timerToSecs("12:34:cc.dd")).toThrow(
-      'Invalid time values: cannot parse "12:34:cc.dd"'
+      'Invalid time values: cannot parse "12:34:cc.dd"',
     );
   });
 

@@ -30,7 +30,7 @@ describe("FFMpeggy:events", () => {
       const ffmpeggy = FFmpeggyTestHelpers.createFileToFileFFmpeggy(
         SAMPLE_FILES.mp4,
         tempFile,
-        ["-c copy"]
+        ["-c copy"],
       );
 
       return new Promise<void>((resolve, reject) => {
@@ -46,7 +46,7 @@ describe("FFMpeggy:events", () => {
         ffmpeggy.run().catch(reject);
       });
     },
-    TEST_TIMEOUT_MS
+    TEST_TIMEOUT_MS,
   );
 
   it(
@@ -56,7 +56,7 @@ describe("FFMpeggy:events", () => {
       const ffmpeggy = FFmpeggyTestHelpers.createFileToFileFFmpeggy(
         SAMPLE_FILES.mp4,
         tempFile,
-        ["-c copy"]
+        ["-c copy"],
       );
 
       return new Promise<void>((resolve, reject) => {
@@ -75,7 +75,7 @@ describe("FFMpeggy:events", () => {
         ffmpeggy.run().catch(reject);
       });
     },
-    TEST_TIMEOUT_MS
+    TEST_TIMEOUT_MS,
   );
 
   it(
@@ -85,7 +85,7 @@ describe("FFMpeggy:events", () => {
       const ffmpeggy = FFmpeggyTestHelpers.createFileToFileFFmpeggy(
         SAMPLE_FILES.mp4,
         tempFile,
-        ["-c copy"]
+        ["-c copy"],
       );
 
       return new Promise<void>((resolve, reject) => {
@@ -117,7 +117,7 @@ describe("FFMpeggy:events", () => {
         ffmpeggy.run().catch(reject);
       });
     },
-    TEST_TIMEOUT_MS
+    TEST_TIMEOUT_MS,
   );
 
   it(
@@ -127,7 +127,7 @@ describe("FFMpeggy:events", () => {
       const ffmpeggy = FFmpeggyTestHelpers.createFileToFileFFmpeggy(
         SAMPLE_FILES.mp4,
         tempFile.replace(".mp4", "%03d.mp4"),
-        ["-f segment", "-segment_time", "1", "-reset_timestamps", "1"]
+        ["-f segment", "-segment_time", "1", "-reset_timestamps", "1"],
       );
 
       return new Promise<void>((resolve, reject) => {
@@ -158,7 +158,7 @@ describe("FFMpeggy:events", () => {
         ffmpeggy.run().catch(reject);
       });
     },
-    TEST_TIMEOUT_MS
+    TEST_TIMEOUT_MS,
   );
 
   it(
@@ -168,7 +168,7 @@ describe("FFMpeggy:events", () => {
       const ffmpeggy = FFmpeggyTestHelpers.createFileToFileFFmpeggy(
         SAMPLE_FILES.mp4,
         tempFile,
-        ["-c copy", "-t", "1"] // Limit to 1 second to make test faster
+        ["-c copy", "-t", "1"], // Limit to 1 second to make test faster
       );
 
       return new Promise<void>((resolve, reject) => {
@@ -200,7 +200,7 @@ describe("FFMpeggy:events", () => {
         ffmpeggy.run().catch(reject);
       });
     },
-    TEST_TIMEOUT_MS
+    TEST_TIMEOUT_MS,
   );
 
   it(
@@ -214,7 +214,7 @@ describe("FFMpeggy:events", () => {
         inputStream,
         outputStream,
         ["-f mp4"],
-        ["-f mp4", "-c copy", "-stats"]
+        ["-f mp4", "-c copy", "-stats"],
       );
 
       return new Promise<void>((resolve, reject) => {
@@ -247,6 +247,6 @@ describe("FFMpeggy:events", () => {
         ffmpeggy.run().catch(reject);
       });
     },
-    TEST_TIMEOUT_MS
+    TEST_TIMEOUT_MS,
   );
 });

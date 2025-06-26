@@ -310,7 +310,7 @@ export class FFmpeggy extends (EventEmitter as new () => TypedEmitter<FFmpegEven
               duration && duration > 0 && progress.time
                 ? Math.min(
                     100,
-                    Math.round((progress.time / duration) * 100 * 100) / 100
+                    Math.round((progress.time / duration) * 100 * 100) / 100,
                   )
                 : 0,
           };
@@ -350,7 +350,7 @@ export class FFmpeggy extends (EventEmitter as new () => TypedEmitter<FFmpegEven
           // Extract concise error information from the log
           const conciseError = this.extractConciseError(this.log);
           this.error = new Error(
-            `FFmpeg failed with exit code ${code}: ${conciseError}`
+            `FFmpeg failed with exit code ${code}: ${conciseError}`,
           );
         } else {
           debug("done: %s", this.currentFile);
@@ -392,7 +392,7 @@ export class FFmpeggy extends (EventEmitter as new () => TypedEmitter<FFmpegEven
         this.emit(
           "exit",
           typeof process.exitCode === "number" ? process.exitCode : null,
-          this.error
+          this.error,
         );
       }
     }
@@ -516,7 +516,7 @@ export class FFmpeggy extends (EventEmitter as new () => TypedEmitter<FFmpegEven
     }
     if (typeof input !== "string") {
       throw new Error(
-        "Probe can only accept strings. Use static FFmpeg.probe() directly."
+        "Probe can only accept strings. Use static FFmpeg.probe() directly.",
       );
     }
     const result = await FFmpeggy.probe(input);
@@ -532,7 +532,7 @@ export class FFmpeggy extends (EventEmitter as new () => TypedEmitter<FFmpegEven
       }
       const { stdout, exitCode } = await execa(
         FFmpeggy.DefaultConfig.ffprobeBin,
-        args
+        args,
       );
       if (exitCode === 1) {
         throw Error("Failed to probe");
@@ -550,7 +550,7 @@ export class FFmpeggy extends (EventEmitter as new () => TypedEmitter<FFmpegEven
   private extractConciseError(
     log: string,
     maxLines = 3,
-    maxLength = 250
+    maxLength = 250,
   ): string {
     if (!log) {
       return "Unknown error (log is empty)";

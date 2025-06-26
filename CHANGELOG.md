@@ -1,59 +1,51 @@
 ## [3.1.3](https://github.com/mekwall/ffmpeggy/compare/v3.1.2...v3.1.3) (2025-06-24)
 
-
 ### Bug Fixes
 
-* handle progress percentage when duration is not available ([#712](https://github.com/mekwall/ffmpeggy/issues/712)) ([a75a272](https://github.com/mekwall/ffmpeggy/commit/a75a272174ee1da808213c9ff39af192157208ac)), closes [#26](https://github.com/mekwall/ffmpeggy/issues/26)
+- handle progress percentage when duration is not available ([#712](https://github.com/mekwall/ffmpeggy/issues/712)) ([a75a272](https://github.com/mekwall/ffmpeggy/commit/a75a272174ee1da808213c9ff39af192157208ac)), closes [#26](https://github.com/mekwall/ffmpeggy/issues/26)
 
 ## [3.1.2](https://github.com/mekwall/ffmpeggy/compare/v3.1.1...v3.1.2) (2025-06-24)
 
-
 ### Bug Fixes
 
-* **parsers:** handle N/A duration values to prevent NaN ([#711](https://github.com/mekwall/ffmpeggy/issues/711)) ([934ecb8](https://github.com/mekwall/ffmpeggy/commit/934ecb8d115ff4b735a40f09dd9d8b222d1effba))
+- **parsers:** handle N/A duration values to prevent NaN ([#711](https://github.com/mekwall/ffmpeggy/issues/711)) ([934ecb8](https://github.com/mekwall/ffmpeggy/commit/934ecb8d115ff4b735a40f09dd9d8b222d1effba))
 
 ## [3.1.1](https://github.com/mekwall/ffmpeggy/compare/v3.1.0...v3.1.1) (2025-06-24)
 
-
 ### Bug Fixes
 
-* improve event/streaming ops and error handling ([#710](https://github.com/mekwall/ffmpeggy/issues/710)) ([56a6eec](https://github.com/mekwall/ffmpeggy/commit/56a6eeca58b1b195a15aabca553192f86c1169d5))
+- improve event/streaming ops and error handling ([#710](https://github.com/mekwall/ffmpeggy/issues/710)) ([56a6eec](https://github.com/mekwall/ffmpeggy/commit/56a6eeca58b1b195a15aabca553192f86c1169d5))
 
 # [3.1.0](https://github.com/mekwall/ffmpeggy/compare/v3.0.5...v3.1.0) (2025-06-20)
 
-
 ### Bug Fixes
 
-* resolve race condition in FFmpeggy stream handling ([#698](https://github.com/mekwall/ffmpeggy/issues/698)) ([37ce348](https://github.com/mekwall/ffmpeggy/commit/37ce3489c2edfcfb8aad78743b3f26894bbb9c23))
-
+- resolve race condition in FFmpeggy stream handling ([#698](https://github.com/mekwall/ffmpeggy/issues/698)) ([37ce348](https://github.com/mekwall/ffmpeggy/commit/37ce3489c2edfcfb8aad78743b3f26894bbb9c23))
 
 ### Features
 
-* emit final sizes in done event ([#699](https://github.com/mekwall/ffmpeggy/issues/699)) ([793bceb](https://github.com/mekwall/ffmpeggy/commit/793bceb75420f24394d4c8540d76749b83e17ad8))
+- emit final sizes in done event ([#699](https://github.com/mekwall/ffmpeggy/issues/699)) ([793bceb](https://github.com/mekwall/ffmpeggy/commit/793bceb75420f24394d4c8540d76749b83e17ad8))
 
 ## [3.0.5](https://github.com/mekwall/ffmpeggy/compare/v3.0.4...v3.0.5) (2025-02-24)
 
-
 ### Bug Fixes
 
-* **deps:** bump @octokit/plugin-paginate-rest from 11.3.6 to 11.4.2 ([#584](https://github.com/mekwall/ffmpeggy/issues/584)) ([28b1a44](https://github.com/mekwall/ffmpeggy/commit/28b1a44fe6995be957c17488eff1b780a3281b9b))
-* **deps:** bump @octokit/request from 9.1.4 to 9.2.2 ([#582](https://github.com/mekwall/ffmpeggy/issues/582)) ([c847d96](https://github.com/mekwall/ffmpeggy/commit/c847d96a98d444f36fed4b60b2f39e8585fe5160))
-* **deps:** bump @octokit/request-error from 6.1.6 to 6.1.7 ([#581](https://github.com/mekwall/ffmpeggy/issues/581)) ([ada2671](https://github.com/mekwall/ffmpeggy/commit/ada26714e17f7386257cbc21e844332895454ff6))
+- **deps:** bump @octokit/plugin-paginate-rest from 11.3.6 to 11.4.2 ([#584](https://github.com/mekwall/ffmpeggy/issues/584)) ([28b1a44](https://github.com/mekwall/ffmpeggy/commit/28b1a44fe6995be957c17488eff1b780a3281b9b))
+- **deps:** bump @octokit/request from 9.1.4 to 9.2.2 ([#582](https://github.com/mekwall/ffmpeggy/issues/582)) ([c847d96](https://github.com/mekwall/ffmpeggy/commit/c847d96a98d444f36fed4b60b2f39e8585fe5160))
+- **deps:** bump @octokit/request-error from 6.1.6 to 6.1.7 ([#581](https://github.com/mekwall/ffmpeggy/issues/581)) ([ada2671](https://github.com/mekwall/ffmpeggy/commit/ada26714e17f7386257cbc21e844332895454ff6))
 
 ## [3.0.4](https://github.com/mekwall/ffmpeggy/compare/v3.0.3...v3.0.4) (2025-01-04)
 
-
 ### Bug Fixes
 
-* preserve options with quoted strings ([#565](https://github.com/mekwall/ffmpeggy/issues/565)) ([c6be64c](https://github.com/mekwall/ffmpeggy/commit/c6be64cf478a87ff492cfa5980988baa85e82457))
+- preserve options with quoted strings ([#565](https://github.com/mekwall/ffmpeggy/issues/565)) ([c6be64c](https://github.com/mekwall/ffmpeggy/commit/c6be64cf478a87ff492cfa5980988baa85e82457))
 
 ## [3.0.3](https://github.com/mekwall/ffmpeggy/compare/v3.0.2...v3.0.3) (2024-12-29)
 
-
 ### Bug Fixes
 
-* **deps:** bump cross-spawn from 6.0.5 to 6.0.6 ([#555](https://github.com/mekwall/ffmpeggy/issues/555)) ([03ffb1f](https://github.com/mekwall/ffmpeggy/commit/03ffb1f4caf62d8b88b4cac16cae70b24ac25952))
-* **deps:** bump debug from 4.3.4 to 4.4.0 ([#563](https://github.com/mekwall/ffmpeggy/issues/563)) ([9d80876](https://github.com/mekwall/ffmpeggy/commit/9d808762eddeb0a9ca51b2bce1a1018a20ab120c))
+- **deps:** bump cross-spawn from 6.0.5 to 6.0.6 ([#555](https://github.com/mekwall/ffmpeggy/issues/555)) ([03ffb1f](https://github.com/mekwall/ffmpeggy/commit/03ffb1f4caf62d8b88b4cac16cae70b24ac25952))
+- **deps:** bump debug from 4.3.4 to 4.4.0 ([#563](https://github.com/mekwall/ffmpeggy/issues/563)) ([9d80876](https://github.com/mekwall/ffmpeggy/commit/9d808762eddeb0a9ca51b2bce1a1018a20ab120c))
 
 ## [3.0.2](https://github.com/mekwall/ffmpeggy/compare/v3.0.1...v3.0.2) (2024-09-20)
 

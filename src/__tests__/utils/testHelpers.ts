@@ -51,7 +51,7 @@ export function wait(ms: number): Promise<void> {
 export async function waitForFileExists(
   filePath: string,
   maxRetries = 10,
-  retryDelay = 500
+  retryDelay = 500,
 ): Promise<void> {
   for (let i = 0; i < maxRetries; i++) {
     try {
@@ -60,7 +60,7 @@ export async function waitForFileExists(
     } catch {
       if (i === maxRetries - 1) {
         throw new Error(
-          `File ${filePath} does not exist after ${maxRetries} retries`
+          `File ${filePath} does not exist after ${maxRetries} retries`,
         );
       }
       await wait(retryDelay);
@@ -73,7 +73,7 @@ export async function waitForFileSize(
   filePath: string,
   minSize = 1,
   maxRetries = 10,
-  retryDelay = 500
+  retryDelay = 500,
 ): Promise<number> {
   for (let i = 0; i < maxRetries; i++) {
     try {
@@ -83,7 +83,7 @@ export async function waitForFileSize(
       }
       if (i === maxRetries - 1) {
         throw new Error(
-          `File ${filePath} size (${stats.size}) is less than minimum expected size (${minSize})`
+          `File ${filePath} size (${stats.size}) is less than minimum expected size (${minSize})`,
         );
       }
     } catch (error) {
@@ -94,7 +94,7 @@ export async function waitForFileSize(
     await wait(retryDelay);
   }
   throw new Error(
-    `Failed to check file size for ${filePath} after ${maxRetries} retries`
+    `Failed to check file size for ${filePath} after ${maxRetries} retries`,
   );
 }
 
@@ -194,7 +194,7 @@ export class TestFileManager {
     const randomBytes = crypto.randomBytes(8).toString("hex");
     const tempFilename = path.join(
       this.tempDir,
-      `temp-${timestamp}-${randomBytes}${extension}`
+      `temp-${timestamp}-${randomBytes}${extension}`,
     );
 
     this.tempFiles.push(tempFilename);
@@ -213,7 +213,7 @@ export class FFmpeggyTestHelpers {
   }
 
   static createFFmpeggyWithOptions(
-    options: ConstructorParameters<typeof FFmpeggy>[0]
+    options: ConstructorParameters<typeof FFmpeggy>[0],
   ): FFmpeggy {
     return new FFmpeggy(options);
   }
@@ -222,7 +222,7 @@ export class FFmpeggyTestHelpers {
     inputStream: ReadStream,
     outputStream: WriteStream,
     inputOptions: string[] = [],
-    outputOptions: string[] = []
+    outputOptions: string[] = [],
   ): FFmpeggy {
     return new FFmpeggy({
       autorun: true,
@@ -236,7 +236,7 @@ export class FFmpeggyTestHelpers {
   static createFileToFileFFmpeggy(
     inputFile: string,
     outputFile: string,
-    outputOptions: string[] = []
+    outputOptions: string[] = [],
   ): FFmpeggy {
     return new FFmpeggy({
       input: inputFile,
@@ -247,7 +247,7 @@ export class FFmpeggyTestHelpers {
 
   static createPipedFFmpeggy(
     inputFile: string,
-    outputOptions: string[] = []
+    outputOptions: string[] = [],
   ): FFmpeggy {
     return new FFmpeggy({
       autorun: true,
@@ -258,7 +258,7 @@ export class FFmpeggyTestHelpers {
   }
 
   static async runAndWait(
-    ffmpeggy: FFmpeggy
+    ffmpeggy: FFmpeggy,
   ): Promise<{ file?: string; sizes?: FFmpeggyFinalSizes }> {
     ffmpeggy.triggerAutorun();
     return await ffmpeggy.done();
@@ -272,7 +272,7 @@ export class FFmpeggyTestHelpers {
       onProgress?: (progress: FFmpeggyProgressEvent) => void;
       onWriting?: (file: string) => void;
       onExit?: (code?: number | null, error?: Error) => void;
-    } = {}
+    } = {},
   ): Promise<void> {
     return new Promise<void>((resolve, reject) => {
       if (eventHandlers.onDone) {
@@ -329,14 +329,14 @@ export class TestAssertions {
       output?: string;
       hideBanner?: boolean;
       globalOptions?: string[];
-    }
+    },
   ): void {
     if (expectedOptions.cwd !== undefined) {
       expect(ffmpeggy.cwd).toBe(expectedOptions.cwd);
     }
     if (expectedOptions.overwriteExisting !== undefined) {
       expect(ffmpeggy.overwriteExisting).toBe(
-        expectedOptions.overwriteExisting
+        expectedOptions.overwriteExisting,
       );
     }
     if (expectedOptions.output !== undefined) {

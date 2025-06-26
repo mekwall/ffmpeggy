@@ -86,7 +86,7 @@ describe("FFMpeggy:async", () => {
         inputStream,
         outputStream,
         ["-f matroska"],
-        ["-f matroska", "-c copy", "-stats"]
+        ["-f matroska", "-c copy", "-stats"],
       );
 
       try {
@@ -107,7 +107,7 @@ describe("FFMpeggy:async", () => {
         await cleanupStreams(inputStream, outputStream);
       }
     },
-    TEST_TIMEOUT_MS
+    TEST_TIMEOUT_MS,
   );
 
   it(
@@ -121,7 +121,7 @@ describe("FFMpeggy:async", () => {
         inputStream,
         outputStream,
         ["-f mp3"],
-        ["-f mp3", "-c copy", "-stats"]
+        ["-f mp3", "-c copy", "-stats"],
       );
 
       try {
@@ -141,7 +141,7 @@ describe("FFMpeggy:async", () => {
         await cleanupStreams(inputStream, outputStream);
       }
     },
-    TEST_TIMEOUT_MS
+    TEST_TIMEOUT_MS,
   );
 
   it("should return existing process", () => {
@@ -164,7 +164,7 @@ describe("FFMpeggy:async", () => {
 
         const ffmpeg = FFmpeggyTestHelpers.createPipedFFmpeggy(
           SAMPLE_FILES.mp4,
-          ["-f matroska"]
+          ["-f matroska"],
         );
 
         try {
@@ -185,7 +185,7 @@ describe("FFMpeggy:async", () => {
           await cleanupStreams(outputStream);
         }
       },
-      TEST_TIMEOUT_MS
+      TEST_TIMEOUT_MS,
     );
   });
 
@@ -207,7 +207,7 @@ describe("FFMpeggy:async", () => {
         await ffmpeggy.done();
 
         const tempStats1 = await import("fs/promises").then((fs) =>
-          fs.stat(tempFile1)
+          fs.stat(tempFile1),
         );
         expect(tempStats1.size).toBeGreaterThan(0);
 
@@ -224,11 +224,11 @@ describe("FFMpeggy:async", () => {
         await ffmpeggy.done();
 
         const tempStats2 = await import("fs/promises").then((fs) =>
-          fs.stat(tempFile2)
+          fs.stat(tempFile2),
         );
         expect(tempStats2.size).toBeGreaterThan(0);
       },
-      TEST_TIMEOUT_MS
+      TEST_TIMEOUT_MS,
     );
   });
 
@@ -240,17 +240,17 @@ describe("FFMpeggy:async", () => {
         const result = await FFmpeggy.probe(SAMPLE_FILES.mp4);
         TestAssertions.expectProbeResult(result);
       },
-      TEST_TIMEOUT_MS
+      TEST_TIMEOUT_MS,
     );
 
     it(
       "should throw error if failed",
       async () => {
         await expect(FFmpeggy.probe("path_does_not_exist")).rejects.toThrow(
-          "Failed to probe"
+          "Failed to probe",
         );
       },
-      TEST_TIMEOUT_MS
+      TEST_TIMEOUT_MS,
     );
   });
 
@@ -259,7 +259,7 @@ describe("FFMpeggy:async", () => {
       const ffmpeggy = FFmpeggyTestHelpers.createBasicFFmpeggy();
       ffmpeggy.ffmpegBin = "";
       await expect(ffmpeggy.run()).rejects.toThrow(
-        "Missing path to ffmpeg binary"
+        "Missing path to ffmpeg binary",
       );
     });
 

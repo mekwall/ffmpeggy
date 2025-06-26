@@ -93,17 +93,17 @@ describe("FFMpeggy:unit", () => {
         const result = await FFmpeggy.probe(SAMPLE_FILES.mp4);
         TestAssertions.expectProbeResult(result);
       },
-      TEST_TIMEOUT_MS
+      TEST_TIMEOUT_MS,
     );
 
     it(
       "should throw error if failed",
       async () => {
         await expect(FFmpeggy.probe("path_does_not_exist")).rejects.toThrow(
-          "Failed to probe"
+          "Failed to probe",
         );
       },
-      TEST_TIMEOUT_MS
+      TEST_TIMEOUT_MS,
     );
   });
 
@@ -112,7 +112,7 @@ describe("FFMpeggy:unit", () => {
       const ffmpeggy = FFmpeggyTestHelpers.createBasicFFmpeggy();
       ffmpeggy.ffmpegBin = "";
       await expect(ffmpeggy.run()).rejects.toThrow(
-        "Missing path to ffmpeg binary"
+        "Missing path to ffmpeg binary",
       );
     });
 
@@ -260,7 +260,7 @@ describe("FFMpeggy:unit", () => {
       });
       ffmpeggy.input = {} as ReadStream;
       await expect(ffmpeggy.probe()).rejects.toThrow(
-        "Probe can only accept strings. Use static FFmpeg.probe() directly."
+        "Probe can only accept strings. Use static FFmpeg.probe() directly.",
       );
     });
   });
@@ -272,7 +272,7 @@ describe("FFMpeggy:unit", () => {
 
       try {
         await expect(FFmpeggy.probe("test.mp4")).rejects.toThrow(
-          "Failed to probe"
+          "Failed to probe",
         );
       } finally {
         FFmpeggy.DefaultConfig.ffprobeBin = originalBin;
@@ -281,7 +281,7 @@ describe("FFMpeggy:unit", () => {
 
     it("should throw error if ffprobe fails", async () => {
       await expect(FFmpeggy.probe("nonexistent.mp4")).rejects.toThrow(
-        "Failed to probe"
+        "Failed to probe",
       );
     });
   });
