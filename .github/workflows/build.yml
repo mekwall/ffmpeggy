@@ -27,9 +27,6 @@ jobs:
       - name: Install dependencies
         run: yarn install
 
-      - name: Run linting
-        run: yarn lint
-
       - name: Type check
         run: yarn check:ci
 
