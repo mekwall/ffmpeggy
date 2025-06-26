@@ -25,9 +25,14 @@ jobs:
       os: "ubuntu-latest"
       debug: false
 
+  lint:
+    uses: ./.github/workflows/lint.yml
+    with:
+      os: "ubuntu-latest"
+
   test:
     uses: ./.github/workflows/test.yml
-    needs: build
+    needs: [build, lint]
     with:
       node-version: ${{ matrix.node-version }}
       os: ${{ matrix.os }}
@@ -40,8 +45,3 @@ jobs:
           - macos-latest
           - windows-latest
         node-version: [18.x, 20.x, 22.x, 24.x]
-
-  eslint:
-    uses: ./.github/workflows/eslint.yml
-    with:
-      os: "ubuntu-latest"
