@@ -1,6 +1,8 @@
 import eslint from "@eslint/js";
+import importAliasPlugin from "@limegrass/eslint-plugin-import-alias";
 import prettierConfig from "eslint-config-prettier";
 import importPlugin from "eslint-plugin-import";
+import prettierPlugin from "eslint-plugin-prettier";
 import unusedImportsPlugin from "eslint-plugin-unused-imports";
 import vitestPlugin from "eslint-plugin-vitest";
 import tseslint from "typescript-eslint";
@@ -11,11 +13,10 @@ export default tseslint.config(
   },
   eslint.configs.recommended,
   ...tseslint.configs.recommended,
-  prettierConfig,
   {
     files: ["*.{cjs,js,ts}"],
     languageOptions: {
-      ecmaVersion: 2020,
+      ecmaVersion: 2024,
       sourceType: "module",
       parser: tseslint.parser,
       parserOptions: {
@@ -35,6 +36,8 @@ export default tseslint.config(
       import: importPlugin,
       "unused-imports": unusedImportsPlugin,
       vitest: vitestPlugin,
+      "@limegrass/import-alias": importAliasPlugin,
+      prettier: prettierPlugin,
     },
     settings: {
       "import/parsers": {
@@ -48,26 +51,47 @@ export default tseslint.config(
         node: {
           extensions: [".js", ".jsx", ".ts", ".tsx"],
         },
+        alias: {
+          map: [["#", "./src"]],
+          extensions: [".js", ".jsx", ".ts", ".tsx"],
+        },
       },
     },
     rules: {
       "no-empty": "warn",
       "import/no-unresolved": "error",
+      "import/extensions": [
+        "warn",
+        "ignorePackages",
+        {
+          js: "never",
+          ts: "never",
+        },
+      ],
+      "@limegrass/import-alias/import-alias": "warn",
       "import/order": [
         "warn",
         {
-          "newlines-between": "never",
+          "newlines-between": "always",
           groups: [
             "builtin",
             "external",
             "internal",
-            "object",
             "parent",
             "sibling",
             "index",
           ],
+          pathGroups: [
+            {
+              pattern: "#/**",
+              group: "internal",
+              position: "before",
+            },
+          ],
+          pathGroupsExcludedImportTypes: ["internal"],
           alphabetize: {
             order: "asc",
+            caseInsensitive: true,
           },
         },
       ],
@@ -82,6 +106,7 @@ export default tseslint.config(
           caughtErrorsIgnorePattern: "^_",
         },
       ],
+      "prettier/prettier": "warn",
     },
   },
   {
@@ -107,5 +132,6 @@ export default tseslint.config(
       },
     },
     ...vitestPlugin.configs.recommended,
-  }
+  },
+  prettierConfig,
 );
