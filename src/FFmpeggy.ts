@@ -136,7 +136,7 @@ export class FFmpeggy extends EventEmitter {
   public hideBanner!: boolean;
 
   /** Whether to use tee pseudo-muxer for multiple outputs */
-  public tee: boolean = false;
+  public tee = false;
 
   /**
    * Timeout in milliseconds for no progress. If set, FFmpeg will be killed if no progress event is received within this time.
@@ -2030,7 +2030,7 @@ export class FFmpeggy extends EventEmitter {
    * const audioInfo = await ffmpeg.probeInput(1);
    * ```
    */
-  public async probeInput(index: number = 0): Promise<FFprobeResult> {
+  public async probeInput(index = 0): Promise<FFprobeResult> {
     const { inputs } = this;
     if (index >= inputs.length) {
       throw new Error(

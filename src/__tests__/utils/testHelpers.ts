@@ -820,8 +820,8 @@ export class FFmpeggyTestHelpers {
  */
 export async function retryTest<T>(
   testFn: () => Promise<T>,
-  maxRetries: number = 3,
-  baseDelayMs: number = 1000,
+  maxRetries = 3,
+  baseDelayMs = 1000,
 ): Promise<T> {
   let lastError: Error | undefined;
 
@@ -864,8 +864,8 @@ export async function retryTest<T>(
  */
 export async function retryFileTest<T>(
   testFn: () => Promise<T>,
-  maxRetries: number = 3,
-  baseDelayMs: number = 1000,
+  maxRetries = 3,
+  baseDelayMs = 1000,
 ): Promise<T> {
   let lastError: Error | undefined;
 
