@@ -1,8 +1,8 @@
 import type {
   FFmpeggyProgressEvent,
   FFmpeggyFinalSizes,
-} from "./FFmpeggyProgress.js";
-import type { FFprobeResult } from "./probeTypes.js";
+} from "./FFmpeggyProgress";
+import type { FFprobeResult } from "./probeTypes";
 
 /**
  * FFmpegEvents defines the event signatures for FFmpeggy.

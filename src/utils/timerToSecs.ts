@@ -18,7 +18,7 @@ export function timerToSecs(input: string): number {
   const timer = trimmedInput.split(":");
   if (timer.length !== 3) {
     throw new Error(
-      `Invalid time format: expected "HH:MM:SS.MS", got "${input}"`
+      `Invalid time format: expected "HH:MM:SS.MS", got "${input}"`,
     );
   }
 

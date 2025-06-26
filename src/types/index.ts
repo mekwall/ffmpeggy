@@ -1,8 +1,8 @@
 // Re-export all types from individual type files
-export * from "./FFmpeggyProgress.js";
-export * from "./FFmpeggyInput.js";
-export * from "./FFmpeggyOutput.js";
-export * from "./FFmpeggyOptions.js";
-export * from "./FFmpegEvents.js";
-export * from "./probeTypes.js";
-export * from "./HWAccel.js";
+export * from "./FFmpeggyProgress";
+export * from "./FFmpeggyInput";
+export * from "./FFmpeggyOutput";
+export * from "./FFmpeggyOptions";
+export * from "./FFmpegEvents";
+export * from "./probeTypes";
+export * from "./HWAccel";

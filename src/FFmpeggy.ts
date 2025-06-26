@@ -1,15 +1,17 @@
-import EventEmitter from "events";
-import { ReadStream, WriteStream } from "fs";
 import { access } from "fs/promises";
+import { ReadStream, WriteStream } from "fs";
 import { nextTick } from "process";
 import { PassThrough } from "stream";
 import { pipeline } from "stream/promises";
-import createDebug from "debug";
+
 import {
   execa,
   type ExecaReturnValue,
   type ExecaChildProcess,
 } from "@esm2cjs/execa";
+import createDebug from "debug";
+import EventEmitter from "events";
+
 import {
   parseInfo,
   parseWriting,
@@ -272,13 +274,13 @@ export class FFmpeggy extends EventEmitter {
     // Validate incompatible input/output combinations
     if (opts.input && opts.inputs) {
       throw new Error(
-        "Cannot use both 'input' and 'inputs' options. Use either 'input' for single input or 'inputs' for multiple inputs."
+        "Cannot use both 'input' and 'inputs' options. Use either 'input' for single input or 'inputs' for multiple inputs.",
       );
     }
 
     if (opts.output && opts.outputs) {
       throw new Error(
-        "Cannot use both 'output' and 'outputs' options. Use either 'output' for single output or 'outputs' for multiple outputs."
+        "Cannot use both 'output' and 'outputs' options. Use either 'output' for single output or 'outputs' for multiple outputs.",
       );
     }
 
@@ -452,7 +454,7 @@ export class FFmpeggy extends EventEmitter {
 
     if (writeStreamCount > 1) {
       throw new Error(
-        "Multiple WriteStream outputs are not supported. FFmpeg can only write to one stdout destination at a time."
+        "Multiple WriteStream outputs are not supported. FFmpeg can only write to one stdout destination at a time.",
       );
     }
 
@@ -460,7 +462,7 @@ export class FFmpeggy extends EventEmitter {
     // as FFmpeg has issues with multiple stdout destinations
     if (writeStreamCount > 0 && outputs.length > 1) {
       throw new Error(
-        "WriteStream outputs are not supported in multiple output scenarios. Use single output with WriteStream or multiple file outputs."
+        "WriteStream outputs are not supported in multiple output scenarios. Use single output with WriteStream or multiple file outputs.",
       );
     }
 
@@ -579,8 +581,8 @@ export class FFmpeggy extends EventEmitter {
           canUseTee = false;
           debug(
             `Tee incompatible: first output codec opts: ${JSON.stringify(
-              firstCodecOpts
-            )}, output ${i} codec opts: ${JSON.stringify(currentCodecOpts)}`
+              firstCodecOpts,
+            )}, output ${i} codec opts: ${JSON.stringify(currentCodecOpts)}`,
           );
           break;
         }
@@ -589,7 +591,7 @@ export class FFmpeggy extends EventEmitter {
       if (!canUseTee) {
         // Fall back to standard multiple outputs for incompatible tee scenarios
         debug(
-          "Tee muxer incompatible with different codec options, falling back to standard multiple outputs"
+          "Tee muxer incompatible with different codec options, falling back to standard multiple outputs",
         );
         for (const output of outputs) {
           let outputDest: string | WriteStream;
@@ -637,7 +639,7 @@ export class FFmpeggy extends EventEmitter {
             // Muxer options: e.g. f=mp4, movflags=faststart
             if (
               /^(f|movflags|protocols|onfail|use_fifo|fifo_options|bsfs|select_streams|ignore_unknown_streams)=/.test(
-                opt
+                opt,
               )
             ) {
               muxerOpts.push(opt);
@@ -766,8 +768,8 @@ export class FFmpeggy extends EventEmitter {
           typeof firstOutput === "string"
             ? firstOutput
             : firstOutput instanceof WriteStream
-            ? ""
-            : firstOutput.destination;
+              ? ""
+              : firstOutput.destination;
         if (typeof outputDest === "string" && !outputDest.includes("%d")) {
           this.currentFile = outputDest;
           // Store the first output file for multiple output scenarios
@@ -877,7 +879,7 @@ export class FFmpeggy extends EventEmitter {
               // Only log the error, don't treat it as uncaught
               debug(
                 "Main pipeline to tee stream error (expected during cleanup): %o",
-                sanitizeErrorForLog(err)
+                sanitizeErrorForLog(err),
               );
             });
 
@@ -899,7 +901,7 @@ export class FFmpeggy extends EventEmitter {
               const errorMessage = err.message || "";
               const isExpectedError =
                 /premature close|write after end|cannot pipe|stream.*error|ERR_STREAM_PREMATURE_CLOSE|ERR_STREAM_WRITE_AFTER_END/i.test(
-                  errorMessage
+                  errorMessage,
                 );
 
               if (isExpectedError) {
@@ -915,7 +917,7 @@ export class FFmpeggy extends EventEmitter {
                 this.emit("error", err);
               } else {
                 debug(
-                  "No error listeners, suppressing pipeline error to prevent uncaught exception"
+                  "No error listeners, suppressing pipeline error to prevent uncaught exception",
                 );
               }
             });
@@ -928,7 +930,7 @@ export class FFmpeggy extends EventEmitter {
             this.outputStream.on("error", (err) => {
               debug(
                 "toStream outputStream error: %o",
-                sanitizeErrorForLog(err)
+                sanitizeErrorForLog(err),
               );
               // Don't emit this as an uncaught exception
             });
@@ -942,13 +944,13 @@ export class FFmpeggy extends EventEmitter {
                 const errorMessage = err.message || "";
                 const isExpectedError =
                   /premature close|write after end|cannot pipe|stream.*error|ERR_STREAM_PREMATURE_CLOSE|ERR_STREAM_WRITE_AFTER_END/i.test(
-                    errorMessage
+                    errorMessage,
                   );
 
                 if (isExpectedError) {
                   debug(
                     "Suppressed expected pipeline error for toStream(): %s",
-                    errorMessage
+                    errorMessage,
                   );
                   // Don't emit error for expected stream cleanup issues
                   return;
@@ -956,7 +958,7 @@ export class FFmpeggy extends EventEmitter {
 
                 debug(
                   "Pipeline error for toStream(): %o",
-                  sanitizeErrorForLog(err)
+                  sanitizeErrorForLog(err),
                 );
                 this.error = err;
                 // Only emit error if there are listeners to prevent uncaught exceptions
@@ -964,7 +966,7 @@ export class FFmpeggy extends EventEmitter {
                   this.emit("error", err);
                 } else {
                   debug(
-                    "No error listeners, suppressing pipeline error to prevent uncaught exception"
+                    "No error listeners, suppressing pipeline error to prevent uncaught exception",
                   );
                 }
               });
@@ -988,7 +990,7 @@ export class FFmpeggy extends EventEmitter {
               const errorMessage = err.message || "";
               const isExpectedError =
                 /premature close|write after end|cannot pipe|stream.*error|ERR_STREAM_PREMATURE_CLOSE|ERR_STREAM_WRITE_AFTER_END/i.test(
-                  errorMessage
+                  errorMessage,
                 );
 
               if (isExpectedError) {
@@ -1004,7 +1006,7 @@ export class FFmpeggy extends EventEmitter {
                 this.emit("error", err);
               } else {
                 debug(
-                  "No error listeners, suppressing pipeline error to prevent uncaught exception"
+                  "No error listeners, suppressing pipeline error to prevent uncaught exception",
                 );
               }
             });
@@ -1028,13 +1030,13 @@ export class FFmpeggy extends EventEmitter {
             const errorMessage = err.message || "";
             const isExpectedError =
               /premature close|write after end|cannot pipe|stream.*error|ERR_STREAM_PREMATURE_CLOSE|ERR_STREAM_WRITE_AFTER_END/i.test(
-                errorMessage
+                errorMessage,
               );
 
             if (isExpectedError) {
               debug(
                 "Suppressed expected pipeline error for toStream(): %s",
-                errorMessage
+                errorMessage,
               );
               // Don't emit error for expected stream cleanup issues
               return;
@@ -1042,7 +1044,7 @@ export class FFmpeggy extends EventEmitter {
 
             debug(
               "Pipeline error for toStream(): %o",
-              sanitizeErrorForLog(err)
+              sanitizeErrorForLog(err),
             );
             this.error = err;
             // Only emit error if there are listeners to prevent uncaught exceptions
@@ -1050,7 +1052,7 @@ export class FFmpeggy extends EventEmitter {
               this.emit("error", err);
             } else {
               debug(
-                "No error listeners, suppressing pipeline error to prevent uncaught exception"
+                "No error listeners, suppressing pipeline error to prevent uncaught exception",
               );
             }
           });
@@ -1066,7 +1068,7 @@ export class FFmpeggy extends EventEmitter {
         this.emit("error", e);
       } else {
         debug(
-          "No error listeners, suppressing run error to prevent uncaught exception"
+          "No error listeners, suppressing run error to prevent uncaught exception",
         );
       }
       this.emit("exit", 1, e);
@@ -1119,7 +1121,8 @@ export class FFmpeggy extends EventEmitter {
                   duration && duration > 0 && progress.time
                     ? Math.min(
                         100,
-                        Math.round((progress.time / duration) * 100 * 100) / 100
+                        Math.round((progress.time / duration) * 100 * 100) /
+                          100,
                       )
                     : 0,
                 outputIndex: idx,
@@ -1142,7 +1145,7 @@ export class FFmpeggy extends EventEmitter {
                 duration && duration > 0 && progress.time
                   ? Math.min(
                       100,
-                      Math.round((progress.time / duration) * 100 * 100) / 100
+                      Math.round((progress.time / duration) * 100 * 100) / 100,
                     )
                   : 0,
               outputIndex: 0,
@@ -1170,7 +1173,7 @@ export class FFmpeggy extends EventEmitter {
                 return undefined;
               })
               .filter((v): v is { file: string; outputIndex: number } =>
-                Boolean(v)
+                Boolean(v),
               );
             if (writingEvents.length > 0) {
               this.emit("writing", writingEvents);
@@ -1185,7 +1188,7 @@ export class FFmpeggy extends EventEmitter {
                     file = output.destination;
                   else file = undefined;
                   return { file: file || "", outputIndex: idx };
-                })
+                }),
               );
             }
           } else {
@@ -1220,7 +1223,7 @@ export class FFmpeggy extends EventEmitter {
           // Extract concise error information from the log
           const conciseError = this.extractConciseError(this.log);
           this.error = new Error(
-            `FFmpeg failed with exit code ${code}: ${conciseError}`
+            `FFmpeg failed with exit code ${code}: ${conciseError}`,
           );
         } else {
           debug("done: %s", this.currentFile);
@@ -1252,7 +1255,7 @@ export class FFmpeggy extends EventEmitter {
                     sizes: this.finalSizes,
                     outputIndex: 0,
                   }
-                : { file: this.currentFile, outputIndex: 0 }
+                : { file: this.currentFile, outputIndex: 0 },
             );
           }
         }
@@ -1269,7 +1272,7 @@ export class FFmpeggy extends EventEmitter {
           this.emit("error", error as Error);
         } else {
           debug(
-            "No error listeners, suppressing process error to prevent uncaught exception"
+            "No error listeners, suppressing process error to prevent uncaught exception",
           );
         }
 
@@ -1328,13 +1331,13 @@ export class FFmpeggy extends EventEmitter {
           this.emit("error", error as Error);
         } else {
           debug(
-            "No error listeners, suppressing stop error to prevent uncaught exception"
+            "No error listeners, suppressing stop error to prevent uncaught exception",
           );
         }
         this.emit(
           "exit",
           typeof process.exitCode === "number" ? process.exitCode : null,
-          this.error
+          this.error,
         );
       }
     }
@@ -1451,7 +1454,7 @@ export class FFmpeggy extends EventEmitter {
       outputDest = output;
     } else if (output instanceof WriteStream) {
       debug(
-        "done() method - single output is stream, returning undefined file"
+        "done() method - single output is stream, returning undefined file",
       );
       return { file: undefined, sizes: this.finalSizes };
     } else {
@@ -1463,7 +1466,7 @@ export class FFmpeggy extends EventEmitter {
       return { file: outputDest, sizes: this.finalSizes };
     } else {
       debug(
-        "done() method - single output is pipe or stream, returning undefined file"
+        "done() method - single output is pipe or stream, returning undefined file",
       );
       return { file: undefined, sizes: this.finalSizes };
     }
@@ -1602,7 +1605,7 @@ export class FFmpeggy extends EventEmitter {
   public setInput(input: string | ReadStream): FFmpeggy {
     if (this.inputs.length > 1) {
       throw new Error(
-        "Cannot use setInput() when multiple inputs are already configured. Use setInputs() or clearInputs() first."
+        "Cannot use setInput() when multiple inputs are already configured. Use setInputs() or clearInputs() first.",
       );
     }
     this.inputs = [input];
@@ -1626,7 +1629,7 @@ export class FFmpeggy extends EventEmitter {
   public setOutput(output: string | WriteStream): FFmpeggy {
     if (this.outputs.length > 1) {
       throw new Error(
-        "Cannot use setOutput() when multiple outputs are already configured. Use setOutputs() or clearOutputs() first."
+        "Cannot use setOutput() when multiple outputs are already configured. Use setOutputs() or clearOutputs() first.",
       );
     }
     // Use setOutputs to enforce type and runtime constraints
@@ -1700,11 +1703,11 @@ export class FFmpeggy extends EventEmitter {
         o instanceof WriteStream ||
         (typeof o === "object" &&
           "destination" in o &&
-          o.destination instanceof WriteStream)
+          o.destination instanceof WriteStream),
     );
     if (streamOutputs.length > 1) {
       throw new Error(
-        "Multiple WriteStream outputs are not supported. Only one stream output is allowed (as the last output if using tee)."
+        "Multiple WriteStream outputs are not supported. Only one stream output is allowed (as the last output if using tee).",
       );
     }
     if (
@@ -1713,7 +1716,7 @@ export class FFmpeggy extends EventEmitter {
       outputs[outputs.length - 1] !== streamOutputs[0]
     ) {
       throw new Error(
-        "If using a WriteStream with multiple outputs, it must be the last output (for tee muxer compatibility)."
+        "If using a WriteStream with multiple outputs, it must be the last output (for tee muxer compatibility).",
       );
     }
     this.outputs = [...outputs];
@@ -1994,14 +1997,14 @@ export class FFmpeggy extends EventEmitter {
       inputPath = firstInput;
     } else if (firstInput instanceof ReadStream) {
       throw new Error(
-        "Probe can only accept strings. Use static FFmpeg.probe() directly."
+        "Probe can only accept strings. Use static FFmpeg.probe() directly.",
       );
     } else {
       if (typeof firstInput.source === "string") {
         inputPath = firstInput.source;
       } else {
         throw new Error(
-          "Probe can only accept strings. Use static FFmpeg.probe() directly."
+          "Probe can only accept strings. Use static FFmpeg.probe() directly.",
         );
       }
     }
@@ -2031,7 +2034,7 @@ export class FFmpeggy extends EventEmitter {
     const { inputs } = this;
     if (index >= inputs.length) {
       throw new Error(
-        `Input index ${index} out of range (${inputs.length} inputs)`
+        `Input index ${index} out of range (${inputs.length} inputs)`,
       );
     }
 
@@ -2042,14 +2045,14 @@ export class FFmpeggy extends EventEmitter {
       inputPath = input;
     } else if (input instanceof ReadStream) {
       throw new Error(
-        "Probe can only accept strings. Use static FFmpeg.probe() directly."
+        "Probe can only accept strings. Use static FFmpeg.probe() directly.",
       );
     } else {
       if (typeof input.source === "string") {
         inputPath = input.source;
       } else {
         throw new Error(
-          "Probe can only accept strings. Use static FFmpeg.probe() directly."
+          "Probe can only accept strings. Use static FFmpeg.probe() directly.",
         );
       }
     }
@@ -2084,7 +2087,7 @@ export class FFmpeggy extends EventEmitter {
         args,
         {
           timeout: 30000, // 30 second timeout to prevent hanging
-        }
+        },
       );
       if (exitCode === 1) {
         throw Error("Failed to probe");
@@ -2111,7 +2114,7 @@ export class FFmpeggy extends EventEmitter {
   private extractConciseError(
     log: string,
     maxLines = 3,
-    maxLength = 250
+    maxLength = 250,
   ): string {
     if (!log) {
       return "Unknown error (log is empty)";
@@ -2179,18 +2182,21 @@ export class FFmpeggy extends EventEmitter {
     if (!this.timeout) return;
     this._lastProgressTime = Date.now();
     if (this._timeoutTimer) clearInterval(this._timeoutTimer);
-    this._timeoutTimer = setInterval(() => {
-      if (
-        this._lastProgressTime &&
-        Date.now() - this._lastProgressTime > this.timeout!
-      ) {
-        if (this._timeoutTimer) {
-          clearInterval(this._timeoutTimer);
+    this._timeoutTimer = setInterval(
+      () => {
+        if (
+          this._lastProgressTime &&
+          Date.now() - this._lastProgressTime > this.timeout!
+        ) {
+          if (this._timeoutTimer) {
+            clearInterval(this._timeoutTimer);
+          }
+          this._timeoutTimer = undefined;
+          this._killFFmpegWithTimeoutError();
         }
-        this._timeoutTimer = undefined;
-        this._killFFmpegWithTimeoutError();
-      }
-    }, Math.max(250, Math.min(this.timeout! / 2, 2000)));
+      },
+      Math.max(250, Math.min(this.timeout! / 2, 2000)),
+    );
   }
 
   private _clearProgressTimeout(): void {
@@ -2206,7 +2212,7 @@ export class FFmpeggy extends EventEmitter {
       this.process.kill("SIGKILL");
     }
     const err = new Error(
-      `FFmpeg process timed out: no progress for ${this.timeout} ms`
+      `FFmpeg process timed out: no progress for ${this.timeout} ms`,
     );
     this.emit("error", err);
   }

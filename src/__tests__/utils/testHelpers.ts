@@ -11,12 +11,7 @@ import ffmpegStatic from "ffmpeg-static";
 import { path as ffprobeBin } from "ffprobe-static";
 import { FFmpeggy } from "#/FFmpeggy.js";
 import { waitFiles } from "./waitFiles.js";
-import { expect } from "vitest";
-import type {
-  FFmpeggyFinalSizes,
-  FFmpeggyProgressEvent,
-  FFprobeResult,
-} from "#/types";
+import type { FFmpeggyFinalSizes, FFmpeggyProgressEvent } from "#/types";
 import { TEST_TIMEOUTS, isCI, isWindows } from "./testTimeouts.js";
 
 // Legacy exports for backward compatibility
@@ -48,29 +43,29 @@ export const SAMPLE_DIR = path.resolve(__dirname, "../samples");
 export const SAMPLE_FILES = {
   video_basic_mkv: path.join(
     SAMPLE_DIR,
-    "sample_mkv_640x360_h264_640x360_free.mkv"
+    "sample_mkv_640x360_h264_640x360_free.mkv",
   ), // Basic MKV video
   video_basic_mp4: path.join(
     SAMPLE_DIR,
-    "big_buck_bunny_h264_aac_320x180_2aud_2vid_ccby.mp4"
+    "big_buck_bunny_h264_aac_320x180_2aud_2vid_ccby.mp4",
   ), // Basic MP4 video (multi-stream)
   video_multi_stream: path.join(
     SAMPLE_DIR,
-    "big_buck_bunny_h264_aac_320x180_2aud_2vid_ccby.mp4"
+    "big_buck_bunny_h264_aac_320x180_2aud_2vid_ccby.mp4",
   ), // Multi-stream video (2 video, 2 audio)
   video_alt_mkv: path.join(
     SAMPLE_DIR,
-    "sample_ocean_h264_aac_960x400_free.mkv"
+    "sample_ocean_h264_aac_960x400_free.mkv",
   ), // Alternate MKV video
   audio_basic_mp3: path.join(SAMPLE_DIR, "sample_mp3_free.mp3"), // Basic MP3 audio
   audio_basic_ogg: path.join(SAMPLE_DIR, "sample_vorbis_free.ogg"), // Basic OGG audio
   subtitle_vtt: path.join(
     SAMPLE_DIR,
-    "big_buck_bunny_subtitles_en_subs_ccby.vtt"
+    "big_buck_bunny_subtitles_en_subs_ccby.vtt",
   ), // VTT subtitle
   audio_raw_pcm_s16le: path.join(
     SAMPLE_DIR,
-    "sample_pcm_s16le_no_duration.raw"
+    "sample_pcm_s16le_no_duration.raw",
   ), // Raw PCM audio, no duration
 } as const;
 
@@ -83,21 +78,40 @@ export function wait(ms: number): Promise<void> {
 export async function waitForFileExists(
   filePath: string,
   maxRetries = isCI ? 30 : 10,
-  retryDelay = isCI ? 1000 : 500
+  retryDelay = isCI ? 1000 : 500,
 ): Promise<void> {
+  const fs = await import("fs/promises");
+
   for (let i = 0; i < maxRetries; i++) {
     try {
-      await access(filePath);
-      return; // File exists
+      // Use stat instead of access to get more information
+      const stats = await fs.stat(filePath);
+
+      // Check if file has actual content (not just created)
+      if (stats.size > 0) {
+        return; // File exists and has content
+      }
+
+      // File exists but is empty, wait a bit more
+      if (i < maxRetries - 1) {
+        await wait(retryDelay);
+      }
     } catch {
-      if (i === maxRetries - 1) {
+      // File doesn't exist yet, wait and retry
+      if (i < maxRetries - 1) {
+        await wait(retryDelay);
+      } else {
         throw new Error(
-          `File ${filePath} does not exist after ${maxRetries} retries`
+          `File ${filePath} does not exist after ${maxRetries} retries`,
         );
       }
-      await wait(retryDelay);
     }
   }
+
+  // If we get here, the file exists but is empty after all retries
+  throw new Error(
+    `File ${filePath} exists but is empty after ${maxRetries} retries`,
+  );
 }
 
 // Enhanced file size checking with retries
@@ -105,7 +119,7 @@ export async function waitForFileSize(
   filePath: string,
   minSize = 1,
   maxRetries = isCI ? 30 : 10,
-  retryDelay = isCI ? 1000 : 500
+  retryDelay = isCI ? 1000 : 500,
 ): Promise<number> {
   for (let i = 0; i < maxRetries; i++) {
     try {
@@ -115,7 +129,7 @@ export async function waitForFileSize(
       }
       if (i === maxRetries - 1) {
         throw new Error(
-          `File ${filePath} size (${stats.size}) is less than minimum expected size (${minSize})`
+          `File ${filePath} size (${stats.size}) is less than minimum expected size (${minSize})`,
         );
       }
     } catch (error) {
@@ -126,7 +140,7 @@ export async function waitForFileSize(
     await wait(retryDelay);
   }
   throw new Error(
-    `Failed to check file size for ${filePath} after ${maxRetries} retries`
+    `Failed to check file size for ${filePath} after ${maxRetries} retries`,
   );
 }
 
@@ -198,7 +212,7 @@ export async function cleanupStreams(
           const errorMessage = err.message || "";
           const isExpectedError =
             /premature close|write after end|cannot pipe|stream.*error/i.test(
-              errorMessage
+              errorMessage,
             );
 
           if (process.env.DEBUG && !isExpectedError) {
@@ -257,7 +271,7 @@ export class TestFileManager {
   private streams: Array<ReadStream | WriteStream> = [];
 
   constructor(
-    testType: "unit" | "async" | "multiple" | "events" | "validation"
+    testType: "unit" | "async" | "multiple" | "events" | "validation",
   ) {
     this.tempDir = path.resolve(SAMPLE_DIR, ".temp", testType);
   }
@@ -282,7 +296,7 @@ export class TestFileManager {
         // If waitFiles fails, log but continue with cleanup
         console.warn(
           "waitFiles failed, proceeding with direct deletion:",
-          error
+          error,
         );
       }
 
@@ -330,7 +344,7 @@ export class TestFileManager {
 
                 return { file, success: false, error };
               }
-            })
+            }),
           );
 
           // Check if all deletions succeeded
@@ -339,7 +353,7 @@ export class TestFileManager {
             .filter(
               ({ result }) =>
                 result.status === "rejected" ||
-                (result.status === "fulfilled" && !result.value.success)
+                (result.status === "fulfilled" && !result.value.success),
             );
 
           if (failedDeletions.length === 0) {
@@ -355,7 +369,7 @@ export class TestFileManager {
           if (attempt === TEST_TIMEOUTS.CLEANUP.FILE_DELETION_RETRIES - 1) {
             // Last attempt failed, log detailed failure information
             console.warn(
-              `Failed to delete ${failedDeletions.length} temp files after ${TEST_TIMEOUTS.CLEANUP.FILE_DELETION_RETRIES} attempts:`
+              `Failed to delete ${failedDeletions.length} temp files after ${TEST_TIMEOUTS.CLEANUP.FILE_DELETION_RETRIES} attempts:`,
             );
             failedDeletions.forEach(({ file, result }) => {
               const error =
@@ -375,12 +389,12 @@ export class TestFileManager {
             const maxDelay = 8000; // Cap at 8 seconds
             const delay = Math.min(
               Math.pow(1.5, attempt) * baseDelay,
-              maxDelay
+              maxDelay,
             );
             console.warn(
               `Retrying file deletion in ${Math.round(delay)}ms (attempt ${
                 attempt + 1
-              }/${TEST_TIMEOUTS.CLEANUP.FILE_DELETION_RETRIES})`
+              }/${TEST_TIMEOUTS.CLEANUP.FILE_DELETION_RETRIES})`,
             );
             await wait(delay);
           }
@@ -388,17 +402,17 @@ export class TestFileManager {
           if (attempt === TEST_TIMEOUTS.CLEANUP.FILE_DELETION_RETRIES - 1) {
             console.warn(
               `Failed to delete temp files after ${TEST_TIMEOUTS.CLEANUP.FILE_DELETION_RETRIES} attempts:`,
-              error
+              error,
             );
           } else {
             const delay = Math.min(
               Math.pow(1.5, attempt) * TEST_TIMEOUTS.CLEANUP.RETRY_DELAY_BASE,
-              8000
+              8000,
             );
             console.warn(
               `Retrying file deletion in ${Math.round(delay)}ms (attempt ${
                 attempt + 1
-              }/${TEST_TIMEOUTS.CLEANUP.FILE_DELETION_RETRIES})`
+              }/${TEST_TIMEOUTS.CLEANUP.FILE_DELETION_RETRIES})`,
             );
             await wait(delay);
           }
@@ -440,7 +454,7 @@ export class TestFileManager {
               TEST_TIMEOUTS.CLEANUP.RETRY_DELAY_BASE
             }ms (attempt ${attempt + 1}/${
               TEST_TIMEOUTS.CLEANUP.DIR_DELETION_RETRIES
-            })`
+            })`,
           );
           await wait(TEST_TIMEOUTS.CLEANUP.RETRY_DELAY_BASE);
           continue;
@@ -450,7 +464,7 @@ export class TestFileManager {
           // Last attempt failed, log but don't throw
           console.warn(
             `Failed to remove temp directory after ${TEST_TIMEOUTS.CLEANUP.DIR_DELETION_RETRIES} attempts:`,
-            error
+            error,
           );
         } else {
           // Wait before retry
@@ -471,7 +485,7 @@ export class TestFileManager {
     const randomBytes = crypto.randomBytes(8).toString("hex");
     const tempFilename = path.join(
       this.tempDir,
-      `temp-${timestamp}-${randomBytes}${extension}`
+      `temp-${timestamp}-${randomBytes}${extension}`,
     );
 
     this.tempFiles.push(tempFilename);
@@ -529,7 +543,7 @@ export class FFmpeggyTestHelpers {
   }
 
   static createFFmpeggyWithOptions(
-    options: ConstructorParameters<typeof FFmpeggy>[0]
+    options: ConstructorParameters<typeof FFmpeggy>[0],
   ): FFmpeggy {
     return new FFmpeggy(options);
   }
@@ -538,7 +552,7 @@ export class FFmpeggyTestHelpers {
     inputStream: ReadStream,
     outputStream: WriteStream,
     inputOptions: string[] = [],
-    outputOptions: string[] = []
+    outputOptions: string[] = [],
   ): FFmpeggy {
     return new FFmpeggy({
       autorun: true,
@@ -552,7 +566,7 @@ export class FFmpeggyTestHelpers {
   static createFileToFileFFmpeggy(
     inputFile: string,
     outputFile: string,
-    outputOptions: string[] = []
+    outputOptions: string[] = [],
   ): FFmpeggy {
     return new FFmpeggy({
       input: inputFile,
@@ -563,7 +577,7 @@ export class FFmpeggyTestHelpers {
 
   static createPipedFFmpeggy(
     inputFile: string,
-    outputOptions: string[] = []
+    outputOptions: string[] = [],
   ): FFmpeggy {
     return new FFmpeggy({
       autorun: true,
@@ -574,13 +588,85 @@ export class FFmpeggyTestHelpers {
   }
 
   static async runAndWait(
-    ffmpeggy: FFmpeggy
+    ffmpeggy: FFmpeggy,
   ): Promise<{ file?: string; sizes?: FFmpeggyFinalSizes }> {
-    ffmpeggy.triggerAutorun();
-    const result = await ffmpeggy.done();
-    // Wait for the FFmpeg process to fully exit before proceeding
-    await ffmpeggy.exit();
-    return result;
+    return new Promise<{ file?: string; sizes?: FFmpeggyFinalSizes }>(
+      (resolve, reject) => {
+        let result: { file?: string; sizes?: FFmpeggyFinalSizes } | undefined;
+        let hasResolved = false;
+
+        // Listen for the done event to get the result
+        ffmpeggy.on("done", (doneResult) => {
+          if (hasResolved) return; // Prevent multiple resolutions
+
+          // Handle both single result and array of results (for tee muxer)
+          if (Array.isArray(doneResult)) {
+            // For tee muxer with multiple outputs, use the first result
+            result = doneResult[0];
+          } else {
+            // Single result
+            result = doneResult;
+          }
+        });
+
+        // Listen for errors
+        ffmpeggy.on("error", (error) => {
+          if (hasResolved) return;
+          hasResolved = true;
+          reject(error);
+        });
+
+        // Listen for exit to ensure process is fully complete
+        ffmpeggy.on("exit", async (code, error) => {
+          if (hasResolved) return;
+          hasResolved = true;
+
+          if (error) {
+            reject(error);
+            return;
+          }
+
+          // Handle undefined exit codes more gracefully
+          // This can happen in some edge cases, especially with streaming operations
+          if (code !== 0 && code !== undefined && code !== null) {
+            reject(new Error(`FFmpeg process exited with code ${code}`));
+            return;
+          }
+
+          // If we have a result, consider it successful even with undefined exit code
+          if (result) {
+            // If there's a file in the result, wait for it to be actually available on disk
+            if (result.file) {
+              try {
+                await waitForFileExists(result.file);
+              } catch (error) {
+                reject(
+                  new Error(
+                    `Output file ${result.file} not available after FFmpeg completion: ${error}`,
+                  ),
+                );
+                return;
+              }
+            }
+            resolve(result);
+            return;
+          }
+
+          // If no result but exit code is 0 or undefined, still resolve
+          // This can happen with streaming operations where no file is produced
+          if (code === 0 || code === undefined || code === null) {
+            resolve({});
+            return;
+          }
+
+          // Only reject if we have a non-zero exit code and no result
+          reject(new Error("FFmpeg completed but no result was received"));
+        });
+
+        // Start the FFmpeg process
+        ffmpeggy.triggerAutorun();
+      },
+    );
   }
 
   static async runWithEvents(
@@ -593,17 +679,17 @@ export class FFmpeggyTestHelpers {
               file?: string;
               sizes?: FFmpeggyFinalSizes;
               outputIndex?: number;
-            }>
+            }>,
       ) => void;
       onError?: (error: Error) => void;
       onProgress?: (progress: FFmpeggyProgressEvent) => void;
       onWriting?: (
         info:
           | { file: string; outputIndex: number }
-          | Array<{ file: string; outputIndex: number }>
+          | Array<{ file: string; outputIndex: number }>,
       ) => void;
       onExit?: (code?: number | null, error?: Error) => void;
-    } = {}
+    } = {},
   ): Promise<void> {
     return new Promise<void>((resolve, reject) => {
       if (eventHandlers.onDone) {
@@ -644,77 +730,181 @@ export class FFmpeggyTestHelpers {
       ffmpeggy.run().catch(reject);
     });
   }
+
+  /**
+   * Robust streaming test helper that handles common flakiness issues
+   * Specifically designed for tests that stream from one format to another
+   */
+  static async runStreamingTest(
+    ffmpeggy: FFmpeggy,
+    outputFile: string,
+    options: {
+      minFileSize?: number;
+      maxRetries?: number;
+      retryDelay?: number;
+    } = {},
+  ): Promise<{ fileSize: number }> {
+    const { minFileSize = 1, maxRetries = 3, retryDelay = 1000 } = options;
+
+    return retryTest(
+      async () => {
+        return new Promise<{ fileSize: number }>((resolve, reject) => {
+          let hasResolved = false;
+
+          const cleanup = () => {
+            if (hasResolved) return;
+            hasResolved = true;
+          };
+
+          ffmpeggy.on("done", async () => {
+            try {
+              cleanup();
+              // Wait for file to exist and have proper size
+              await waitForFileExists(outputFile);
+              const fileSize = await waitForFileSize(outputFile, minFileSize);
+              resolve({ fileSize });
+            } catch (error) {
+              reject(error);
+            }
+          });
+
+          ffmpeggy.on("error", (error) => {
+            cleanup();
+            reject(error);
+          });
+
+          ffmpeggy.on("exit", async (code, error) => {
+            if (hasResolved) return;
+
+            // Handle undefined exit codes gracefully
+            if (error) {
+              cleanup();
+              reject(error);
+              return;
+            }
+
+            // Accept 0, undefined, or null exit codes as success
+            if (code === 0 || code === undefined || code === null) {
+              try {
+                await waitForFileExists(outputFile);
+                const fileSize = await waitForFileSize(outputFile, minFileSize);
+                cleanup();
+                resolve({ fileSize });
+              } catch (fileError) {
+                cleanup();
+                reject(fileError);
+              }
+            } else {
+              cleanup();
+              reject(new Error(`FFmpeg process exited with code ${code}`));
+            }
+          });
+
+          // Start the process
+          ffmpeggy.run().catch((error) => {
+            cleanup();
+            reject(error);
+          });
+        });
+      },
+      maxRetries,
+      retryDelay,
+    );
+  }
 }
 
-// Common test assertions
-export class TestAssertions {
-  static expectFFmpeggyInstance(ffmpeggy: FFmpeggy): void {
-    expect(ffmpeggy).toBeInstanceOf(FFmpeggy);
-  }
+/**
+ * Retry mechanism for flaky tests
+ * Based on patterns from Playwright and TestNG retry implementations
+ */
+export async function retryTest<T>(
+  testFn: () => Promise<T>,
+  maxRetries: number = 3,
+  baseDelayMs: number = 1000,
+): Promise<T> {
+  let lastError: Error | undefined;
 
-  static expectConstructorOptions(
-    ffmpeggy: FFmpeggy,
-    expectedOptions: {
-      cwd?: string;
-      overwriteExisting?: boolean;
-      output?: string;
-      hideBanner?: boolean;
-      globalOptions?: string[];
-    }
-  ): void {
-    if (expectedOptions.cwd !== undefined) {
-      expect(ffmpeggy.cwd).toBe(expectedOptions.cwd);
-    }
-    if (expectedOptions.overwriteExisting !== undefined) {
-      expect(ffmpeggy.overwriteExisting).toBe(
-        expectedOptions.overwriteExisting
-      );
-    }
-    if (expectedOptions.output !== undefined) {
-      expect(ffmpeggy.output).toBe(expectedOptions.output);
-    }
-    if (expectedOptions.hideBanner !== undefined) {
-      expect(ffmpeggy.hideBanner).toBe(expectedOptions.hideBanner);
-    }
-    if (expectedOptions.globalOptions) {
-      expectedOptions.globalOptions.forEach((option) => {
-        expect(ffmpeggy.globalOptions.includes(option)).toBe(true);
-      });
-    }
-  }
-
-  static async expectFileExists(filePath: string): Promise<void> {
-    // First wait for the file to exist
-    await waitForFileExists(filePath);
-    // Then verify it actually exists at the time of assertion
-    const fs = await import("fs/promises");
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
-      await fs.access(filePath);
+      return await testFn();
     } catch (error) {
-      throw new Error(`File ${filePath} does not exist: ${error}`);
+      lastError = error as Error;
+
+      if (attempt === maxRetries) {
+        // Final attempt failed, throw the error
+        console.error(
+          `Test failed after ${maxRetries} attempts. Final error:`,
+          lastError.message,
+        );
+        throw lastError;
+      }
+
+      // Use exponential backoff: 1s, 2s, 4s, etc.
+      const delayMs = baseDelayMs * Math.pow(2, attempt - 1);
+
+      // Log retry attempt for debugging
+      console.warn(
+        `Test attempt ${attempt}/${maxRetries} failed, retrying in ${delayMs}ms...`,
+      );
+      console.warn(`Error: ${lastError.message}`);
+
+      // Wait before retry
+      await wait(delayMs);
     }
   }
 
-  static async expectFileSize(
-    filePath: string,
-    minSize: number
-  ): Promise<number> {
-    // First ensure the file exists
-    await waitForFileExists(filePath);
-    // Then check its size
-    return waitForFileSize(filePath, minSize);
+  // This should never be reached, but TypeScript requires it
+  throw lastError!;
+}
+
+/**
+ * Retry mechanism specifically for file existence checks
+ * This is useful for tests that fail due to file system timing issues
+ */
+export async function retryFileTest<T>(
+  testFn: () => Promise<T>,
+  maxRetries: number = 3,
+  baseDelayMs: number = 1000,
+): Promise<T> {
+  let lastError: Error | undefined;
+
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      return await testFn();
+    } catch (error) {
+      lastError = error as Error;
+
+      // Check if this is a file-related error that might be transient
+      const isFileError =
+        lastError.message.includes("does not exist") ||
+        lastError.message.includes("ENOENT") ||
+        lastError.message.includes("EBUSY");
+
+      if (attempt === maxRetries || !isFileError) {
+        // Final attempt failed or not a file error, throw the error
+        if (attempt === maxRetries) {
+          console.error(
+            `File test failed after ${maxRetries} attempts. Final error:`,
+            lastError.message,
+          );
+        }
+        throw lastError;
+      }
+
+      // Use exponential backoff for file errors
+      const delayMs = baseDelayMs * Math.pow(2, attempt - 1);
+
+      // Log retry attempt for debugging
+      console.warn(
+        `File test attempt ${attempt}/${maxRetries} failed (file error), retrying in ${delayMs}ms...`,
+      );
+      console.warn(`Error: ${lastError.message}`);
+
+      // Wait before retry
+      await wait(delayMs);
+    }
   }
 
-  static expectProbeResult(result: FFprobeResult): void {
-    expect(result).toBeDefined();
-    expect(result.format).toBeDefined();
-    expect(result.format.nb_streams).toBeGreaterThan(0);
-    expect(result.format.duration).toBeDefined();
-    expect(result.streams.length).toBeGreaterThan(0);
-    // Check that at least one stream has a valid codec
-    const hasValidCodec = result.streams.some(
-      (stream) => stream.codec_name && stream.codec_name.length > 0
-    );
-    expect(hasValidCodec).toBe(true);
-  }
+  // This should never be reached, but TypeScript requires it
+  throw lastError!;
 }

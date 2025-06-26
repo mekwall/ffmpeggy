@@ -1,6 +1,6 @@
 import type { ReadStream, WriteStream } from "fs";
-import type { FFmpeggyInput } from "./FFmpeggyInput.js";
-import type { FFmpeggyOutputs } from "./FFmpeggyOutput.js";
+import type { FFmpeggyInput } from "./FFmpeggyInput";
+import type { FFmpeggyOutputs } from "./FFmpeggyOutput";
 
 /**
  * Base configuration options for FFmpeggy operations.
