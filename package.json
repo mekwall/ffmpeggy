@@ -94,6 +94,7 @@
     "ffmpeg-static": "^5.0.0",
     "ffprobe-static": "^3.0.0",
     "jiti": "^2.4.2",
+    "prettier": "^3.6.1",
     "rimraf": "^6.0.1",
     "semantic-release": "^24.2.0",
     "tsup": "^8.5.0",
