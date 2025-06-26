@@ -3,6 +3,7 @@ import importAliasPlugin from "@limegrass/eslint-plugin-import-alias";
 import prettierConfig from "eslint-config-prettier";
 import importPlugin from "eslint-plugin-import";
 import prettierPlugin from "eslint-plugin-prettier";
+import eslintPluginUnicorn from "eslint-plugin-unicorn";
 import unusedImportsPlugin from "eslint-plugin-unused-imports";
 import vitestPlugin from "eslint-plugin-vitest";
 import tseslint from "typescript-eslint";
@@ -13,6 +14,7 @@ export default tseslint.config(
   },
   eslint.configs.recommended,
   ...tseslint.configs.recommended,
+  eslintPluginUnicorn.configs.recommended,
   {
     files: ["*.{cjs,js,ts}"],
     languageOptions: {
