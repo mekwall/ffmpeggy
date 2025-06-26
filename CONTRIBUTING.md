@@ -79,30 +79,6 @@ This project uses [tsup](https://github.com/egoist/tsup) for building, which pro
 
 This project uses [Vitest](https://vitest.dev/) for testing with a sophisticated project structure that separates unit tests from integration tests for optimal performance and reliability.
 
-#### Test Scripts
-
-```bash
-# Run all tests
-yarn test
-
-# Run only unit tests (fast, parallel execution)
-yarn test:unit
-
-# Run only integration tests (slower, sequential execution)
-yarn test:integration
-
-# Run specific integration test types
-yarn test:async      # Async/await patterns
-yarn test:events     # Event handling
-yarn test:multi      # Multiple input/output scenarios
-yarn test:probe      # Media probing functionality
-
-# Development and debugging
-yarn test:watch      # Watch mode for development
-yarn test:debug      # Debug mode with ffmpeggy debug output
-yarn test:coverage   # Run tests with coverage report
-```
-
 #### Test Organization
 
 The test suite is organized into multiple Vitest projects for optimal performance:
@@ -159,6 +135,7 @@ yarn test:probe      # Media probing functionality
 yarn test:watch      # Watch mode for development
 yarn test:debug      # Debug mode with ffmpeggy debug output
 yarn test:coverage   # Run tests with coverage report
+
 ```
 
 #### Writing Tests
@@ -216,7 +193,7 @@ Following [FFmpeg FATE testing principles](https://trac.ffmpeg.org/wiki/FATE/Add
 
 #### Test File Structure
 
-```
+```text
 src/__tests__/
 ├── *.unit.test.ts              # Unit tests (fast, parallel)
 ├── integration/                # Integration tests (slower, sequential)
@@ -229,9 +206,7 @@ src/__tests__/
 ├── samples/                    # Test media files
 └── utils/                      # Test utilities
     ├── testHelpers.ts          # Common test setup and helper functions
-    ├── waitFiles.ts            # File system utilities for tests
-    └── __tests__/
-        └── *.spec.ts           # Utility function tests
+    └── waitFiles.ts            # File system utilities for tests
 ```
 
 #### Test Utilities
@@ -241,7 +216,6 @@ The project provides several test utilities in `src/__tests__/utils/`:
 - `testHelpers.ts` - Common test setup and helper functions
 - `waitFiles.ts` - File system utilities for tests
 - `FFmpeggyTestHelpers` - FFmpeggy-specific test helpers
-- `TestAssertions` - Common assertion patterns
 
 ### Debugging and Development
 
@@ -277,7 +251,7 @@ DEBUG=ffmpeggy yarn test:unit
 
 When debugging, you'll see detailed information like:
 
-```
+```log
 ffmpeggy:args FFmpeg command: ffmpeg -i input.mp4 -c:v libx264 -c:a aac output.mp4
 ffmpeggy:process Starting FFmpeg process with PID: 12345
 ffmpeggy:events Emitting progress event: { frame: 100, fps: 25.0, time: 4.0 }
