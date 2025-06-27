@@ -10,29 +10,30 @@ export function parseProgress(data: string): FFmpeggyProgress | undefined {
   if (!matches || !matches.groups) {
     return;
   }
-  const v = matches.groups;
+  const groups = matches.groups;
 
-  const frame = v.frame === undefined ? undefined : Number(v.frame);
-  const fps = v.fps === undefined ? undefined : Number(v.fps);
-  const q = v.q === undefined ? undefined : Number(v.q);
+  const frame = groups.frame === undefined ? undefined : Number(groups.frame);
+  const fps = groups.fps === undefined ? undefined : Number(groups.fps);
+  const quality = groups.q === undefined ? undefined : Number(groups.q);
   const size =
-    v.size !== undefined && v.sizeunit
-      ? parseSize(Number(v.size) || 0, v.sizeunit)
+    groups.size !== undefined && groups.sizeunit
+      ? parseSize(Number(groups.size) || 0, groups.sizeunit)
       : undefined;
-  const time = v.time ? timerToSecs(v.time) : undefined;
+  const time = groups.time ? timerToSecs(groups.time) : undefined;
   const bitrate =
-    v.bitrate !== undefined && v.bitrateunit
-      ? parseBitrate(Number(v.bitrate), v.bitrateunit)
+    groups.bitrate !== undefined && groups.bitrateunit
+      ? parseBitrate(Number(groups.bitrate), groups.bitrateunit)
       : undefined;
   const duplicates =
-    v.duplicates === undefined ? undefined : Number(v.duplicates);
-  const dropped = v.dropped === undefined ? undefined : Number(v.dropped);
-  const speed = v.speed === undefined ? undefined : Number(v.speed);
+    groups.duplicates === undefined ? undefined : Number(groups.duplicates);
+  const dropped =
+    groups.dropped === undefined ? undefined : Number(groups.dropped);
+  const speed = groups.speed === undefined ? undefined : Number(groups.speed);
 
   return {
     frame,
     fps,
-    q,
+    quality,
     size,
     time,
     bitrate,

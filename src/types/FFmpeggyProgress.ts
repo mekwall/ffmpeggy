@@ -1,7 +1,7 @@
 export interface FFmpeggyProgress {
   frame?: number;
   fps?: number;
-  q?: number;
+  quality?: number;
   size?: number;
   time?: number;
   bitrate?: number;
