@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-require-imports, unicorn/prefer-module */
 import { describe, it, expect } from "vitest";
 
 describe("CommonJS build", () => {
@@ -6,7 +7,7 @@ describe("CommonJS build", () => {
     // testing the CommonJS build of the library.
     // We can also ignore the prefer-module rule because we are testing the
     // CommonJS build of the library.
-    // eslint-disable-next-line @typescript-eslint/no-require-imports, unicorn/prefer-module
+    // skipcq: JS-0359
     const { FFmpeggy } = require("../../../dist/index.cjs");
     expect(FFmpeggy).toBeDefined();
     const ffmpeggy = new FFmpeggy();
