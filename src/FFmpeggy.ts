@@ -1269,7 +1269,7 @@ export class FFmpeggy extends EventEmitter {
         }
 
         // Cleanup and emit exit event in next tick
-        await this.cleanupAndEmitExit(code);
+        await this.cleanupAndEmitExit();
       } catch (error) {
         // Handle process errors
         this.error = error as Error;
@@ -1285,7 +1285,7 @@ export class FFmpeggy extends EventEmitter {
         }
 
         // Cleanup and emit exit event in next tick
-        await this.cleanupAndEmitExit(null);
+        await this.cleanupAndEmitExit();
       }
     }
   }
@@ -1296,7 +1296,7 @@ export class FFmpeggy extends EventEmitter {
    * @param code - The exit code from the FFmpeg process
    * @private
    */
-  private async cleanupAndEmitExit(code: number | null): Promise<void> {
+  private async cleanupAndEmitExit(code?: number): Promise<void> {
     return new Promise<void>((resolve) => {
       nextTick(() => {
         this.process = undefined;
@@ -1344,7 +1344,7 @@ export class FFmpeggy extends EventEmitter {
         }
         this.emit(
           "exit",
-          typeof process.exitCode === "number" ? process.exitCode : null,
+          typeof process.exitCode === "number" ? process.exitCode : undefined,
           this.error,
         );
       }
