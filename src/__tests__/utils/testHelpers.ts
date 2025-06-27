@@ -192,9 +192,8 @@ export async function cleanupStreams(
   const cleanupPromises = streams.map((stream) => {
     return new Promise<void>((resolve) => {
       if (isDestroyableStream(stream)) {
-        const onClose = () => cleanup();
-        const onFinish = () => cleanup();
-        const onEnd = () => cleanup();
+        // Create cleanup function that will be called in all cases
+        let cleanupCalled = false;
 
         const cleanup = () => {
           if (cleanupCalled) return;
@@ -213,8 +212,9 @@ export async function cleanupStreams(
           resolve();
         };
 
-        // Create cleanup function that will be called in all cases
-        let cleanupCalled = false;
+        const onClose = () => cleanup();
+        const onFinish = () => cleanup();
+        const onEnd = () => cleanup();
 
         // Define all event handlers first
         const onError = (error: Error) => {
