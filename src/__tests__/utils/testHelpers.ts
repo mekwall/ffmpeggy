@@ -21,7 +21,6 @@ export const HOOK_TIMEOUT_MS = TEST_TIMEOUTS.HOOK_OPERATION;
 
 // Re-export TEST_TIMEOUTS for convenience
 
-
 // FFmpeg binary validation
 const ffmpegBin = ffmpegStatic as unknown as string;
 if (!ffmpegBin) {
@@ -601,13 +600,10 @@ export const FFmpeggyTestHelpers = {
           if (hasResolved) return; // Prevent multiple resolutions
 
           // Handle both single result and array of results (for tee muxer)
-          if (Array.isArray(doneResult)) {
-            // For tee muxer with multiple outputs, use the first result
-            result = doneResult[0];
-          } else {
-            // Single result
-            result = doneResult;
-          }
+          result =
+            Array.isArray(doneResult) && doneResult.length > 0
+              ? doneResult[0] // For tee muxer with multiple outputs, use the first result
+              : doneResult; // Single result
         });
 
         // Listen for errors
@@ -910,4 +906,4 @@ export async function retryFileTest<T>(
   throw lastError!;
 }
 
-export {TEST_TIMEOUTS} from "./testTimeouts.js";
+export { TEST_TIMEOUTS } from "./testTimeouts.js";
