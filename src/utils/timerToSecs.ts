@@ -26,7 +26,7 @@ export function timerToSecs(input: string): number {
   const mins = +timer[1];
   const secs = Number.parseFloat(timer[2]);
 
-  if (isNaN(hours) || isNaN(mins) || isNaN(secs)) {
+  if (Number.isNaN(hours) || Number.isNaN(mins) || Number.isNaN(secs)) {
     throw new TypeError(`Invalid time values: cannot parse "${input}"`);
   }
 
