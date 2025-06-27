@@ -123,6 +123,10 @@ export function parseFinalSizes(data: string): FFmpeggyFinalSizes | undefined {
         result.globalHeaders = value;
         break;
       }
+      default: {
+        // Ignore unknown stream types
+        break;
+      }
     }
   }
 
