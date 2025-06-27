@@ -2167,11 +2167,11 @@ export class FFmpeggy extends EventEmitter {
         if (index > 0 && lines[index - 1].trim()) {
           const result = `${lines[index - 1].trim()}\n${line}`;
           return result.length > maxLength
-            ? result.slice(0, Math.max(0, maxLength)) + "..."
+            ? `${result.slice(0, Math.max(0, maxLength))}...`
             : result;
         }
         return line.length > maxLength
-          ? line.slice(0, Math.max(0, maxLength)) + "..."
+          ? `${line.slice(0, Math.max(0, maxLength))}...`
           : line;
       }
     }
@@ -2181,7 +2181,7 @@ export class FFmpeggy extends EventEmitter {
       const line = lines[index].trim();
       if (line) {
         return line.length > maxLength
-          ? line.slice(0, Math.max(0, maxLength)) + "..."
+          ? `${line.slice(0, Math.max(0, maxLength))}...`
           : line;
       }
     }
