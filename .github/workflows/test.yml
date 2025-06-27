@@ -17,6 +17,10 @@ on:
         required: false
         type: boolean
         default: false
+    secrets:
+      DEEPSOURCE_DSN:
+        required: false
+        description: "DeepSource DSN for coverage reporting"
 
 jobs:
   test-unit:
@@ -40,7 +44,7 @@ jobs:
           DEBUG: ${{ inputs.debug && '*' || '' }}
 
       - name: Report test coverage to DeepSource
-        if: inputs.coverage
+        if: inputs.coverage && secrets.DEEPSOURCE_DSN != ''
         uses: deepsourcelabs/test-coverage-action@master
         with:
           key: javascript
@@ -78,7 +82,7 @@ jobs:
           DEBUG: ${{ inputs.debug && '*' || '' }}
 
       - name: Report test coverage to DeepSource
-        if: inputs.coverage
+        if: inputs.coverage && secrets.DEEPSOURCE_DSN != ''
         uses: deepsourcelabs/test-coverage-action@master
         with:
           key: javascript
@@ -116,7 +120,7 @@ jobs:
           DEBUG: ${{ inputs.debug && '*' || '' }}
 
       - name: Report test coverage to DeepSource
-        if: inputs.coverage
+        if: inputs.coverage && secrets.DEEPSOURCE_DSN != ''
         uses: deepsourcelabs/test-coverage-action@master
         with:
           key: javascript
@@ -154,7 +158,7 @@ jobs:
           DEBUG: ${{ inputs.debug && '*' || '' }}
 
       - name: Report test coverage to DeepSource
-        if: inputs.coverage
+        if: inputs.coverage && secrets.DEEPSOURCE_DSN != ''
         uses: deepsourcelabs/test-coverage-action@master
         with:
           key: javascript
@@ -192,7 +196,7 @@ jobs:
           DEBUG: ${{ inputs.debug && '*' || '' }}
 
       - name: Report test coverage to DeepSource
-        if: inputs.coverage
+        if: inputs.coverage && secrets.DEEPSOURCE_DSN != ''
         uses: deepsourcelabs/test-coverage-action@master
         with:
           key: javascript
@@ -235,7 +239,7 @@ jobs:
           DEBUG: ${{ inputs.debug && '*' || '' }}
 
       - name: Report test coverage to DeepSource
-        if: inputs.coverage
+        if: inputs.coverage && secrets.DEEPSOURCE_DSN != ''
         uses: deepsourcelabs/test-coverage-action@master
         with:
           key: javascript

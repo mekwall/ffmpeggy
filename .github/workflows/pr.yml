@@ -38,6 +38,8 @@ jobs:
       os: ${{ matrix.os }}
       debug: false
       coverage: ${{ matrix.os == 'ubuntu-latest' && matrix.node-version == '24.x' }}
+    secrets:
+      DEEPSOURCE_DSN: ${{ secrets.DEEPSOURCE_DSN }}
     strategy:
       matrix:
         os:
