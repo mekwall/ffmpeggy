@@ -26,8 +26,7 @@ export function parseProgress(data: string): FFmpeggyProgress | undefined {
       : undefined;
   const duplicates =
     v.duplicates === undefined ? undefined : Number(v.duplicates);
-  const dropped =
-    v.dropped === undefined ? undefined : Number(v.dropped);
+  const dropped = v.dropped === undefined ? undefined : Number(v.dropped);
   const speed = v.speed === undefined ? undefined : Number(v.speed);
 
   return {
