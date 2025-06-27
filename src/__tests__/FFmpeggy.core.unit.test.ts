@@ -8,6 +8,11 @@ import {
   FFmpeggyTestHelpers,
   HOOK_TIMEOUT_MS,
 } from "./utils/testHelpers";
+import { fileURLToPath } from "node:url";
+import path from "node:path";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Configure FFmpeggy with binaries
 configureFFmpeggy();

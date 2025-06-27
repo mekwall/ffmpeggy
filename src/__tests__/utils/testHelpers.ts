@@ -5,14 +5,20 @@ import {
   ReadStream,
   WriteStream,
 } from "node:fs";
+import { fileURLToPath } from "node:url";
 import { mkdir, stat, unlink, rm, access } from "node:fs/promises";
 import path from "node:path";
+
 import ffmpegStatic from "ffmpeg-static";
 import { path as ffprobeBin } from "ffprobe-static";
-import { FFmpeggy } from "#/FFmpeggy.js";
-import { waitFiles } from "./waitFiles.js";
+import { FFmpeggy } from "#/FFmpeggy";
 import type { FFmpeggyFinalSizes, FFmpeggyProgressEvent } from "#/types";
-import { TEST_TIMEOUTS, isCI, isWindows } from "./testTimeouts.js";
+
+import { waitFiles } from "./waitFiles";
+import { TEST_TIMEOUTS, isCI, isWindows } from "./testTimeouts";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Legacy exports for backward compatibility
 export const TEST_TIMEOUT_MS = TEST_TIMEOUTS.TEST_OPERATION;
