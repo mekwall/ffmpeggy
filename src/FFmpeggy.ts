@@ -367,15 +367,63 @@ export class FFmpeggy extends EventEmitter {
       return this.process;
     }
 
-    const {
-      cwd,
-      inputs,
-      outputs,
-      ffmpegBin,
-      globalOptions,
-      inputOptions,
-      outputOptions,
-    } = this;
+    try {
+      // Validate inputs and configuration
+      this.validateConfiguration();
+      await this.validateInputFiles();
+
+      // Build FFmpeg arguments
+      const { inputArguments, inputStreams, outputArguments, outputStreams } =
+        this.buildFFmpegArguments();
+
+      // Set up global options
+      const globalOptions = this.buildGlobalOptions();
+
+      // Build final arguments array
+      const arguments_ = this.buildFinalArguments(
+        globalOptions,
+        inputArguments,
+        outputArguments,
+      );
+
+      // Set up output tracking
+      this.setupOutputTracking();
+
+      // Start FFmpeg process
+      this.process = this.startFFmpegProcess(arguments_);
+
+      // Set up stream handling
+      await this.setupStreamHandling(inputStreams, outputStreams);
+
+      this.running = true;
+    } catch (error) {
+      const error_ = error as Error;
+      this.error = error_;
+      debug("error: %o", error_);
+      // Only emit error if there are listeners to prevent uncaught exceptions
+      if (this.listenerCount("error") > 0) {
+        this.emit("error", error_);
+      } else {
+        debug(
+          "No error listeners, suppressing run error to prevent uncaught exception",
+        );
+      }
+      this.emit("exit", 1, error_);
+      this.running = false;
+    }
+
+    this.awaitStatus();
+    this.parseOutput();
+    this._clearProgressTimeout();
+    return this.process;
+  }
+
+  /**
+   * Validates the basic configuration before running FFmpeg.
+   * @private
+   */
+  private validateConfiguration(): void {
+    const { ffmpegBin, inputs, outputs } = this;
 
     if (!ffmpegBin) {
       throw new Error("Missing path to ffmpeg binary");
@@ -385,7 +433,7 @@ export class FFmpeggy extends EventEmitter {
       throw new Error("No input specified");
     }
 
-    // Check if any input is an empty string (before file existence check)
+    // Check if any input is an empty string
     for (const input of inputs) {
       if (typeof input === "string" && input.trim() === "") {
         throw new Error("No input specified");
@@ -404,7 +452,7 @@ export class FFmpeggy extends EventEmitter {
       throw new Error("No output specified");
     }
 
-    // Check if any output is an empty string (before file existence check)
+    // Check if any output is an empty string
     for (const output of outputs) {
       if (typeof output === "string" && output.trim() === "") {
         throw new Error("No output specified");
@@ -419,8 +467,35 @@ export class FFmpeggy extends EventEmitter {
       }
     }
 
-    // Validate that input files exist (skip for streams and special inputs like "-")
-    for (const input of inputs) {
+    // Check for unsupported combinations: multiple outputs with WriteStreams
+    const writeStreamCount = outputs.filter((output) => {
+      if (output instanceof WriteStream) return true;
+      if (typeof output === "object" && !(output instanceof WriteStream)) {
+        return output.destination instanceof WriteStream;
+      }
+      return false;
+    }).length;
+
+    if (writeStreamCount > 1) {
+      throw new Error(
+        "Multiple WriteStream outputs are not supported. FFmpeg can only write to one stdout destination at a time.",
+      );
+    }
+
+    // For now, disable WriteStream support in multiple output scenarios
+    if (writeStreamCount > 0 && outputs.length > 1) {
+      throw new Error(
+        "WriteStream outputs are not supported in multiple output scenarios. Use single output with WriteStream or multiple file outputs.",
+      );
+    }
+  }
+
+  /**
+   * Validates that input files exist (skip for streams and special inputs).
+   * @private
+   */
+  private async validateInputFiles(): Promise<void> {
+    for (const input of this.inputs) {
       const inputSource: string | ReadStream =
         typeof input === "string" || input instanceof ReadStream
           ? input
@@ -444,29 +519,19 @@ export class FFmpeggy extends EventEmitter {
         }
       }
     }
+  }
 
-    // Check for unsupported combinations: multiple outputs with WriteStreams
-    const writeStreamCount = outputs.filter((output) => {
-      if (output instanceof WriteStream) return true;
-      if (typeof output === "object" && !(output instanceof WriteStream)) {
-        return output.destination instanceof WriteStream;
-      }
-      return false;
-    }).length;
-
-    if (writeStreamCount > 1) {
-      throw new Error(
-        "Multiple WriteStream outputs are not supported. FFmpeg can only write to one stdout destination at a time.",
-      );
-    }
-
-    // For now, disable WriteStream support in multiple output scenarios
-    // as FFmpeg has issues with multiple stdout destinations
-    if (writeStreamCount > 0 && outputs.length > 1) {
-      throw new Error(
-        "WriteStream outputs are not supported in multiple output scenarios. Use single output with WriteStream or multiple file outputs.",
-      );
-    }
+  /**
+   * Builds FFmpeg input and output arguments.
+   * @private
+   */
+  private buildFFmpegArguments(): {
+    inputArguments: string[];
+    inputStreams: ReadStream[];
+    outputArguments: string[];
+    outputStreams: WriteStream[];
+  } {
+    const { inputs, outputs } = this;
 
     // Build input arguments
     const inputArguments: string[] = [];
@@ -499,212 +564,46 @@ export class FFmpeggy extends EventEmitter {
     }
 
     // Build output arguments
-    let outputArguments: string[] = [];
+    const outputArguments: string[] = [];
     const outputStreams: WriteStream[] = [];
 
     if (this.tee && outputs.length > 1) {
-      // Use tee pseudo-muxer for multiple outputs
-      const teeOutputs: string[] = [];
-      const codecOptions: string[] = [];
-      const muxerOptionsList: string[][] = [];
-
-      // Check if all outputs have compatible options for tee muxer
-      let canUseTee = true;
-      const firstOutputOptions =
-        outputs[0] &&
-        typeof outputs[0] === "object" &&
-        !(outputs[0] instanceof WriteStream)
-          ? outputs[0].options || []
-          : [];
-
-      // Check if any output is a WriteStream - tee muxer doesn't work well with streams
-      const hasWriteStreams = outputs.some((output) => {
-        if (output instanceof WriteStream) return true;
-        if (typeof output === "object" && !(output instanceof WriteStream)) {
-          return output.destination instanceof WriteStream;
-        }
-        return false;
-      });
-
-      if (hasWriteStreams) {
-        canUseTee = false;
-        debug("Tee incompatible: contains WriteStreams");
-      }
-
-      // For tee muxer, all outputs should use the same codec settings
-      // Check if any output has different codec options that would make tee incompatible
-      for (let index = 1; index < outputs.length && canUseTee; index++) {
-        const output = outputs[index];
-        const outputOptions_ =
-          output &&
-          typeof output === "object" &&
-          !(output instanceof WriteStream)
-            ? output.options || []
-            : [];
-
-        // Compare codec options between first output and current output
-        // We need to check both the option and its value
-        const firstCodecOptions: string[] = [];
-        const currentCodecOptions: string[] = [];
-
-        // Extract codec options with their values from first output
-        for (let index_ = 0; index_ < firstOutputOptions.length; index_++) {
-          const opt = firstOutputOptions[index_];
-          if (/^-c(:[avds])?$/.test(opt)) {
-            const nextValue = firstOutputOptions[index_ + 1];
-            if (nextValue && !nextValue.startsWith("-")) {
-              firstCodecOptions.push(opt, nextValue);
-              index_++; // skip value
-            } else {
-              firstCodecOptions.push(opt);
-            }
-          }
-        }
-
-        // Extract codec options with their values from current output
-        for (let index = 0; index < outputOptions_.length; index++) {
-          const opt = outputOptions_[index];
-          if (/^-c(:[avds])?$/.test(opt)) {
-            const nextValue = outputOptions_[index + 1];
-            if (nextValue && !nextValue.startsWith("-")) {
-              currentCodecOptions.push(opt, nextValue);
-              index++; // skip value
-            } else {
-              currentCodecOptions.push(opt);
-            }
-          }
-        }
-
-        // Compare the codec options and their values
-        if (
-          firstCodecOptions.length !== currentCodecOptions.length ||
-          JSON.stringify(firstCodecOptions) !==
-            JSON.stringify(currentCodecOptions)
-        ) {
-          canUseTee = false;
-          debug(
-            `Tee incompatible: first output codec opts: ${JSON.stringify(
-              firstCodecOptions,
-            )}, output ${index} codec opts: ${JSON.stringify(currentCodecOptions)}`,
-          );
-          break;
-        }
-      }
-
-      if (canUseTee) {
-        // Use tee muxer for compatible outputs
-        for (const [index, output] of outputs.entries()) {
-          let outputDestination: string | WriteStream;
-          let outputOptions_: string[] = [];
-
-          if (typeof output === "string" || output instanceof WriteStream) {
-            outputDestination = output;
-          } else {
-            outputDestination = output.destination;
-            outputOptions_ = output.options || [];
-          }
-
-          // Separate codec options and muxer options
-          const muxerOptions: string[] = [];
-          for (let index_ = 0; index_ < outputOptions_.length; index_++) {
-            const opt = outputOptions_[index_];
-            // Muxer options: e.g. f=mp4, movflags=faststart
-            if (
-              /^(f|movflags|protocols|onfail|use_fifo|fifo_options|bsfs|select_streams|ignore_unknown_streams)=/.test(
-                opt,
-              )
-            ) {
-              muxerOptions.push(opt);
-            } else if (/^-c(:[avds])?$/.test(opt)) {
-              // Codec options: -c, -c:v, -c:a, etc.
-              const nextValue = outputOptions_[index_ + 1];
-              if (nextValue && !nextValue.startsWith("-")) {
-                // Insert stream specifier after type
-                const optWithStream = opt.endsWith(":")
-                  ? `${opt}${index}`
-                  : `${opt}:${index}`;
-                codecOptions.push(optWithStream, nextValue);
-                index_++; // skip value
-              }
-            } else {
-              // Other options (e.g. -crf, -b:v, etc.)
-              // These should also be stream-specific if needed
-              const nextValue = outputOptions_[index_ + 1];
-              if (nextValue && !nextValue.startsWith("-")) {
-                // Try to add stream specifier if possible
-                if (/^-(crf|b:v|b:a|q:v|q:a|filter:v|filter:a)$/.test(opt)) {
-                  codecOptions.push(`${opt}:${index}`, nextValue);
-                } else {
-                  codecOptions.push(opt, nextValue);
-                }
-                index_++;
-              } else {
-                codecOptions.push(opt);
-              }
-            }
-          }
-          muxerOptionsList.push(muxerOptions);
-          // Build tee output string
-          let teeOutput =
-            outputDestination instanceof WriteStream ? "-" : outputDestination;
-          if (muxerOptions.length > 0) {
-            teeOutput = `[${muxerOptions.join(",")}]${teeOutput}`;
-          }
-          // Quote the output path for FFmpeg tee muxer (especially for Windows)
-          if (typeof teeOutput === "string" && !teeOutput.startsWith("-")) {
-            teeOutput = `'${teeOutput}'`;
-          }
-          teeOutputs.push(teeOutput);
-        }
-
-        // Build -map options for each output stream
-        const mapOptions: string[] = [];
-        // For tee muxer, we only need one set of map options for all outputs
-        mapOptions.push("-map", "0:v", "-map", "0:a");
-
-        outputArguments = [
-          ...parseOptions(outputOptions),
-          ...codecOptions,
-          ...mapOptions,
-          "-f",
-          "tee",
-          teeOutputs.join("|"),
-        ];
-      } else {
-        // Fall back to standard multiple outputs for incompatible tee scenarios
-        debug(
-          "Tee muxer incompatible with different codec options, falling back to standard multiple outputs",
-        );
-        for (const output of outputs) {
-          let outputDestination: string | WriteStream;
-          let outputOptions_: string[] = [];
-
-          if (typeof output === "string" || output instanceof WriteStream) {
-            outputDestination = output;
-          } else {
-            outputDestination = output.destination;
-            outputOptions_ = output.options || [];
-          }
-
-          // Add output-specific options first
-          if (outputOptions_.length > 0) {
-            outputArguments.push(...parseOptions(outputOptions_));
-          }
-
-          // Add output destination
-          const ffmpegOutput =
-            outputDestination instanceof WriteStream ? "-" : outputDestination;
-          outputArguments.push(ffmpegOutput);
-
-          // Collect output streams for later use
-          if (outputDestination instanceof WriteStream) {
-            outputStreams.push(outputDestination);
-          }
-        }
-      }
+      const teeResult = this.buildTeeOutputArguments(outputs);
+      outputArguments.push(...teeResult.outputArguments);
+      outputStreams.push(...teeResult.outputStreams);
     } else {
-      // Standard multiple outputs
-      for (const output of outputs) {
+      const standardResult = this.buildStandardOutputArguments(outputs);
+      outputArguments.push(...standardResult.outputArguments);
+      outputStreams.push(...standardResult.outputStreams);
+    }
+
+    return {
+      inputArguments,
+      inputStreams,
+      outputArguments,
+      outputStreams,
+    };
+  }
+
+  /**
+   * Builds output arguments for tee muxer when multiple outputs are compatible.
+   * @private
+   */
+  private buildTeeOutputArguments(outputs: FFmpeggyOutputs): {
+    outputArguments: string[];
+    outputStreams: WriteStream[];
+  } {
+    const outputArguments: string[] = [];
+    const outputStreams: WriteStream[] = [];
+    const codecOptions: string[] = [];
+    const muxerOptionsList: string[][] = [];
+
+    // Check if all outputs have compatible options for tee muxer
+    const canUseTee = this.checkTeeCompatibility(outputs);
+
+    if (canUseTee) {
+      // Use tee muxer for compatible outputs
+      for (const [index, output] of outputs.entries()) {
         let outputDestination: string | WriteStream;
         let outputOptions_: string[] = [];
 
@@ -715,22 +614,255 @@ export class FFmpeggy extends EventEmitter {
           outputOptions_ = output.options || [];
         }
 
-        // Add output-specific options first
-        if (outputOptions_.length > 0) {
-          outputArguments.push(...parseOptions(outputOptions_));
-        }
+        const { muxerOptions, codecOptions: codecOptions_ } =
+          this.separateCodecAndMuxerOptions(outputOptions_, index);
+        codecOptions.push(...codecOptions_);
+        muxerOptionsList.push(muxerOptions);
 
-        // Add output destination
-        const ffmpegOutput =
+        // Build tee output string
+        let teeOutput =
           outputDestination instanceof WriteStream ? "-" : outputDestination;
-        outputArguments.push(ffmpegOutput);
+        if (muxerOptions.length > 0) {
+          teeOutput = `[${muxerOptions.join(",")}]${teeOutput}`;
+        }
+        // Quote the output path for FFmpeg tee muxer (especially for Windows)
+        if (typeof teeOutput === "string" && !teeOutput.startsWith("-")) {
+          teeOutput = `'${teeOutput}'`;
+        }
 
         // Collect output streams for later use
         if (outputDestination instanceof WriteStream) {
           outputStreams.push(outputDestination);
         }
       }
+
+      // Build -map options for each output stream
+      const mapOptions: string[] = [];
+      // For tee muxer, we only need one set of map options for all outputs
+      mapOptions.push("-map", "0:v", "-map", "0:a");
+
+      outputArguments.push(
+        ...parseOptions(this.outputOptions),
+        ...codecOptions,
+        ...mapOptions,
+        "-f",
+        "tee",
+        outputs
+          .map((_, index) => {
+            const muxerOptions = muxerOptionsList[index];
+            let teeOutput =
+              typeof outputs[index] === "string"
+                ? (outputs[index] as string)
+                : outputs[index] instanceof WriteStream
+                  ? "-"
+                  : (
+                      outputs[index] as {
+                        destination: string;
+                        options?: string[];
+                      }
+                    ).destination;
+
+            if (muxerOptions.length > 0) {
+              teeOutput = `[${muxerOptions.join(",")}]${teeOutput}`;
+            }
+            if (typeof teeOutput === "string" && !teeOutput.startsWith("-")) {
+              teeOutput = `'${teeOutput}'`;
+            }
+            return teeOutput;
+          })
+          .join("|"),
+      );
+    } else {
+      // Fall back to standard multiple outputs for incompatible tee scenarios
+      debug(
+        "Tee muxer incompatible with different codec options, falling back to standard multiple outputs",
+      );
+      const standardResult = this.buildStandardOutputArguments(outputs);
+      outputArguments.push(...standardResult.outputArguments);
+      outputStreams.push(...standardResult.outputStreams);
     }
+
+    return { outputArguments, outputStreams };
+  }
+
+  /**
+   * Checks if outputs are compatible with tee muxer.
+   * @private
+   */
+  private checkTeeCompatibility(outputs: FFmpeggyOutputs): boolean {
+    // Check if any output is a WriteStream - tee muxer doesn't work well with streams
+    const hasWriteStreams = outputs.some((output) => {
+      if (output instanceof WriteStream) return true;
+      if (typeof output === "object" && !(output instanceof WriteStream)) {
+        return output.destination instanceof WriteStream;
+      }
+      return false;
+    });
+
+    if (hasWriteStreams) {
+      debug("Tee incompatible: contains WriteStreams");
+      return false;
+    }
+
+    // For tee muxer, all outputs should use the same codec settings
+    const firstOutputOptions =
+      outputs[0] &&
+      typeof outputs[0] === "object" &&
+      !(outputs[0] instanceof WriteStream)
+        ? (outputs[0] as { destination: string; options?: string[] }).options ||
+          []
+        : [];
+
+    // Check if any output has different codec options that would make tee incompatible
+    for (let index = 1; index < outputs.length; index++) {
+      const output = outputs[index];
+      const outputOptions_ =
+        output && typeof output === "object" && !(output instanceof WriteStream)
+          ? (output as { destination: string; options?: string[] }).options ||
+            []
+          : [];
+
+      const firstCodecOptions = this.extractCodecOptions(firstOutputOptions);
+      const currentCodecOptions = this.extractCodecOptions(outputOptions_);
+
+      // Compare the codec options and their values
+      if (
+        firstCodecOptions.length !== currentCodecOptions.length ||
+        JSON.stringify(firstCodecOptions) !==
+          JSON.stringify(currentCodecOptions)
+      ) {
+        debug(
+          `Tee incompatible: first output codec opts: ${JSON.stringify(
+            firstCodecOptions,
+          )}, output ${index} codec opts: ${JSON.stringify(currentCodecOptions)}`,
+        );
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  /**
+   * Extracts codec options from output options array.
+   * @private
+   */
+  private extractCodecOptions(outputOptions: string[]): string[] {
+    const codecOptions: string[] = [];
+    for (let index = 0; index < outputOptions.length; index++) {
+      const opt = outputOptions[index];
+      if (/^-c(:[avds])?$/.test(opt)) {
+        const nextValue = outputOptions[index + 1];
+        if (nextValue && !nextValue.startsWith("-")) {
+          codecOptions.push(opt, nextValue);
+          index++; // skip value
+        } else {
+          codecOptions.push(opt);
+        }
+      }
+    }
+    return codecOptions;
+  }
+
+  /**
+   * Separates codec options and muxer options from output options.
+   * @private
+   */
+  private separateCodecAndMuxerOptions(
+    outputOptions: string[],
+    outputIndex: number,
+  ): { muxerOptions: string[]; codecOptions: string[] } {
+    const muxerOptions: string[] = [];
+    const codecOptions: string[] = [];
+
+    for (let index = 0; index < outputOptions.length; index++) {
+      const opt = outputOptions[index];
+      // Muxer options: e.g. f=mp4, movflags=faststart
+      if (
+        /^(f|movflags|protocols|onfail|use_fifo|fifo_options|bsfs|select_streams|ignore_unknown_streams)=/.test(
+          opt,
+        )
+      ) {
+        muxerOptions.push(opt);
+      } else if (/^-c(:[avds])?$/.test(opt)) {
+        // Codec options: -c, -c:v, -c:a, etc.
+        const nextValue = outputOptions[index + 1];
+        if (nextValue && !nextValue.startsWith("-")) {
+          // Insert stream specifier after type
+          const optWithStream = opt.endsWith(":")
+            ? `${opt}${outputIndex}`
+            : `${opt}:${outputIndex}`;
+          codecOptions.push(optWithStream, nextValue);
+          index++; // skip value
+        }
+      } else {
+        // Other options (e.g. -crf, -b:v, etc.)
+        // These should also be stream-specific if needed
+        const nextValue = outputOptions[index + 1];
+        if (nextValue && !nextValue.startsWith("-")) {
+          // Try to add stream specifier if possible
+          if (/^-(crf|b:v|b:a|q:v|q:a|filter:v|filter:a)$/.test(opt)) {
+            codecOptions.push(`${opt}:${outputIndex}`, nextValue);
+          } else {
+            codecOptions.push(opt, nextValue);
+          }
+          index++;
+        } else {
+          codecOptions.push(opt);
+        }
+      }
+    }
+
+    return { muxerOptions, codecOptions };
+  }
+
+  /**
+   * Builds output arguments for standard multiple outputs.
+   * @private
+   */
+  private buildStandardOutputArguments(outputs: FFmpeggyOutputs): {
+    outputArguments: string[];
+    outputStreams: WriteStream[];
+  } {
+    const outputArguments: string[] = [];
+    const outputStreams: WriteStream[] = [];
+
+    for (const output of outputs) {
+      let outputDestination: string | WriteStream;
+      let outputOptions_: string[] = [];
+
+      if (typeof output === "string" || output instanceof WriteStream) {
+        outputDestination = output;
+      } else {
+        outputDestination = output.destination;
+        outputOptions_ = output.options || [];
+      }
+
+      // Add output-specific options first
+      if (outputOptions_.length > 0) {
+        outputArguments.push(...parseOptions(outputOptions_));
+      }
+
+      // Add output destination
+      const ffmpegOutput =
+        outputDestination instanceof WriteStream ? "-" : outputDestination;
+      outputArguments.push(ffmpegOutput);
+
+      // Collect output streams for later use
+      if (outputDestination instanceof WriteStream) {
+        outputStreams.push(outputDestination);
+      }
+    }
+
+    return { outputArguments, outputStreams };
+  }
+
+  /**
+   * Builds global options for FFmpeg.
+   * @private
+   */
+  private buildGlobalOptions(): string[] {
+    const globalOptions = [...this.globalOptions];
 
     if (this.hideBanner) {
       globalOptions.push("-hide_banner");
@@ -740,13 +872,35 @@ export class FFmpeggy extends EventEmitter {
       globalOptions.push("-y");
     }
 
+    return globalOptions;
+  }
+
+  /**
+   * Builds the final arguments array for FFmpeg.
+   * @private
+   */
+  private buildFinalArguments(
+    globalOptions: string[],
+    inputArguments: string[],
+    outputArguments: string[],
+  ): readonly string[] {
     const arguments_ = [
       ...parseOptions(globalOptions),
-      ...parseOptions(inputOptions),
+      ...parseOptions(this.inputOptions),
       ...inputArguments,
-      ...parseOptions(outputOptions),
+      ...parseOptions(this.outputOptions),
       ...outputArguments,
     ].filter((a) => !!a);
+
+    return arguments_;
+  }
+
+  /**
+   * Sets up output tracking for progress and file monitoring.
+   * @private
+   */
+  private setupOutputTracking(): void {
+    const { outputs } = this;
 
     // Set pipedOutput flag for stream handling
     const hasPipedOutput = outputs.some((output) => {
@@ -784,308 +938,236 @@ export class FFmpeggy extends EventEmitter {
         }
       }
     }
+  }
 
-    const joinedArguments: readonly string[] = arguments_;
-    debug("ffmpeg full command: %s %s", ffmpegBin, joinedArguments.join(" "));
-    try {
-      this.emit("start", joinedArguments);
-      debug("bin: %s", ffmpegBin);
-      debug("args: %o", joinedArguments);
+  /**
+   * Starts the FFmpeg process.
+   * @private
+   */
+  private startFFmpegProcess(arguments_: readonly string[]): ExecaChildProcess {
+    const { ffmpegBin, cwd } = this;
 
-      // Emit synthetic writing event for all outputs if using tee muxer and multiple outputs
-      if (outputs.length > 1 && this.tee) {
-        const writingEvents = outputs.map((output, index) => {
-          let file: string | undefined;
-          if (typeof output === "string") file = output;
-          else if (output instanceof WriteStream) file = undefined;
-          else if (typeof output.destination === "string")
-            file = output.destination;
-          else file = undefined;
-          return { file: file || "", outputIndex: index };
-        });
-        this.emit("writing", writingEvents);
-      }
+    debug("ffmpeg full command: %s %s", ffmpegBin, arguments_.join(" "));
+    this.emit("start", arguments_);
+    debug("bin: %s", ffmpegBin);
+    debug("args: %o", arguments_);
 
-      // Wait for all input streams to open
-      for (const inputStream of inputStreams) {
-        await new Promise<void>((resolve, reject) => {
-          const timeout = setTimeout(() => {
-            reject(new Error("Timeout waiting for input stream to open"));
-          }, DEFAULT_STREAM_OPEN_TIMEOUT_MS);
-
-          inputStream.once("open", () => {
-            clearTimeout(timeout);
-            resolve();
-          });
-
-          inputStream.once("error", (error) => {
-            clearTimeout(timeout);
-            reject(error);
-          });
-        });
-      }
-
-      // Wait for all output streams to open
-      for (const outputStream of outputStreams) {
-        await new Promise<void>((resolve, reject) => {
-          const timeout = setTimeout(() => {
-            reject(new Error("Timeout waiting for output stream to open"));
-          }, DEFAULT_STREAM_OPEN_TIMEOUT_MS);
-
-          outputStream.once("open", () => {
-            clearTimeout(timeout);
-            resolve();
-          });
-
-          outputStream.once("error", (error) => {
-            clearTimeout(timeout);
-            reject(error);
-          });
-        });
-      }
-
-      // For multiple input streams, we need to handle them differently
-      // For now, we'll use the first input stream as the main input
-      const mainInput = inputStreams.length > 0 ? inputStreams[0] : undefined;
-      // Don't pass WriteStreams directly to execa stdout - handle them through pipeline
-      const mainOutput = undefined;
-
-      debug("FFmpeg process starting");
-      this.process = execa(ffmpegBin, joinedArguments, {
-        cwd,
-        input: mainInput,
-        stdout: mainOutput,
-        reject: false,
+    // Emit synthetic writing event for all outputs if using tee muxer and multiple outputs
+    if (this.outputs.length > 1 && this.tee) {
+      const writingEvents = this.outputs.map((output, index) => {
+        let file: string | undefined;
+        if (typeof output === "string") file = output;
+        else if (output instanceof WriteStream) file = undefined;
+        else if (typeof output.destination === "string")
+          file = output.destination;
+        else file = undefined;
+        return { file: file || "", outputIndex: index };
       });
-
-      // Use pipeline for robust stream handling when output is a WriteStream
-      if (this.process.stdout && outputStreams.length > 0) {
-        debug("Setting up pipeline for outputStreams");
-
-        // Check if we need a tee stream (multiple destinations)
-        const needsTee =
-          outputStreams.length > 1 ||
-          (outputStreams.length === 1 && this._wantsStream);
-
-        if (needsTee) {
-          // Create a tee stream to handle multiple destinations
-          const teeStream = new PassThrough();
-
-          // Handle errors on the tee stream
-          teeStream.on("error", (error) => {
-            debug("Tee stream error: %o", sanitizeErrorForLog(error));
-            // Don't emit this as an uncaught exception
-          });
-
-          // Pipe stdout to the tee stream first
-          pipeline(this.process.stdout!, teeStream)
-            .then(() => {
-              debug("Main pipeline to tee stream finished");
-            })
-            .catch((error: Error) => {
-              // Only log the error, don't treat it as uncaught
-              debug(
-                "Main pipeline to tee stream error (expected during cleanup): %o",
-                sanitizeErrorForLog(error),
-              );
-            });
-
-          // Use the first output stream for the main pipeline
-          const firstOutputStream = outputStreams[0];
-
-          // Handle errors on the output stream
-          firstOutputStream.on("error", (error) => {
-            debug("Output stream error: %o", sanitizeErrorForLog(error));
-            // Don't emit this as an uncaught exception
-          });
-
-          pipeline(teeStream, firstOutputStream)
-            .then(() => {
-              debug("Pipeline for outputStreams finished");
-            })
-            .catch((error: Error) => {
-              // Suppress expected stream cleanup errors
-              const errorMessage = error.message || "";
-              const isExpectedError =
-                /premature close|write after end|cannot pipe|stream.*error|ERR_STREAM_PREMATURE_CLOSE|ERR_STREAM_WRITE_AFTER_END/i.test(
-                  errorMessage,
-                );
-
-              if (isExpectedError) {
-                debug("Suppressed expected pipeline error: %s", errorMessage);
-                // Don't emit error for expected stream cleanup issues
-                return;
-              }
-
-              debug("Pipeline error: %o", sanitizeErrorForLog(error));
-              this.error = error;
-              // Only emit error if there are listeners to prevent uncaught exceptions
-              if (this.listenerCount("error") > 0) {
-                this.emit("error", error);
-              } else {
-                debug(
-                  "No error listeners, suppressing pipeline error to prevent uncaught exception",
-                );
-              }
-            });
-
-          // If toStream() was called, also pipe to the outputStream
-          if (this._wantsStream) {
-            debug("Setting up pipeline for toStream() outputStream");
-
-            // Handle errors on the outputStream
-            this.outputStream.on("error", (error) => {
-              debug(
-                "toStream outputStream error: %o",
-                sanitizeErrorForLog(error),
-              );
-              // Don't emit this as an uncaught exception
-            });
-
-            pipeline(teeStream, this.outputStream)
-              .then(() => {
-                debug("Pipeline for toStream() outputStream finished");
-              })
-              .catch((error) => {
-                // Suppress expected stream cleanup errors
-                const errorMessage = error.message || "";
-                const isExpectedError =
-                  /premature close|write after end|cannot pipe|stream.*error|ERR_STREAM_PREMATURE_CLOSE|ERR_STREAM_WRITE_AFTER_END/i.test(
-                    errorMessage,
-                  );
-
-                if (isExpectedError) {
-                  debug(
-                    "Suppressed expected pipeline error for toStream(): %s",
-                    errorMessage,
-                  );
-                  // Don't emit error for expected stream cleanup issues
-                  return;
-                }
-
-                debug(
-                  "Pipeline error for toStream(): %o",
-                  sanitizeErrorForLog(error),
-                );
-                this.error = error;
-                // Only emit error if there are listeners to prevent uncaught exceptions
-                if (this.listenerCount("error") > 0) {
-                  this.emit("error", error);
-                } else {
-                  debug(
-                    "No error listeners, suppressing pipeline error to prevent uncaught exception",
-                  );
-                }
-              });
-          }
-        } else {
-          // Single output stream - use direct pipeline without tee
-          const outputStream = outputStreams[0];
-
-          // Handle errors on the output stream
-          outputStream.on("error", (error) => {
-            debug("Output stream error: %o", sanitizeErrorForLog(error));
-            // Don't emit this as an uncaught exception
-          });
-
-          pipeline(this.process.stdout!, outputStream)
-            .then(() => {
-              debug("Direct pipeline for outputStream finished");
-            })
-            .catch((error: Error) => {
-              // Suppress expected stream cleanup errors
-              const errorMessage = error.message || "";
-              const isExpectedError =
-                /premature close|write after end|cannot pipe|stream.*error|ERR_STREAM_PREMATURE_CLOSE|ERR_STREAM_WRITE_AFTER_END/i.test(
-                  errorMessage,
-                );
-
-              if (isExpectedError) {
-                debug("Suppressed expected pipeline error: %s", errorMessage);
-                // Don't emit error for expected stream cleanup issues
-                return;
-              }
-
-              debug("Pipeline error: %o", sanitizeErrorForLog(error));
-              this.error = error;
-              // Only emit error if there are listeners to prevent uncaught exceptions
-              if (this.listenerCount("error") > 0) {
-                this.emit("error", error);
-              } else {
-                debug(
-                  "No error listeners, suppressing pipeline error to prevent uncaught exception",
-                );
-              }
-            });
-        }
-      } else if (this._wantsStream && this.process.stdout) {
-        // Only toStream() was called, no output streams
-        debug("Setting up pipeline for toStream() outputStream only");
-
-        // Handle errors on the outputStream
-        this.outputStream.on("error", (error) => {
-          debug("toStream outputStream error: %o", sanitizeErrorForLog(error));
-          // Don't emit this as an uncaught exception
-        });
-
-        pipeline(this.process.stdout, this.outputStream)
-          .then(() => {
-            debug("Pipeline for toStream() outputStream finished");
-          })
-          .catch((error) => {
-            // Suppress expected stream cleanup errors
-            const errorMessage = error.message || "";
-            const isExpectedError =
-              /premature close|write after end|cannot pipe|stream.*error|ERR_STREAM_PREMATURE_CLOSE|ERR_STREAM_WRITE_AFTER_END/i.test(
-                errorMessage,
-              );
-
-            if (isExpectedError) {
-              debug(
-                "Suppressed expected pipeline error for toStream(): %s",
-                errorMessage,
-              );
-              // Don't emit error for expected stream cleanup issues
-              return;
-            }
-
-            debug(
-              "Pipeline error for toStream(): %o",
-              sanitizeErrorForLog(error),
-            );
-            this.error = error;
-            // Only emit error if there are listeners to prevent uncaught exceptions
-            if (this.listenerCount("error") > 0) {
-              this.emit("error", error);
-            } else {
-              debug(
-                "No error listeners, suppressing pipeline error to prevent uncaught exception",
-              );
-            }
-          });
-      }
-
-      this.running = true;
-    } catch (error) {
-      const error_ = error as Error;
-      this.error = error_;
-      debug("error: %o", error_);
-      // Only emit error if there are listeners to prevent uncaught exceptions
-      if (this.listenerCount("error") > 0) {
-        this.emit("error", error_);
-      } else {
-        debug(
-          "No error listeners, suppressing run error to prevent uncaught exception",
-        );
-      }
-      this.emit("exit", 1, error_);
-      this.running = false;
+      this.emit("writing", writingEvents);
     }
 
-    this.awaitStatus();
-    this.parseOutput();
-    this._clearProgressTimeout();
-    return this.process;
+    return execa(ffmpegBin, arguments_, {
+      cwd,
+      input: undefined,
+      stdout: undefined,
+      reject: false,
+    });
+  }
+
+  /**
+   * Sets up stream handling for input and output streams.
+   * @private
+   */
+  private async setupStreamHandling(
+    inputStreams: ReadStream[],
+    outputStreams: WriteStream[],
+  ): Promise<void> {
+    // Wait for all input streams to open
+    for (const inputStream of inputStreams) {
+      await this.waitForStreamOpen(inputStream, "input");
+    }
+
+    // Wait for all output streams to open
+    for (const outputStream of outputStreams) {
+      await this.waitForStreamOpen(outputStream, "output");
+    }
+
+    // Set up pipeline for robust stream handling when output is a WriteStream
+    if (this.process?.stdout && outputStreams.length > 0) {
+      this.setupOutputPipeline(outputStreams);
+    } else if (this._wantsStream && this.process?.stdout) {
+      this.setupToStreamPipeline();
+    }
+  }
+
+  /**
+   * Waits for a stream to open with timeout.
+   * @private
+   */
+  private async waitForStreamOpen(
+    stream: ReadStream | WriteStream,
+    type: "input" | "output",
+  ): Promise<void> {
+    await new Promise<void>((resolve, reject) => {
+      const timeout = setTimeout(() => {
+        reject(new Error(`Timeout waiting for ${type} stream to open`));
+      }, DEFAULT_STREAM_OPEN_TIMEOUT_MS);
+
+      if (stream instanceof ReadStream) {
+        stream.once("open", () => {
+          clearTimeout(timeout);
+          resolve();
+        });
+
+        stream.once("error", (error: Error) => {
+          clearTimeout(timeout);
+          reject(error);
+        });
+      } else {
+        stream.once("open", () => {
+          clearTimeout(timeout);
+          resolve();
+        });
+
+        stream.once("error", (error: Error) => {
+          clearTimeout(timeout);
+          reject(error);
+        });
+      }
+    });
+  }
+
+  /**
+   * Sets up pipeline for output streams.
+   * @private
+   */
+  private setupOutputPipeline(outputStreams: WriteStream[]): void {
+    debug("Setting up pipeline for outputStreams");
+
+    // Check if we need a tee stream (multiple destinations)
+    const needsTee =
+      outputStreams.length > 1 ||
+      (outputStreams.length === 1 && this._wantsStream);
+
+    if (needsTee) {
+      this.setupTeePipeline(outputStreams);
+    } else {
+      this.setupDirectPipeline(outputStreams[0]);
+    }
+  }
+
+  /**
+   * Sets up tee pipeline for multiple output streams.
+   * @private
+   */
+  private setupTeePipeline(outputStreams: WriteStream[]): void {
+    // Create a tee stream to handle multiple destinations
+    const teeStream = new PassThrough();
+
+    // Handle errors on the tee stream
+    teeStream.on("error", (error) => {
+      debug("Tee stream error: %o", sanitizeErrorForLog(error));
+      // Don't emit this as an uncaught exception
+    });
+
+    // Pipe stdout to the tee stream first
+    pipeline(this.process!.stdout!, teeStream)
+      .then(() => {
+        debug("Main pipeline to tee stream finished");
+      })
+      .catch((error: Error) => {
+        // Only log the error, don't treat it as uncaught
+        debug(
+          "Main pipeline to tee stream error (expected during cleanup): %o",
+          sanitizeErrorForLog(error),
+        );
+      });
+
+    // Use the first output stream for the main pipeline
+    const firstOutputStream = outputStreams[0];
+    this.setupStreamPipeline(teeStream, firstOutputStream, "outputStreams");
+
+    // If toStream() was called, also pipe to the outputStream
+    if (this._wantsStream) {
+      debug("Setting up pipeline for toStream() outputStream");
+      this.setupStreamPipeline(teeStream, this.outputStream, "toStream");
+    }
+  }
+
+  /**
+   * Sets up direct pipeline for single output stream.
+   * @private
+   */
+  private setupDirectPipeline(outputStream: WriteStream): void {
+    this.setupStreamPipeline(
+      this.process!.stdout!,
+      outputStream,
+      "outputStream",
+    );
+  }
+
+  /**
+   * Sets up pipeline for toStream() only.
+   * @private
+   */
+  private setupToStreamPipeline(): void {
+    debug("Setting up pipeline for toStream() outputStream only");
+    if (this.process?.stdout) {
+      this.setupStreamPipeline(
+        this.process.stdout,
+        this.outputStream,
+        "toStream",
+      );
+    }
+  }
+
+  /**
+   * Sets up a generic stream pipeline with error handling.
+   * @private
+   */
+  private setupStreamPipeline(
+    source: NodeJS.ReadableStream,
+    destination: NodeJS.WritableStream,
+    context: string,
+  ): void {
+    // Handle errors on the destination stream
+    destination.on("error", (error) => {
+      debug(`${context} error: %o`, sanitizeErrorForLog(error));
+      // Don't emit this as an uncaught exception
+    });
+
+    pipeline(source, destination)
+      .then(() => {
+        debug(`Pipeline for ${context} finished`);
+      })
+      .catch((error: Error) => {
+        // Suppress expected stream cleanup errors
+        const errorMessage = error.message || "";
+        const isExpectedError =
+          /premature close|write after end|cannot pipe|stream.*error|ERR_STREAM_PREMATURE_CLOSE|ERR_STREAM_WRITE_AFTER_END/i.test(
+            errorMessage,
+          );
+
+        if (isExpectedError) {
+          debug(
+            `Suppressed expected pipeline error for ${context}: %s`,
+            errorMessage,
+          );
+          // Don't emit error for expected stream cleanup issues
+          return;
+        }
+
+        debug(`Pipeline error for ${context}: %o`, sanitizeErrorForLog(error));
+        this.error = error;
+        // Only emit error if there are listeners to prevent uncaught exceptions
+        if (this.listenerCount("error") > 0) {
+          this.emit("error", error);
+        } else {
+          debug(
+            "No error listeners, suppressing pipeline error to prevent uncaught exception",
+          );
+        }
+      });
   }
 
   /**
