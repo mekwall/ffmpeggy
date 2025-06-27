@@ -16,7 +16,7 @@ describe("parsers", () => {
       "size=      19kB time=01:16:04.05 bitrate=   48.0kbits/s speed= 348x";
     const progress = parseProgress(txt);
     expect(progress).toBeDefined();
-    expect(progress?.size).toBe(19456);
+    expect(progress?.size).toBe(19_456);
     expect(progress?.time).toBe(4564.05);
     expect(progress?.bitrate).toBe(48);
     expect(progress?.speed).toBe(348);
@@ -30,7 +30,7 @@ describe("parsers", () => {
     expect(progress?.frame).toBe(3853);
     expect(progress?.fps).toBe(246);
     expect(progress?.q).toBe(-1);
-    expect(progress?.size).toBe(25806848);
+    expect(progress?.size).toBe(25_806_848);
     expect(progress?.time).toBe(154.08);
     expect(progress?.bitrate).toBe(1339.9);
     expect(progress?.speed).toBe(9.82);
@@ -56,12 +56,12 @@ describe("parsers", () => {
         "video:1033kB audio:226kB subtitle:0kB other streams:0kB global headers:0kB muxing overhead: 0.414726%";
       const sizes = parseFinalSizes(txt);
       expect(sizes).toBeDefined();
-      expect(sizes?.video).toBe(1057792); // 1033 * 1024
-      expect(sizes?.audio).toBe(231424); // 226 * 1024
+      expect(sizes?.video).toBe(1_057_792); // 1033 * 1024
+      expect(sizes?.audio).toBe(231_424); // 226 * 1024
       expect(sizes?.subtitles).toBe(0);
       expect(sizes?.otherStreams).toBe(0);
       expect(sizes?.globalHeaders).toBe(0);
-      expect(sizes?.muxingOverhead).toBe(0.00414726); // 0.414726 / 100
+      expect(sizes?.muxingOverhead).toBe(0.004_147_26); // 0.414726 / 100
     });
 
     it("should parse final sizes with MB units", () => {
@@ -69,12 +69,12 @@ describe("parsers", () => {
         "video:2MB audio:1MB subtitle:0MB other streams:0MB global headers:0kB muxing overhead: 0.414726%";
       const sizes = parseFinalSizes(txt);
       expect(sizes).toBeDefined();
-      expect(sizes?.video).toBe(2097152); // 2 * 1024 * 1024
-      expect(sizes?.audio).toBe(1048576); // 1 * 1024 * 1024
+      expect(sizes?.video).toBe(2_097_152); // 2 * 1024 * 1024
+      expect(sizes?.audio).toBe(1_048_576); // 1 * 1024 * 1024
       expect(sizes?.subtitles).toBe(0);
       expect(sizes?.otherStreams).toBe(0);
       expect(sizes?.globalHeaders).toBe(0);
-      expect(sizes?.muxingOverhead).toBe(0.00414726);
+      expect(sizes?.muxingOverhead).toBe(0.004_147_26);
     });
 
     it("should parse final sizes with B units", () => {
@@ -87,7 +87,7 @@ describe("parsers", () => {
       expect(sizes?.subtitles).toBe(0);
       expect(sizes?.otherStreams).toBe(0);
       expect(sizes?.globalHeaders).toBe(0);
-      expect(sizes?.muxingOverhead).toBe(0.00414726);
+      expect(sizes?.muxingOverhead).toBe(0.004_147_26);
     });
 
     it("should parse final sizes with mixed units", () => {
@@ -95,12 +95,12 @@ describe("parsers", () => {
         "video:1MB audio:512kB subtitle:256B other streams:128kB global headers:64kB muxing overhead: 1.234567%";
       const sizes = parseFinalSizes(txt);
       expect(sizes).toBeDefined();
-      expect(sizes?.video).toBe(1048576); // 1 * 1024 * 1024
-      expect(sizes?.audio).toBe(524288); // 512 * 1024
+      expect(sizes?.video).toBe(1_048_576); // 1 * 1024 * 1024
+      expect(sizes?.audio).toBe(524_288); // 512 * 1024
       expect(sizes?.subtitles).toBe(256);
-      expect(sizes?.otherStreams).toBe(131072); // 128 * 1024
-      expect(sizes?.globalHeaders).toBe(65536); // 64 * 1024
-      expect(sizes?.muxingOverhead).toBe(0.01234567); // 1.234567 / 100
+      expect(sizes?.otherStreams).toBe(131_072); // 128 * 1024
+      expect(sizes?.globalHeaders).toBe(65_536); // 64 * 1024
+      expect(sizes?.muxingOverhead).toBe(0.012_345_67); // 1.234567 / 100
     });
 
     it("should parse final sizes with only video", () => {
@@ -108,12 +108,12 @@ describe("parsers", () => {
         "video:1033kB other streams:0kB global headers:0kB muxing overhead: 0.414726%";
       const sizes = parseFinalSizes(txt);
       expect(sizes).toBeDefined();
-      expect(sizes?.video).toBe(1057792); // 1033 * 1024
+      expect(sizes?.video).toBe(1_057_792); // 1033 * 1024
       expect(sizes?.audio).toBe(0);
       expect(sizes?.subtitles).toBe(0);
       expect(sizes?.otherStreams).toBe(0);
       expect(sizes?.globalHeaders).toBe(0);
-      expect(sizes?.muxingOverhead).toBe(0.00414726);
+      expect(sizes?.muxingOverhead).toBe(0.004_147_26);
     });
 
     it("should parse final sizes with video and audio only", () => {
@@ -121,12 +121,12 @@ describe("parsers", () => {
         "video:1033kB audio:226kB other streams:0kB global headers:0kB muxing overhead: 0.414726%";
       const sizes = parseFinalSizes(txt);
       expect(sizes).toBeDefined();
-      expect(sizes?.video).toBe(1057792); // 1033 * 1024
-      expect(sizes?.audio).toBe(231424); // 226 * 1024
+      expect(sizes?.video).toBe(1_057_792); // 1033 * 1024
+      expect(sizes?.audio).toBe(231_424); // 226 * 1024
       expect(sizes?.subtitles).toBe(0);
       expect(sizes?.otherStreams).toBe(0);
       expect(sizes?.globalHeaders).toBe(0);
-      expect(sizes?.muxingOverhead).toBe(0.00414726);
+      expect(sizes?.muxingOverhead).toBe(0.004_147_26);
     });
 
     it("should parse final sizes with different field order", () => {
@@ -134,11 +134,11 @@ describe("parsers", () => {
         "audio:512kB video:1MB subtitle:256B global headers:64kB other streams:128kB muxing overhead: 0.5%";
       const sizes = parseFinalSizes(txt);
       expect(sizes).toBeDefined();
-      expect(sizes?.video).toBe(1048576); // 1 * 1024 * 1024
-      expect(sizes?.audio).toBe(524288); // 512 * 1024
+      expect(sizes?.video).toBe(1_048_576); // 1 * 1024 * 1024
+      expect(sizes?.audio).toBe(524_288); // 512 * 1024
       expect(sizes?.subtitles).toBe(256);
-      expect(sizes?.otherStreams).toBe(131072); // 128 * 1024
-      expect(sizes?.globalHeaders).toBe(65536); // 64 * 1024
+      expect(sizes?.otherStreams).toBe(131_072); // 128 * 1024
+      expect(sizes?.globalHeaders).toBe(65_536); // 64 * 1024
       expect(sizes?.muxingOverhead).toBe(0.005); // 0.5 / 100
     });
 
@@ -147,12 +147,12 @@ describe("parsers", () => {
         "video:1033kB audio:226kB subtitles:0kB other streams:0kB global headers:0kB muxing overhead: 0.414726%";
       const sizes = parseFinalSizes(txt);
       expect(sizes).toBeDefined();
-      expect(sizes?.video).toBe(1057792);
-      expect(sizes?.audio).toBe(231424);
+      expect(sizes?.video).toBe(1_057_792);
+      expect(sizes?.audio).toBe(231_424);
       expect(sizes?.subtitles).toBe(0);
       expect(sizes?.otherStreams).toBe(0);
       expect(sizes?.globalHeaders).toBe(0);
-      expect(sizes?.muxingOverhead).toBe(0.00414726);
+      expect(sizes?.muxingOverhead).toBe(0.004_147_26);
     });
 
     it("should return undefined for non-matching text", () => {

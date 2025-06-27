@@ -1,4 +1,4 @@
-import { WriteStream } from "fs";
+import { WriteStream } from "node:fs";
 
 /**
  * File output: a string path or an object with a string destination.

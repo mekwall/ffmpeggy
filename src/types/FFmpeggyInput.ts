@@ -1,4 +1,4 @@
-import type { ReadStream } from "fs";
+import type { ReadStream } from "node:fs";
 
 /**
  * Input configuration for FFmpeg operations.

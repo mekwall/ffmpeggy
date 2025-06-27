@@ -1,4 +1,4 @@
-import type { ReadStream, WriteStream } from "fs";
+import type { ReadStream, WriteStream } from "node:fs";
 import type { FFmpeggyInput } from "./FFmpeggyInput";
 import type { FFmpeggyOutputs } from "./FFmpeggyOutput";
 

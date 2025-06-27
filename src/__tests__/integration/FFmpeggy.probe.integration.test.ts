@@ -5,7 +5,7 @@ import {
   SAMPLE_FILES,
   TestFileManager,
 } from "../utils/testHelpers";
-import { writeFile } from "fs/promises";
+import { writeFile } from "node:fs/promises";
 
 // Configure FFmpeggy with binaries
 configureFFmpeggy();
@@ -167,7 +167,7 @@ describe("FFmpeggy:probe", () => {
 
       // Duration might be undefined for some file types
       expect(
-        typeof result.format.duration === "undefined" ||
+        result.format.duration === undefined ||
           typeof result.format.duration === "number",
       ).toBe(true);
     });

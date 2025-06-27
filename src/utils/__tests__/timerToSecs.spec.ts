@@ -24,8 +24,8 @@ describe("timerToSecs", () => {
   });
 
   it("should handle large values", () => {
-    expect(timerToSecs("23:59:59.99")).toBe(86399.99);
-    expect(timerToSecs("99:59:59.99")).toBe(359999.99);
+    expect(timerToSecs("23:59:59.99")).toBe(86_399.99);
+    expect(timerToSecs("99:59:59.99")).toBe(359_999.99);
   });
 
   it("should throw error for N/A input", () => {
@@ -77,6 +77,6 @@ describe("timerToSecs", () => {
   });
 
   it("should handle whitespace", () => {
-    expect(timerToSecs("  04:42:21.64  ")).toBe(16941.64);
+    expect(timerToSecs("  04:42:21.64  ")).toBe(16_941.64);
   });
 });

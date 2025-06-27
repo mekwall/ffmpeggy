@@ -1,8 +1,9 @@
-import { access } from "fs/promises";
-import { ReadStream, WriteStream } from "fs";
-import { nextTick } from "process";
-import { PassThrough } from "stream";
-import { pipeline } from "stream/promises";
+import { access } from "node:fs/promises";
+import { ReadStream, WriteStream } from "node:fs";
+import { nextTick } from "node:process";
+import { PassThrough } from "node:stream";
+import { pipeline } from "node:stream/promises";
+import EventEmitter from "node:events";
 
 import {
   execa,
@@ -10,7 +11,6 @@ import {
   type ExecaChildProcess,
 } from "@esm2cjs/execa";
 import createDebug from "debug";
-import EventEmitter from "events";
 
 import {
   parseInfo,
@@ -35,9 +35,9 @@ const DEFAULT_STREAM_OPEN_TIMEOUT_MS = 5000;
 const debug = createDebug("ffmpeggy");
 
 // Utility to sanitize error objects for logging (hide large/binary bufferedData)
-function sanitizeErrorForLog(err: unknown): unknown {
-  if (err && typeof err === "object") {
-    const copy: Record<string, unknown> = { ...err };
+function sanitizeErrorForLog(error: unknown): unknown {
+  if (error && typeof error === "object") {
+    const copy: Record<string, unknown> = { ...error };
 
     // Handle bufferedData that might be a Buffer or string
     if (copy.bufferedData) {
@@ -46,16 +46,16 @@ function sanitizeErrorForLog(err: unknown): unknown {
           (copy.bufferedData as Buffer).length
         } (hidden)>`;
       } else if (typeof copy.bufferedData === "string") {
-        const str = copy.bufferedData as string;
-        if (str.length > 100) {
-          copy.bufferedData = `<String length=${str.length} (hidden)>`;
+        const string_ = copy.bufferedData as string;
+        if (string_.length > 100) {
+          copy.bufferedData = `<String length=${string_.length} (hidden)>`;
         }
       }
     }
 
     return copy;
   }
-  return err;
+  return error;
 }
 
 /**
@@ -268,17 +268,17 @@ export class FFmpeggy extends EventEmitter {
    * });
    * ```
    */
-  public constructor(opts: FFmpeggyOptions = {}) {
+  public constructor(options: FFmpeggyOptions = {}) {
     super();
 
     // Validate incompatible input/output combinations
-    if (opts.input && opts.inputs) {
+    if (options.input && options.inputs) {
       throw new Error(
         "Cannot use both 'input' and 'inputs' options. Use either 'input' for single input or 'inputs' for multiple inputs.",
       );
     }
 
-    if (opts.output && opts.outputs) {
+    if (options.output && options.outputs) {
       throw new Error(
         "Cannot use both 'output' and 'outputs' options. Use either 'output' for single output or 'outputs' for multiple outputs.",
       );
@@ -288,41 +288,41 @@ export class FFmpeggy extends EventEmitter {
     Object.assign(this, FFmpeggy.DefaultConfig);
 
     // Apply custom options
-    if (opts.cwd) this.cwd = opts.cwd;
-    if (opts.overwriteExisting !== undefined)
-      this.overwriteExisting = opts.overwriteExisting;
-    if (opts.hideBanner !== undefined) this.hideBanner = opts.hideBanner;
-    if (opts.globalOptions)
-      this.globalOptions = [...this.globalOptions, ...opts.globalOptions];
-    if (opts.inputOptions)
-      this.inputOptions = [...this.inputOptions, ...opts.inputOptions];
-    if (opts.outputOptions)
-      this.outputOptions = [...this.outputOptions, ...opts.outputOptions];
-    if (opts.tee !== undefined) this.tee = opts.tee;
-    if (opts.timeout !== undefined) this.timeout = opts.timeout;
+    if (options.cwd) this.cwd = options.cwd;
+    if (options.overwriteExisting !== undefined)
+      this.overwriteExisting = options.overwriteExisting;
+    if (options.hideBanner !== undefined) this.hideBanner = options.hideBanner;
+    if (options.globalOptions)
+      this.globalOptions = [...this.globalOptions, ...options.globalOptions];
+    if (options.inputOptions)
+      this.inputOptions = [...this.inputOptions, ...options.inputOptions];
+    if (options.outputOptions)
+      this.outputOptions = [...this.outputOptions, ...options.outputOptions];
+    if (options.tee !== undefined) this.tee = options.tee;
+    if (options.timeout !== undefined) this.timeout = options.timeout;
 
     // Handle inputs
-    if (opts.inputs) {
-      this.inputs = [...opts.inputs];
-    } else if (opts.input) {
-      this.inputs = [opts.input];
+    if (options.inputs) {
+      this.inputs = [...options.inputs];
+    } else if (options.input) {
+      this.inputs = [options.input];
     }
 
     // Handle outputs
-    if (opts.outputs) {
-      this.setOutputs([...opts.outputs] as FFmpeggyOutputs);
-    } else if (opts.output) {
-      this.setOutputs([opts.output] as FFmpeggyOutputs);
+    if (options.outputs) {
+      this.setOutputs([...options.outputs] as FFmpeggyOutputs);
+    } else if (options.output) {
+      this.setOutputs([options.output] as FFmpeggyOutputs);
     }
 
     // Handle pipe option
-    if (opts.pipe) {
+    if (options.pipe) {
       this.output = "-";
       this.pipedOutput = true;
     }
 
     // Trigger autorun if requested
-    if (opts.autorun) {
+    if (options.autorun) {
       this.shouldAutorun = true;
     }
 
@@ -376,7 +376,7 @@ export class FFmpeggy extends EventEmitter {
     } = this;
 
     if (!ffmpegBin) {
-      throw Error("Missing path to ffmpeg binary");
+      throw new Error("Missing path to ffmpeg binary");
     }
 
     if (inputs.length === 0) {
@@ -388,10 +388,13 @@ export class FFmpeggy extends EventEmitter {
       if (typeof input === "string" && input.trim() === "") {
         throw new Error("No input specified");
       }
-      if (typeof input === "object" && !(input instanceof ReadStream)) {
-        if (typeof input.source === "string" && input.source.trim() === "") {
-          throw new Error("No input specified");
-        }
+      if (
+        typeof input === "object" &&
+        !(input instanceof ReadStream) &&
+        typeof input.source === "string" &&
+        input.source.trim() === ""
+      ) {
+        throw new Error("No input specified");
       }
     }
 
@@ -404,25 +407,22 @@ export class FFmpeggy extends EventEmitter {
       if (typeof output === "string" && output.trim() === "") {
         throw new Error("No output specified");
       }
-      if (typeof output === "object" && !(output instanceof WriteStream)) {
-        if (
-          typeof output.destination === "string" &&
-          output.destination.trim() === ""
-        ) {
-          throw new Error("No output specified");
-        }
+      if (
+        typeof output === "object" &&
+        !(output instanceof WriteStream) &&
+        typeof output.destination === "string" &&
+        output.destination.trim() === ""
+      ) {
+        throw new Error("No output specified");
       }
     }
 
     // Validate that input files exist (skip for streams and special inputs like "-")
     for (const input of inputs) {
-      let inputSource: string | ReadStream;
-
-      if (typeof input === "string" || input instanceof ReadStream) {
-        inputSource = input;
-      } else {
-        inputSource = input.source;
-      }
+      const inputSource: string | ReadStream =
+        typeof input === "string" || input instanceof ReadStream
+          ? input
+          : input.source;
 
       // Only check file existence for string inputs that are not special FFmpeg inputs
       if (
@@ -467,28 +467,28 @@ export class FFmpeggy extends EventEmitter {
     }
 
     // Build input arguments
-    const inputArgs: string[] = [];
+    const inputArguments: string[] = [];
     const inputStreams: ReadStream[] = [];
 
     for (const input of inputs) {
       let inputSource: string | ReadStream;
-      let inputOpts: string[] = [];
+      let inputOptions_: string[] = [];
 
       if (typeof input === "string" || input instanceof ReadStream) {
         inputSource = input;
       } else {
         inputSource = input.source;
-        inputOpts = input.options || [];
+        inputOptions_ = input.options || [];
       }
 
       // Add input options if any
-      if (inputOpts.length > 0) {
-        inputArgs.push(...parseOptions(inputOpts));
+      if (inputOptions_.length > 0) {
+        inputArguments.push(...parseOptions(inputOptions_));
       }
 
       // Add input source
       const ffmpegInput = inputSource instanceof ReadStream ? "-" : inputSource;
-      inputArgs.push("-i", ffmpegInput);
+      inputArguments.push("-i", ffmpegInput);
 
       // Collect input streams for later use
       if (inputSource instanceof ReadStream) {
@@ -497,18 +497,18 @@ export class FFmpeggy extends EventEmitter {
     }
 
     // Build output arguments
-    let outputArgs: string[] = [];
+    let outputArguments: string[] = [];
     const outputStreams: WriteStream[] = [];
 
     if (this.tee && outputs.length > 1) {
       // Use tee pseudo-muxer for multiple outputs
       const teeOutputs: string[] = [];
-      const codecOpts: string[] = [];
-      const muxerOptsList: string[][] = [];
+      const codecOptions: string[] = [];
+      const muxerOptionsList: string[][] = [];
 
       // Check if all outputs have compatible options for tee muxer
       let canUseTee = true;
-      const firstOutputOpts =
+      const firstOutputOptions =
         outputs[0] &&
         typeof outputs[0] === "object" &&
         !(outputs[0] instanceof WriteStream)
@@ -531,9 +531,9 @@ export class FFmpeggy extends EventEmitter {
 
       // For tee muxer, all outputs should use the same codec settings
       // Check if any output has different codec options that would make tee incompatible
-      for (let i = 1; i < outputs.length && canUseTee; i++) {
-        const output = outputs[i];
-        const outputOpts =
+      for (let index = 1; index < outputs.length && canUseTee; index++) {
+        const output = outputs[index];
+        const outputOptions_ =
           output &&
           typeof output === "object" &&
           !(output instanceof WriteStream)
@@ -542,188 +542,190 @@ export class FFmpeggy extends EventEmitter {
 
         // Compare codec options between first output and current output
         // We need to check both the option and its value
-        const firstCodecOpts: string[] = [];
-        const currentCodecOpts: string[] = [];
+        const firstCodecOptions: string[] = [];
+        const currentCodecOptions: string[] = [];
 
         // Extract codec options with their values from first output
-        for (let j = 0; j < firstOutputOpts.length; j++) {
-          const opt = firstOutputOpts[j];
+        for (let index_ = 0; index_ < firstOutputOptions.length; index_++) {
+          const opt = firstOutputOptions[index_];
           if (/^-c(:[avds])?$/.test(opt)) {
-            const nextVal = firstOutputOpts[j + 1];
-            if (nextVal && !nextVal.startsWith("-")) {
-              firstCodecOpts.push(opt, nextVal);
-              j++; // skip value
+            const nextValue = firstOutputOptions[index_ + 1];
+            if (nextValue && !nextValue.startsWith("-")) {
+              firstCodecOptions.push(opt, nextValue);
+              index_++; // skip value
             } else {
-              firstCodecOpts.push(opt);
+              firstCodecOptions.push(opt);
             }
           }
         }
 
         // Extract codec options with their values from current output
-        for (let j = 0; j < outputOpts.length; j++) {
-          const opt = outputOpts[j];
+        for (let index = 0; index < outputOptions_.length; index++) {
+          const opt = outputOptions_[index];
           if (/^-c(:[avds])?$/.test(opt)) {
-            const nextVal = outputOpts[j + 1];
-            if (nextVal && !nextVal.startsWith("-")) {
-              currentCodecOpts.push(opt, nextVal);
-              j++; // skip value
+            const nextValue = outputOptions_[index + 1];
+            if (nextValue && !nextValue.startsWith("-")) {
+              currentCodecOptions.push(opt, nextValue);
+              index++; // skip value
             } else {
-              currentCodecOpts.push(opt);
+              currentCodecOptions.push(opt);
             }
           }
         }
 
         // Compare the codec options and their values
         if (
-          firstCodecOpts.length !== currentCodecOpts.length ||
-          JSON.stringify(firstCodecOpts) !== JSON.stringify(currentCodecOpts)
+          firstCodecOptions.length !== currentCodecOptions.length ||
+          JSON.stringify(firstCodecOptions) !==
+            JSON.stringify(currentCodecOptions)
         ) {
           canUseTee = false;
           debug(
             `Tee incompatible: first output codec opts: ${JSON.stringify(
-              firstCodecOpts,
-            )}, output ${i} codec opts: ${JSON.stringify(currentCodecOpts)}`,
+              firstCodecOptions,
+            )}, output ${index} codec opts: ${JSON.stringify(currentCodecOptions)}`,
           );
           break;
         }
       }
 
-      if (!canUseTee) {
-        // Fall back to standard multiple outputs for incompatible tee scenarios
-        debug(
-          "Tee muxer incompatible with different codec options, falling back to standard multiple outputs",
-        );
-        for (const output of outputs) {
-          let outputDest: string | WriteStream;
-          let outputOpts: string[] = [];
-
-          if (typeof output === "string" || output instanceof WriteStream) {
-            outputDest = output;
-          } else {
-            outputDest = output.destination;
-            outputOpts = output.options || [];
-          }
-
-          // Add output-specific options first
-          if (outputOpts.length > 0) {
-            outputArgs.push(...parseOptions(outputOpts));
-          }
-
-          // Add output destination
-          const ffmpegOutput =
-            outputDest instanceof WriteStream ? "-" : outputDest;
-          outputArgs.push(ffmpegOutput);
-
-          // Collect output streams for later use
-          if (outputDest instanceof WriteStream) {
-            outputStreams.push(outputDest);
-          }
-        }
-      } else {
+      if (canUseTee) {
         // Use tee muxer for compatible outputs
-        outputs.forEach((output, idx) => {
-          let outputDest: string | WriteStream;
-          let outputOpts: string[] = [];
+        for (const [index, output] of outputs.entries()) {
+          let outputDestination: string | WriteStream;
+          let outputOptions_: string[] = [];
 
           if (typeof output === "string" || output instanceof WriteStream) {
-            outputDest = output;
+            outputDestination = output;
           } else {
-            outputDest = output.destination;
-            outputOpts = output.options || [];
+            outputDestination = output.destination;
+            outputOptions_ = output.options || [];
           }
 
           // Separate codec options and muxer options
-          const muxerOpts: string[] = [];
-          for (let i = 0; i < outputOpts.length; i++) {
-            const opt = outputOpts[i];
+          const muxerOptions: string[] = [];
+          for (let index_ = 0; index_ < outputOptions_.length; index_++) {
+            const opt = outputOptions_[index_];
             // Muxer options: e.g. f=mp4, movflags=faststart
             if (
               /^(f|movflags|protocols|onfail|use_fifo|fifo_options|bsfs|select_streams|ignore_unknown_streams)=/.test(
                 opt,
               )
             ) {
-              muxerOpts.push(opt);
+              muxerOptions.push(opt);
             } else if (/^-c(:[avds])?$/.test(opt)) {
               // Codec options: -c, -c:v, -c:a, etc.
-              const nextVal = outputOpts[i + 1];
-              if (nextVal && !nextVal.startsWith("-")) {
+              const nextValue = outputOptions_[index_ + 1];
+              if (nextValue && !nextValue.startsWith("-")) {
                 // Insert stream specifier after type
                 const optWithStream = opt.endsWith(":")
-                  ? `${opt}${idx}`
-                  : `${opt}:${idx}`;
-                codecOpts.push(optWithStream, nextVal);
-                i++; // skip value
+                  ? `${opt}${index}`
+                  : `${opt}:${index}`;
+                codecOptions.push(optWithStream, nextValue);
+                index_++; // skip value
               }
             } else {
               // Other options (e.g. -crf, -b:v, etc.)
               // These should also be stream-specific if needed
-              const nextVal = outputOpts[i + 1];
-              if (nextVal && !nextVal.startsWith("-")) {
+              const nextValue = outputOptions_[index_ + 1];
+              if (nextValue && !nextValue.startsWith("-")) {
                 // Try to add stream specifier if possible
                 if (/^-(crf|b:v|b:a|q:v|q:a|filter:v|filter:a)$/.test(opt)) {
-                  codecOpts.push(`${opt}:${idx}`, nextVal);
+                  codecOptions.push(`${opt}:${index}`, nextValue);
                 } else {
-                  codecOpts.push(opt, nextVal);
+                  codecOptions.push(opt, nextValue);
                 }
-                i++;
+                index_++;
               } else {
-                codecOpts.push(opt);
+                codecOptions.push(opt);
               }
             }
           }
-          muxerOptsList.push(muxerOpts);
+          muxerOptionsList.push(muxerOptions);
           // Build tee output string
-          let teeOutput = outputDest instanceof WriteStream ? "-" : outputDest;
-          if (muxerOpts.length > 0) {
-            teeOutput = `[${muxerOpts.join(",")}]${teeOutput}`;
+          let teeOutput =
+            outputDestination instanceof WriteStream ? "-" : outputDestination;
+          if (muxerOptions.length > 0) {
+            teeOutput = `[${muxerOptions.join(",")}]${teeOutput}`;
           }
           // Quote the output path for FFmpeg tee muxer (especially for Windows)
           if (typeof teeOutput === "string" && !teeOutput.startsWith("-")) {
             teeOutput = `'${teeOutput}'`;
           }
           teeOutputs.push(teeOutput);
-        });
+        }
 
         // Build -map options for each output stream
-        const mapOpts: string[] = [];
+        const mapOptions: string[] = [];
         // For tee muxer, we only need one set of map options for all outputs
-        mapOpts.push("-map", "0:v", "-map", "0:a");
+        mapOptions.push("-map", "0:v", "-map", "0:a");
 
-        outputArgs = [
+        outputArguments = [
           ...parseOptions(outputOptions),
-          ...codecOpts,
-          ...mapOpts,
+          ...codecOptions,
+          ...mapOptions,
           "-f",
           "tee",
           teeOutputs.join("|"),
         ];
+      } else {
+        // Fall back to standard multiple outputs for incompatible tee scenarios
+        debug(
+          "Tee muxer incompatible with different codec options, falling back to standard multiple outputs",
+        );
+        for (const output of outputs) {
+          let outputDestination: string | WriteStream;
+          let outputOptions_: string[] = [];
+
+          if (typeof output === "string" || output instanceof WriteStream) {
+            outputDestination = output;
+          } else {
+            outputDestination = output.destination;
+            outputOptions_ = output.options || [];
+          }
+
+          // Add output-specific options first
+          if (outputOptions_.length > 0) {
+            outputArguments.push(...parseOptions(outputOptions_));
+          }
+
+          // Add output destination
+          const ffmpegOutput =
+            outputDestination instanceof WriteStream ? "-" : outputDestination;
+          outputArguments.push(ffmpegOutput);
+
+          // Collect output streams for later use
+          if (outputDestination instanceof WriteStream) {
+            outputStreams.push(outputDestination);
+          }
+        }
       }
     } else {
       // Standard multiple outputs
       for (const output of outputs) {
-        let outputDest: string | WriteStream;
-        let outputOpts: string[] = [];
+        let outputDestination: string | WriteStream;
+        let outputOptions_: string[] = [];
 
         if (typeof output === "string" || output instanceof WriteStream) {
-          outputDest = output;
+          outputDestination = output;
         } else {
-          outputDest = output.destination;
-          outputOpts = output.options || [];
+          outputDestination = output.destination;
+          outputOptions_ = output.options || [];
         }
 
         // Add output-specific options first
-        if (outputOpts.length > 0) {
-          outputArgs.push(...parseOptions(outputOpts));
+        if (outputOptions_.length > 0) {
+          outputArguments.push(...parseOptions(outputOptions_));
         }
 
         // Add output destination
         const ffmpegOutput =
-          outputDest instanceof WriteStream ? "-" : outputDest;
-        outputArgs.push(ffmpegOutput);
+          outputDestination instanceof WriteStream ? "-" : outputDestination;
+        outputArguments.push(ffmpegOutput);
 
         // Collect output streams for later use
-        if (outputDest instanceof WriteStream) {
-          outputStreams.push(outputDest);
+        if (outputDestination instanceof WriteStream) {
+          outputStreams.push(outputDestination);
         }
       }
     }
@@ -736,12 +738,12 @@ export class FFmpeggy extends EventEmitter {
       globalOptions.push("-y");
     }
 
-    const args = [
+    const arguments_ = [
       ...parseOptions(globalOptions),
       ...parseOptions(inputOptions),
-      ...inputArgs,
+      ...inputArguments,
       ...parseOptions(outputOptions),
-      ...outputArgs,
+      ...outputArguments,
     ].filter((a) => !!a);
 
     // Set pipedOutput flag for stream handling
@@ -764,75 +766,78 @@ export class FFmpeggy extends EventEmitter {
       // Set currentFile to the first output file (for progress tracking)
       const firstOutput = outputs[0];
       if (firstOutput) {
-        const outputDest =
+        const outputDestination =
           typeof firstOutput === "string"
             ? firstOutput
             : firstOutput instanceof WriteStream
               ? ""
               : firstOutput.destination;
-        if (typeof outputDest === "string" && !outputDest.includes("%d")) {
-          this.currentFile = outputDest;
+        if (
+          typeof outputDestination === "string" &&
+          !outputDestination.includes("%d")
+        ) {
+          this.currentFile = outputDestination;
           // Store the first output file for multiple output scenarios
-          this.firstOutputFile = outputDest;
+          this.firstOutputFile = outputDestination;
         }
       }
     }
 
-    const joinedArgs: readonly string[] = args;
-    debug("ffmpeg full command: %s %s", ffmpegBin, joinedArgs.join(" "));
+    const joinedArguments: readonly string[] = arguments_;
+    debug("ffmpeg full command: %s %s", ffmpegBin, joinedArguments.join(" "));
     try {
-      this.emit("start", joinedArgs);
+      this.emit("start", joinedArguments);
       debug("bin: %s", ffmpegBin);
-      debug("args: %o", joinedArgs);
+      debug("args: %o", joinedArguments);
 
       // Emit synthetic writing event for all outputs if using tee muxer and multiple outputs
       if (outputs.length > 1 && this.tee) {
-        const writingEvents = outputs.map((output, idx) => {
+        const writingEvents = outputs.map((output, index) => {
           let file: string | undefined;
           if (typeof output === "string") file = output;
           else if (output instanceof WriteStream) file = undefined;
           else if (typeof output.destination === "string")
             file = output.destination;
           else file = undefined;
-          return { file: file || "", outputIndex: idx };
+          return { file: file || "", outputIndex: index };
         });
         this.emit("writing", writingEvents);
       }
 
       // Wait for all input streams to open
       for (const inputStream of inputStreams) {
-        await new Promise((resolve, reject) => {
+        await new Promise<void>((resolve, reject) => {
           const timeout = setTimeout(() => {
             reject(new Error("Timeout waiting for input stream to open"));
           }, DEFAULT_STREAM_OPEN_TIMEOUT_MS);
 
           inputStream.once("open", () => {
             clearTimeout(timeout);
-            resolve(undefined);
+            resolve();
           });
 
-          inputStream.once("error", (err) => {
+          inputStream.once("error", (error) => {
             clearTimeout(timeout);
-            reject(err);
+            reject(error);
           });
         });
       }
 
       // Wait for all output streams to open
       for (const outputStream of outputStreams) {
-        await new Promise((resolve, reject) => {
+        await new Promise<void>((resolve, reject) => {
           const timeout = setTimeout(() => {
             reject(new Error("Timeout waiting for output stream to open"));
           }, DEFAULT_STREAM_OPEN_TIMEOUT_MS);
 
           outputStream.once("open", () => {
             clearTimeout(timeout);
-            resolve(undefined);
+            resolve();
           });
 
-          outputStream.once("error", (err) => {
+          outputStream.once("error", (error) => {
             clearTimeout(timeout);
-            reject(err);
+            reject(error);
           });
         });
       }
@@ -844,7 +849,7 @@ export class FFmpeggy extends EventEmitter {
       const mainOutput = undefined;
 
       debug("FFmpeg process starting");
-      this.process = execa(ffmpegBin, joinedArgs, {
+      this.process = execa(ffmpegBin, joinedArguments, {
         cwd,
         input: mainInput,
         stdout: mainOutput,
@@ -865,8 +870,8 @@ export class FFmpeggy extends EventEmitter {
           const teeStream = new PassThrough();
 
           // Handle errors on the tee stream
-          teeStream.on("error", (err) => {
-            debug("Tee stream error: %o", sanitizeErrorForLog(err));
+          teeStream.on("error", (error) => {
+            debug("Tee stream error: %o", sanitizeErrorForLog(error));
             // Don't emit this as an uncaught exception
           });
 
@@ -875,11 +880,11 @@ export class FFmpeggy extends EventEmitter {
             .then(() => {
               debug("Main pipeline to tee stream finished");
             })
-            .catch((err: Error) => {
+            .catch((error: Error) => {
               // Only log the error, don't treat it as uncaught
               debug(
                 "Main pipeline to tee stream error (expected during cleanup): %o",
-                sanitizeErrorForLog(err),
+                sanitizeErrorForLog(error),
               );
             });
 
@@ -887,8 +892,8 @@ export class FFmpeggy extends EventEmitter {
           const firstOutputStream = outputStreams[0];
 
           // Handle errors on the output stream
-          firstOutputStream.on("error", (err) => {
-            debug("Output stream error: %o", sanitizeErrorForLog(err));
+          firstOutputStream.on("error", (error) => {
+            debug("Output stream error: %o", sanitizeErrorForLog(error));
             // Don't emit this as an uncaught exception
           });
 
@@ -896,9 +901,9 @@ export class FFmpeggy extends EventEmitter {
             .then(() => {
               debug("Pipeline for outputStreams finished");
             })
-            .catch((err: Error) => {
+            .catch((error: Error) => {
               // Suppress expected stream cleanup errors
-              const errorMessage = err.message || "";
+              const errorMessage = error.message || "";
               const isExpectedError =
                 /premature close|write after end|cannot pipe|stream.*error|ERR_STREAM_PREMATURE_CLOSE|ERR_STREAM_WRITE_AFTER_END/i.test(
                   errorMessage,
@@ -910,11 +915,11 @@ export class FFmpeggy extends EventEmitter {
                 return;
               }
 
-              debug("Pipeline error: %o", sanitizeErrorForLog(err));
-              this.error = err;
+              debug("Pipeline error: %o", sanitizeErrorForLog(error));
+              this.error = error;
               // Only emit error if there are listeners to prevent uncaught exceptions
               if (this.listenerCount("error") > 0) {
-                this.emit("error", err);
+                this.emit("error", error);
               } else {
                 debug(
                   "No error listeners, suppressing pipeline error to prevent uncaught exception",
@@ -927,10 +932,10 @@ export class FFmpeggy extends EventEmitter {
             debug("Setting up pipeline for toStream() outputStream");
 
             // Handle errors on the outputStream
-            this.outputStream.on("error", (err) => {
+            this.outputStream.on("error", (error) => {
               debug(
                 "toStream outputStream error: %o",
-                sanitizeErrorForLog(err),
+                sanitizeErrorForLog(error),
               );
               // Don't emit this as an uncaught exception
             });
@@ -939,9 +944,9 @@ export class FFmpeggy extends EventEmitter {
               .then(() => {
                 debug("Pipeline for toStream() outputStream finished");
               })
-              .catch((err) => {
+              .catch((error) => {
                 // Suppress expected stream cleanup errors
-                const errorMessage = err.message || "";
+                const errorMessage = error.message || "";
                 const isExpectedError =
                   /premature close|write after end|cannot pipe|stream.*error|ERR_STREAM_PREMATURE_CLOSE|ERR_STREAM_WRITE_AFTER_END/i.test(
                     errorMessage,
@@ -958,12 +963,12 @@ export class FFmpeggy extends EventEmitter {
 
                 debug(
                   "Pipeline error for toStream(): %o",
-                  sanitizeErrorForLog(err),
+                  sanitizeErrorForLog(error),
                 );
-                this.error = err;
+                this.error = error;
                 // Only emit error if there are listeners to prevent uncaught exceptions
                 if (this.listenerCount("error") > 0) {
-                  this.emit("error", err);
+                  this.emit("error", error);
                 } else {
                   debug(
                     "No error listeners, suppressing pipeline error to prevent uncaught exception",
@@ -976,8 +981,8 @@ export class FFmpeggy extends EventEmitter {
           const outputStream = outputStreams[0];
 
           // Handle errors on the output stream
-          outputStream.on("error", (err) => {
-            debug("Output stream error: %o", sanitizeErrorForLog(err));
+          outputStream.on("error", (error) => {
+            debug("Output stream error: %o", sanitizeErrorForLog(error));
             // Don't emit this as an uncaught exception
           });
 
@@ -985,9 +990,9 @@ export class FFmpeggy extends EventEmitter {
             .then(() => {
               debug("Direct pipeline for outputStream finished");
             })
-            .catch((err: Error) => {
+            .catch((error: Error) => {
               // Suppress expected stream cleanup errors
-              const errorMessage = err.message || "";
+              const errorMessage = error.message || "";
               const isExpectedError =
                 /premature close|write after end|cannot pipe|stream.*error|ERR_STREAM_PREMATURE_CLOSE|ERR_STREAM_WRITE_AFTER_END/i.test(
                   errorMessage,
@@ -999,11 +1004,11 @@ export class FFmpeggy extends EventEmitter {
                 return;
               }
 
-              debug("Pipeline error: %o", sanitizeErrorForLog(err));
-              this.error = err;
+              debug("Pipeline error: %o", sanitizeErrorForLog(error));
+              this.error = error;
               // Only emit error if there are listeners to prevent uncaught exceptions
               if (this.listenerCount("error") > 0) {
-                this.emit("error", err);
+                this.emit("error", error);
               } else {
                 debug(
                   "No error listeners, suppressing pipeline error to prevent uncaught exception",
@@ -1016,8 +1021,8 @@ export class FFmpeggy extends EventEmitter {
         debug("Setting up pipeline for toStream() outputStream only");
 
         // Handle errors on the outputStream
-        this.outputStream.on("error", (err) => {
-          debug("toStream outputStream error: %o", sanitizeErrorForLog(err));
+        this.outputStream.on("error", (error) => {
+          debug("toStream outputStream error: %o", sanitizeErrorForLog(error));
           // Don't emit this as an uncaught exception
         });
 
@@ -1025,9 +1030,9 @@ export class FFmpeggy extends EventEmitter {
           .then(() => {
             debug("Pipeline for toStream() outputStream finished");
           })
-          .catch((err) => {
+          .catch((error) => {
             // Suppress expected stream cleanup errors
-            const errorMessage = err.message || "";
+            const errorMessage = error.message || "";
             const isExpectedError =
               /premature close|write after end|cannot pipe|stream.*error|ERR_STREAM_PREMATURE_CLOSE|ERR_STREAM_WRITE_AFTER_END/i.test(
                 errorMessage,
@@ -1044,12 +1049,12 @@ export class FFmpeggy extends EventEmitter {
 
             debug(
               "Pipeline error for toStream(): %o",
-              sanitizeErrorForLog(err),
+              sanitizeErrorForLog(error),
             );
-            this.error = err;
+            this.error = error;
             // Only emit error if there are listeners to prevent uncaught exceptions
             if (this.listenerCount("error") > 0) {
-              this.emit("error", err);
+              this.emit("error", error);
             } else {
               debug(
                 "No error listeners, suppressing pipeline error to prevent uncaught exception",
@@ -1059,19 +1064,19 @@ export class FFmpeggy extends EventEmitter {
       }
 
       this.running = true;
-    } catch (err) {
-      const e = err as Error;
-      this.error = e;
-      debug("error: %o", e);
+    } catch (error) {
+      const error_ = error as Error;
+      this.error = error_;
+      debug("error: %o", error_);
       // Only emit error if there are listeners to prevent uncaught exceptions
       if (this.listenerCount("error") > 0) {
-        this.emit("error", e);
+        this.emit("error", error_);
       } else {
         debug(
           "No error listeners, suppressing run error to prevent uncaught exception",
         );
       }
-      this.emit("exit", 1, e);
+      this.emit("exit", 1, error_);
       this.running = false;
     }
 
@@ -1107,7 +1112,7 @@ export class FFmpeggy extends EventEmitter {
         const progress = parseProgress(txt);
         if (progress) {
           if (this.outputs.length > 1) {
-            this.outputs.forEach((output, idx) => {
+            for (const [index, output] of this.outputs.entries()) {
               let file: string | undefined;
               if (typeof output === "string") file = output;
               else if (output instanceof WriteStream) file = undefined;
@@ -1125,11 +1130,11 @@ export class FFmpeggy extends EventEmitter {
                           100,
                       )
                     : 0,
-                outputIndex: idx,
+                outputIndex: index,
                 file,
               };
               this.emit("progress", progressEvent);
-            });
+            }
           } else {
             let file: string | undefined;
             const output = this.outputs[0];
@@ -1160,7 +1165,7 @@ export class FFmpeggy extends EventEmitter {
           let writingEvents: { file: string; outputIndex: number }[] = [];
           if (this.outputs.length > 1) {
             writingEvents = this.outputs
-              .map((output, idx) => {
+              .map((output, index) => {
                 let file: string | undefined;
                 if (typeof output === "string") file = output;
                 else if (output instanceof WriteStream) file = undefined;
@@ -1168,26 +1173,27 @@ export class FFmpeggy extends EventEmitter {
                   file = output.destination;
                 else file = undefined;
                 if (file && writing.includes(file)) {
-                  return { file, outputIndex: idx };
+                  return { file, outputIndex: index };
                 }
-                return undefined;
+                return;
               })
-              .filter((v): v is { file: string; outputIndex: number } =>
-                Boolean(v),
+              .filter(
+                (event): event is { file: string; outputIndex: number } =>
+                  event !== undefined,
               );
             if (writingEvents.length > 0) {
               this.emit("writing", writingEvents);
             } else {
               this.emit(
                 "writing",
-                this.outputs.map((output, idx) => {
+                this.outputs.map((output, index) => {
                   let file: string | undefined;
                   if (typeof output === "string") file = output;
                   else if (output instanceof WriteStream) file = undefined;
                   else if (typeof output.destination === "string")
                     file = output.destination;
                   else file = undefined;
-                  return { file: file || "", outputIndex: idx };
+                  return { file: file || "", outputIndex: index };
                 }),
               );
             }
@@ -1229,20 +1235,22 @@ export class FFmpeggy extends EventEmitter {
           debug("done: %s", this.currentFile);
           // If using tee muxer and multiple outputs, emit done for all outputs
           if (this.outputs.length > 1 && this.tee) {
-            const results = this.outputs.map((output, idx) => {
-              let outputDest: string | undefined;
-              if (typeof output === "string") outputDest = output;
-              else if (output instanceof WriteStream) outputDest = undefined;
+            const results = this.outputs.map((output, index) => {
+              let outputDestination: string | undefined;
+              if (typeof output === "string") outputDestination = output;
+              else if (output instanceof WriteStream)
+                outputDestination = undefined;
               else if (typeof output.destination === "string")
-                outputDest = output.destination;
-              else outputDest = undefined;
+                outputDestination = output.destination;
+              else outputDestination = undefined;
               return {
                 file:
-                  typeof outputDest === "string" && outputDest !== "-"
-                    ? outputDest
+                  typeof outputDestination === "string" &&
+                  outputDestination !== "-"
+                    ? outputDestination
                     : undefined,
                 sizes: this.finalSizes,
-                outputIndex: idx,
+                outputIndex: index,
               };
             });
             this.emit("done", results);
@@ -1418,24 +1426,24 @@ export class FFmpeggy extends EventEmitter {
     // For multiple outputs, we need to determine the primary output file
     // Return the first file output, or undefined if all are streams
     if (this.outputs.length > 1) {
-      const results = this.outputs.map((output, idx) => {
-        let outputDest: string | WriteStream | undefined;
+      const results = this.outputs.map((output, index) => {
+        let outputDestination_: string | WriteStream | undefined;
         if (typeof output === "string") {
-          outputDest = output;
+          outputDestination_ = output;
         } else if (output instanceof WriteStream) {
-          outputDest = undefined;
+          outputDestination_ = undefined;
         } else if (typeof output.destination === "string") {
-          outputDest = output.destination;
+          outputDestination_ = output.destination;
         } else {
-          outputDest = undefined;
+          outputDestination_ = undefined;
         }
         return {
           file:
-            typeof outputDest === "string" && outputDest !== "-"
-              ? outputDest
+            typeof outputDestination_ === "string" && outputDestination_ !== "-"
+              ? outputDestination_
               : undefined,
           sizes: this.finalSizes,
-          outputIndex: idx,
+          outputIndex: index,
         };
       });
       this.emit("done", results);
@@ -1449,21 +1457,21 @@ export class FFmpeggy extends EventEmitter {
       return { file: undefined, sizes: this.finalSizes };
     }
 
-    let outputDest: string | WriteStream;
+    let outputDestination: string | WriteStream;
     if (typeof output === "string") {
-      outputDest = output;
+      outputDestination = output;
     } else if (output instanceof WriteStream) {
       debug(
         "done() method - single output is stream, returning undefined file",
       );
       return { file: undefined, sizes: this.finalSizes };
     } else {
-      outputDest = output.destination;
+      outputDestination = output.destination;
     }
 
-    if (typeof outputDest === "string" && outputDest !== "-") {
-      debug("done() method - single file output: %s", outputDest);
-      return { file: outputDest, sizes: this.finalSizes };
+    if (typeof outputDestination === "string" && outputDestination !== "-") {
+      debug("done() method - single file output: %s", outputDestination);
+      return { file: outputDestination, sizes: this.finalSizes };
     } else {
       debug(
         "done() method - single output is pipe or stream, returning undefined file",
@@ -1713,7 +1721,7 @@ export class FFmpeggy extends EventEmitter {
     if (
       streamOutputs.length === 1 &&
       outputs.length > 1 &&
-      outputs[outputs.length - 1] !== streamOutputs[0]
+      outputs.at(-1) !== streamOutputs[0]
     ) {
       throw new Error(
         "If using a WriteStream with multiple outputs, it must be the last output (for tee muxer compatibility).",
@@ -1835,8 +1843,8 @@ export class FFmpeggy extends EventEmitter {
    *   .setGlobalOptions(['-loglevel', 'info']);
    * ```
    */
-  public setGlobalOptions(opts: string[]): FFmpeggy {
-    this.globalOptions = [...this.globalOptions, ...opts];
+  public setGlobalOptions(options: string[]): FFmpeggy {
+    this.globalOptions = [...this.globalOptions, ...options];
     return this;
   }
 
@@ -1854,8 +1862,8 @@ export class FFmpeggy extends EventEmitter {
    *   .setInputOptions(['-ss', '10', '-t', '30']); // Start at 10s, duration 30s
    * ```
    */
-  public setInputOptions(opts: string[]): FFmpeggy {
-    this.inputOptions = [...this.inputOptions, ...opts];
+  public setInputOptions(options: string[]): FFmpeggy {
+    this.inputOptions = [...this.inputOptions, ...options];
     return this;
   }
 
@@ -1873,8 +1881,8 @@ export class FFmpeggy extends EventEmitter {
    *   .setOutputOptions(['-c:v', 'libx264', '-crf', '23']);
    * ```
    */
-  public setOutputOptions(opts: string[]): FFmpeggy {
-    this.outputOptions = [...this.outputOptions, ...opts];
+  public setOutputOptions(options: string[]): FFmpeggy {
+    this.outputOptions = [...this.outputOptions, ...options];
     return this;
   }
 
@@ -1996,14 +2004,14 @@ export class FFmpeggy extends EventEmitter {
     if (typeof firstInput === "string") {
       inputPath = firstInput;
     } else if (firstInput instanceof ReadStream) {
-      throw new Error(
+      throw new TypeError(
         "Probe can only accept strings. Use static FFmpeg.probe() directly.",
       );
     } else {
       if (typeof firstInput.source === "string") {
         inputPath = firstInput.source;
       } else {
-        throw new Error(
+        throw new TypeError(
           "Probe can only accept strings. Use static FFmpeg.probe() directly.",
         );
       }
@@ -2044,14 +2052,14 @@ export class FFmpeggy extends EventEmitter {
     if (typeof input === "string") {
       inputPath = input;
     } else if (input instanceof ReadStream) {
-      throw new Error(
+      throw new TypeError(
         "Probe can only accept strings. Use static FFmpeg.probe() directly.",
       );
     } else {
       if (typeof input.source === "string") {
         inputPath = input.source;
       } else {
-        throw new Error(
+        throw new TypeError(
           "Probe can only accept strings. Use static FFmpeg.probe() directly.",
         );
       }
@@ -2076,29 +2084,29 @@ export class FFmpeggy extends EventEmitter {
    * ```
    */
   public static async probe(filePath: string): Promise<FFprobeResult> {
-    const args = [...FFmpeggy.DefaultConfig.ffprobeArgs, filePath];
+    const arguments_ = [...FFmpeggy.DefaultConfig.ffprobeArgs, filePath];
     try {
       const binPath = FFmpeggy.DefaultConfig.ffprobeBin;
       if (!binPath) {
-        throw Error("Missing path to ffprobe binary");
+        throw new Error("Missing path to ffprobe binary");
       }
       const { stdout, exitCode } = await execa(
         FFmpeggy.DefaultConfig.ffprobeBin,
-        args,
+        arguments_,
         {
-          timeout: 30000, // 30 second timeout to prevent hanging
+          timeout: 30_000, // 30 second timeout to prevent hanging
         },
       );
       if (exitCode === 1) {
-        throw Error("Failed to probe");
+        throw new Error("Failed to probe");
       }
       try {
         return JSON.parse(stdout) as FFprobeResult;
       } catch {
-        throw Error("Failed to parse ffprobe output");
+        throw new Error("Failed to parse ffprobe output");
       }
     } catch {
-      throw Error("Failed to probe");
+      throw new Error("Failed to probe");
     }
   }
 
@@ -2122,7 +2130,7 @@ export class FFmpeggy extends EventEmitter {
 
     // Split log into lines
     const lines = log.trim().split("\n");
-    if (!lines.length) {
+    if (lines.length === 0) {
       return "Unknown error (log has no content)";
     }
 
@@ -2144,8 +2152,8 @@ export class FFmpeggy extends EventEmitter {
 
     // Look at the last few lines (default is 3 lines)
     const start = Math.max(0, lines.length - maxLines);
-    for (let i = lines.length - 1; i >= start; i--) {
-      const line = lines[i].trim();
+    for (let index = lines.length - 1; index >= start; index--) {
+      const line = lines[index].trim();
       if (!line) continue;
 
       // If this line contains a keyword, it's likely what we're looking for
@@ -2153,24 +2161,24 @@ export class FFmpeggy extends EventEmitter {
         errorKeywords.some((keyword) => line.toLowerCase().includes(keyword))
       ) {
         // Add the previous line for context if it exists
-        if (i > 0 && lines[i - 1].trim()) {
-          const result = `${lines[i - 1].trim()}\n${line}`;
+        if (index > 0 && lines[index - 1].trim()) {
+          const result = `${lines[index - 1].trim()}\n${line}`;
           return result.length > maxLength
-            ? result.substring(0, maxLength) + "..."
+            ? result.slice(0, Math.max(0, maxLength)) + "..."
             : result;
         }
         return line.length > maxLength
-          ? line.substring(0, maxLength) + "..."
+          ? line.slice(0, Math.max(0, maxLength)) + "..."
           : line;
       }
     }
 
     // If no keywords are found, take the last non-empty line
-    for (let i = lines.length - 1; i >= 0; i--) {
-      const line = lines[i].trim();
+    for (let index = lines.length - 1; index >= 0; index--) {
+      const line = lines[index].trim();
       if (line) {
         return line.length > maxLength
-          ? line.substring(0, maxLength) + "..."
+          ? line.slice(0, Math.max(0, maxLength)) + "..."
           : line;
       }
     }
@@ -2211,10 +2219,10 @@ export class FFmpeggy extends EventEmitter {
     if (this.process) {
       this.process.kill("SIGKILL");
     }
-    const err = new Error(
+    const error = new Error(
       `FFmpeg process timed out: no progress for ${this.timeout} ms`,
     );
-    this.emit("error", err);
+    this.emit("error", error);
   }
 
   /**

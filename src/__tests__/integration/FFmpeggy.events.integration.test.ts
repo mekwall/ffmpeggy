@@ -24,17 +24,17 @@ describe("FFmpeggy:events", () => {
   });
 
   it("should emit done event when copying video file", async () => {
-    const tempFile = fileManager.createTempFile("mp4");
+    const temporaryFile = fileManager.createTempFile("mp4");
     const ffmpeggy = FFmpeggyTestHelpers.createFileToFileFFmpeggy(
       SAMPLE_FILES.video_basic_mp4,
-      tempFile,
+      temporaryFile,
       ["-c copy"],
     );
 
     return new Promise<void>((resolve, reject) => {
       ffmpeggy.on("done", (result) => {
         const file = Array.isArray(result) ? result[0]?.file : result?.file;
-        expect(file).toBe(tempFile);
+        expect(file).toBe(temporaryFile);
         resolve();
       });
 
@@ -47,17 +47,17 @@ describe("FFmpeggy:events", () => {
   });
 
   it("should emit done event with final sizes", async () => {
-    const tempFile = fileManager.createTempFile("mp4");
+    const temporaryFile = fileManager.createTempFile("mp4");
     const ffmpeggy = FFmpeggyTestHelpers.createFileToFileFFmpeggy(
       SAMPLE_FILES.video_basic_mp4,
-      tempFile,
+      temporaryFile,
       ["-c copy"],
     );
 
     return new Promise<void>((resolve, reject) => {
       ffmpeggy.on("done", (result) => {
         const r = Array.isArray(result) ? result[0] : result;
-        expect(r?.file).toBe(tempFile);
+        expect(r?.file).toBe(temporaryFile);
         expect(r?.sizes).toBeDefined();
         expect(r?.sizes?.video).toBeGreaterThan(0);
         expect(r?.sizes?.audio).toBeGreaterThan(0);
@@ -73,18 +73,18 @@ describe("FFmpeggy:events", () => {
   });
 
   it("should receive progress event", async () => {
-    const tempFile = fileManager.createTempFile("mp4");
+    const temporaryFile = fileManager.createTempFile("mp4");
     const ffmpeggy = FFmpeggyTestHelpers.createFileToFileFFmpeggy(
       SAMPLE_FILES.video_basic_mp4,
-      tempFile,
+      temporaryFile,
       ["-c copy"],
     );
 
     return new Promise<void>((resolve, reject) => {
       let progressReceived = false;
       ffmpeggy.on("progress", (progress) => {
-        const arr = Array.isArray(progress) ? progress : [progress];
-        for (const p of arr) {
+        const array = Array.isArray(progress) ? progress : [progress];
+        for (const p of array) {
           expect(p).toBeDefined();
           expect(p.time).toBeGreaterThan(0);
           if (p.duration === 0 || p.duration === undefined) {
@@ -110,10 +110,10 @@ describe("FFmpeggy:events", () => {
   });
 
   it("should emit writing and done events for segments", async () => {
-    const tempFile = fileManager.createTempFile("mp4");
+    const temporaryFile = fileManager.createTempFile("mp4");
     const ffmpeggy = FFmpeggyTestHelpers.createFileToFileFFmpeggy(
       SAMPLE_FILES.video_basic_mp4,
-      tempFile.replace(".mp4", "%03d.mp4"),
+      temporaryFile.replace(".mp4", "%03d.mp4"),
       ["-f segment", "-segment_time", "1", "-reset_timestamps", "1"],
     );
 
@@ -125,12 +125,12 @@ describe("FFmpeggy:events", () => {
         outputIndex?: number;
       }[] = [];
       ffmpeggy.on("writing", (info) => {
-        const arr = Array.isArray(info) ? info : [info];
-        writingEvents.push(...arr);
+        const array = Array.isArray(info) ? info : [info];
+        writingEvents.push(...array);
       });
       ffmpeggy.on("done", (result) => {
-        const arr = Array.isArray(result) ? result : [result];
-        doneEvents.push(...arr);
+        const array = Array.isArray(result) ? result : [result];
+        doneEvents.push(...array);
       });
       ffmpeggy.on("exit", (code) => {
         expect(code).toBe(0);
@@ -148,18 +148,18 @@ describe("FFmpeggy:events", () => {
   });
 
   it("should handle progress when duration is not available", async () => {
-    const tempFile = fileManager.createTempFile("mp4");
+    const temporaryFile = fileManager.createTempFile("mp4");
     const ffmpeggy = FFmpeggyTestHelpers.createFileToFileFFmpeggy(
       SAMPLE_FILES.video_basic_mp4,
-      tempFile,
+      temporaryFile,
       ["-c copy", "-t", "1"], // Limit to 1 second to make test faster
     );
 
     return new Promise<void>((resolve, reject) => {
       let progressReceived = false;
       ffmpeggy.on("progress", (progress) => {
-        const arr = Array.isArray(progress) ? progress : [progress];
-        for (const p of arr) {
+        const array = Array.isArray(progress) ? progress : [progress];
+        for (const p of array) {
           expect(p).toBeDefined();
           expect(p.time).toBeGreaterThan(0);
           if (p.duration === 0 || p.duration === undefined) {
@@ -185,11 +185,11 @@ describe("FFmpeggy:events", () => {
   });
 
   it("should handle streaming with events", async () => {
-    const tempFile = fileManager.createTempFile("mkv");
+    const temporaryFile = fileManager.createTempFile("mkv");
     const inputStream = fileManager.createInputStream(
       SAMPLE_FILES.video_basic_mkv, // Use simpler MKV file with single video stream
     );
-    const outputStream = fileManager.createOutputStream(tempFile);
+    const outputStream = fileManager.createOutputStream(temporaryFile);
 
     const ffmpeggy = FFmpeggyTestHelpers.createStreamingFFmpeggy(
       inputStream,
@@ -247,8 +247,8 @@ describe("FFmpeggy:events", () => {
       }[] = [];
 
       ffmpeggy.on("done", (result) => {
-        const arr = Array.isArray(result) ? result : [result];
-        doneEvents.push(...arr);
+        const array = Array.isArray(result) ? result : [result];
+        doneEvents.push(...array);
       });
 
       ffmpeggy.on("exit", (code) => {
@@ -292,8 +292,8 @@ describe("FFmpeggy:events", () => {
       }[] = [];
 
       ffmpeggy.on("done", (result) => {
-        const arr = Array.isArray(result) ? result : [result];
-        doneEvents.push(...arr);
+        const array = Array.isArray(result) ? result : [result];
+        doneEvents.push(...array);
       });
 
       ffmpeggy.on("exit", (code) => {

@@ -7,7 +7,7 @@ describe("sizeUnits", () => {
   });
 
   it("should convert MB to bytes", () => {
-    expect(parseSize(1, "mB")).toBe(1048576);
+    expect(parseSize(1, "mB")).toBe(1_048_576);
   });
 
   it("shouldn't do anything", () => {

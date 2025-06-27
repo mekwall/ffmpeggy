@@ -7,15 +7,15 @@ const isWindows = process.platform === "win32";
 // Shared timeout configuration for both testHelpers and vitest config
 export const TEST_TIMEOUTS = {
   // Test timeouts
-  UNIT_TEST: 30000,
-  INTEGRATION_TEST: isCI ? 120000 : 60000, // Double integration timeout in CI
-  HOOK: isCI ? 60000 : 30000, // Double hook timeout in CI
-  INTEGRATION_HOOK: isCI ? 180000 : 60000, // Triple integration hook timeout in CI
+  UNIT_TEST: 30_000,
+  INTEGRATION_TEST: isCI ? 120_000 : 60_000, // Double integration timeout in CI
+  HOOK: isCI ? 60_000 : 30_000, // Double hook timeout in CI
+  INTEGRATION_HOOK: isCI ? 180_000 : 60_000, // Triple integration hook timeout in CI
 
   // Operation timeouts
-  TEST_OPERATION: isCI ? 120000 : 60000, // Double test operation timeout in CI
-  PROBE_OPERATION: 30000, // 30 seconds for probe operations
-  HOOK_OPERATION: isCI ? 120000 : 60000, // Double hook operation timeout in CI
+  TEST_OPERATION: isCI ? 120_000 : 60_000, // Double test operation timeout in CI
+  PROBE_OPERATION: 30_000, // 30 seconds for probe operations
+  HOOK_OPERATION: isCI ? 120_000 : 60_000, // Double hook operation timeout in CI
 
   // Cleanup timeouts - more aggressive on Windows due to EBUSY errors
   CLEANUP: {

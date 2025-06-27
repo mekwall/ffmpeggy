@@ -1,9 +1,9 @@
-import { resolve as resolvePath } from "path";
+import { resolve as resolvePath } from "node:path";
 import { execa } from "@esm2cjs/execa";
 
 export async function waitFiles(
   rawFiles: string[],
-  timeout = 10000,
+  timeout = 10_000,
   checkInterval = 1000,
 ): Promise<void> {
   const files = rawFiles.map((f) => resolvePath(f));
@@ -60,7 +60,7 @@ export async function waitFiles(
         return; // File is no longer open by ffmpeg
       }
 
-      await new Promise((res) => setTimeout(res, checkInterval));
+      await new Promise((resolve) => setTimeout(resolve, checkInterval));
     }
   }
 

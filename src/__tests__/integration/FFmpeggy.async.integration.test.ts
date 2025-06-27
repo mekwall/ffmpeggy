@@ -41,11 +41,11 @@ describe("FFmpeggy:async", () => {
   });
 
   it("should stream bunny1.mkv to temp file using await", async () => {
-    const tempFile = fileManager.createTempFile("mkv");
+    const temporaryFile = fileManager.createTempFile("mkv");
     const inputStream = fileManager.createInputStream(
       SAMPLE_FILES.video_basic_mkv,
     );
-    const outputStream = fileManager.createOutputStream(tempFile);
+    const outputStream = fileManager.createOutputStream(temporaryFile);
 
     const ffmpeggy = FFmpeggyTestHelpers.createStreamingFFmpeggy(
       inputStream,
@@ -58,7 +58,7 @@ describe("FFmpeggy:async", () => {
       // Use the robust streaming test helper
       const { fileSize } = await FFmpeggyTestHelpers.runStreamingTest(
         ffmpeggy,
-        tempFile,
+        temporaryFile,
         { minFileSize: 1000, maxRetries: 3, retryDelay: 1000 },
       );
 
@@ -70,11 +70,11 @@ describe("FFmpeggy:async", () => {
   });
 
   it("should stream audio.mp3 to temp file using await", async () => {
-    const tempFile = fileManager.createTempFile("mp3");
+    const temporaryFile = fileManager.createTempFile("mp3");
     const inputStream = fileManager.createInputStream(
       SAMPLE_FILES.audio_basic_mp3,
     );
-    const outputStream = fileManager.createOutputStream(tempFile);
+    const outputStream = fileManager.createOutputStream(temporaryFile);
 
     const ffmpeggy = FFmpeggyTestHelpers.createStreamingFFmpeggy(
       inputStream,
@@ -87,7 +87,7 @@ describe("FFmpeggy:async", () => {
       // Use the robust streaming test helper
       const { fileSize } = await FFmpeggyTestHelpers.runStreamingTest(
         ffmpeggy,
-        tempFile,
+        temporaryFile,
         { minFileSize: 1, maxRetries: 3, retryDelay: 1000 },
       );
 
@@ -99,8 +99,8 @@ describe("FFmpeggy:async", () => {
 
   describe("toStream()", () => {
     it("should pipe to piped.mkv", async () => {
-      const tempFile = fileManager.createTempFile("mkv");
-      const outputStream = fileManager.createOutputStream(tempFile);
+      const temporaryFile = fileManager.createTempFile("mkv");
+      const outputStream = fileManager.createOutputStream(temporaryFile);
 
       const ffmpeggy = new FFmpeggy({
         input: SAMPLE_FILES.video_basic_mp4,
@@ -119,12 +119,12 @@ describe("FFmpeggy:async", () => {
           try {
             await ffmpeggy.done();
             resolve();
-          } catch (err) {
-            reject(err);
+          } catch (error) {
+            reject(error);
           }
         });
-        outputStream.on("error", (err) => {
-          reject(err);
+        outputStream.on("error", (error) => {
+          reject(error);
         });
         stream.pipe(outputStream);
       });
@@ -133,8 +133,8 @@ describe("FFmpeggy:async", () => {
       await streamPromise;
 
       // Wait for file to exist and have proper size
-      await waitForFileExists(tempFile);
-      const fileSize = await waitForFileSize(tempFile, 1); // Should be at least 1 byte
+      await waitForFileExists(temporaryFile);
+      const fileSize = await waitForFileSize(temporaryFile, 1); // Should be at least 1 byte
 
       expect(fileSize).toBeGreaterThan(0);
     });
@@ -144,48 +144,48 @@ describe("FFmpeggy:async", () => {
     it("should be possible to reuse instance", async () => {
       expect.assertions(2);
       const ffmpeggy = FFmpeggyTestHelpers.createBasicFFmpeggy();
-      const tempFile1 = fileManager.createTempFile("mp4");
+      const temporaryFile1 = fileManager.createTempFile("mp4");
 
       await ffmpeggy
         .setInput(SAMPLE_FILES.video_basic_mp4)
         .setOutputOptions(["-c copy"])
-        .setOutput(tempFile1)
+        .setOutput(temporaryFile1)
         .run();
 
       // Wait for the process to complete
       await ffmpeggy.done();
 
-      const tempStats1 = await import("fs/promises").then((fs) =>
-        fs.stat(tempFile1),
+      const temporaryStats1 = await import("node:fs/promises").then((fs) =>
+        fs.stat(temporaryFile1),
       );
-      expect(tempStats1.size).toBeGreaterThan(0);
+      expect(temporaryStats1.size).toBeGreaterThan(0);
 
       ffmpeggy.reset();
 
-      const tempFile2 = fileManager.createTempFile("mp4");
+      const temporaryFile2 = fileManager.createTempFile("mp4");
       await ffmpeggy
         .setInput(SAMPLE_FILES.video_basic_mp4)
         .setOutputOptions(["-c copy"])
-        .setOutput(tempFile2)
+        .setOutput(temporaryFile2)
         .run();
 
       // Wait for the process to complete
       await ffmpeggy.done();
 
-      const tempStats2 = await import("fs/promises").then((fs) =>
-        fs.stat(tempFile2),
+      const temporaryStats2 = await import("node:fs/promises").then((fs) =>
+        fs.stat(temporaryFile2),
       );
-      expect(tempStats2.size).toBeGreaterThan(0);
+      expect(temporaryStats2.size).toBeGreaterThan(0);
     });
   });
 
   // Additional tests for other audio formats
   it("should stream audio.ogg to temp file using await", async () => {
-    const tempFile = fileManager.createTempFile("ogg");
+    const temporaryFile = fileManager.createTempFile("ogg");
     const inputStream = fileManager.createInputStream(
       SAMPLE_FILES.audio_basic_ogg,
     );
-    const outputStream = fileManager.createOutputStream(tempFile);
+    const outputStream = fileManager.createOutputStream(temporaryFile);
 
     const ffmpeggy = FFmpeggyTestHelpers.createStreamingFFmpeggy(
       inputStream,
@@ -197,7 +197,7 @@ describe("FFmpeggy:async", () => {
     // Use the robust streaming test helper
     const { fileSize } = await FFmpeggyTestHelpers.runStreamingTest(
       ffmpeggy,
-      tempFile,
+      temporaryFile,
       { minFileSize: 1, maxRetries: 3, retryDelay: 1000 },
     );
 
@@ -206,11 +206,11 @@ describe("FFmpeggy:async", () => {
 
   // Alternative implementation with better error handling
   it("should stream audio.ogg to temp file with robust error handling", async () => {
-    const tempFile = fileManager.createTempFile("ogg");
+    const temporaryFile = fileManager.createTempFile("ogg");
     const inputStream = fileManager.createInputStream(
       SAMPLE_FILES.audio_basic_ogg,
     );
-    const outputStream = fileManager.createOutputStream(tempFile);
+    const outputStream = fileManager.createOutputStream(temporaryFile);
 
     const ffmpeggy = FFmpeggyTestHelpers.createStreamingFFmpeggy(
       inputStream,
@@ -232,8 +232,8 @@ describe("FFmpeggy:async", () => {
         try {
           cleanup();
           // Wait for file to exist and have proper size
-          await waitForFileExists(tempFile);
-          const fileSize = await waitForFileSize(tempFile, 1);
+          await waitForFileExists(temporaryFile);
+          const fileSize = await waitForFileSize(temporaryFile, 1);
           expect(fileSize).toBeGreaterThan(0);
           resolve();
         } catch (error) {
@@ -259,8 +259,8 @@ describe("FFmpeggy:async", () => {
         // Accept 0, undefined, or null exit codes as success
         if (code === 0 || code === undefined || code === null) {
           try {
-            await waitForFileExists(tempFile);
-            const fileSize = await waitForFileSize(tempFile, 1);
+            await waitForFileExists(temporaryFile);
+            const fileSize = await waitForFileSize(temporaryFile, 1);
             expect(fileSize).toBeGreaterThan(0);
             cleanup();
             resolve();

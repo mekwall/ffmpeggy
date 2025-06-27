@@ -12,23 +12,23 @@ export function parseProgress(data: string): FFmpeggyProgress | undefined {
   }
   const v = matches.groups;
 
-  const frame = typeof v.frame !== "undefined" ? Number(v.frame) : undefined;
-  const fps = typeof v.fps !== "undefined" ? Number(v.fps) : undefined;
-  const q = typeof v.q !== "undefined" ? Number(v.q) : undefined;
+  const frame = v.frame === undefined ? undefined : Number(v.frame);
+  const fps = v.fps === undefined ? undefined : Number(v.fps);
+  const q = v.q === undefined ? undefined : Number(v.q);
   const size =
-    typeof v.size !== "undefined" && v.sizeunit
+    v.size !== undefined && v.sizeunit
       ? parseSize(Number(v.size) || 0, v.sizeunit)
       : undefined;
   const time = v.time ? timerToSecs(v.time) : undefined;
   const bitrate =
-    typeof v.bitrate !== "undefined" && v.bitrateunit
+    v.bitrate !== undefined && v.bitrateunit
       ? parseBitrate(Number(v.bitrate), v.bitrateunit)
       : undefined;
   const duplicates =
-    typeof v.duplicates !== "undefined" ? Number(v.duplicates) : undefined;
+    v.duplicates === undefined ? undefined : Number(v.duplicates);
   const dropped =
-    typeof v.dropped !== "undefined" ? Number(v.dropped) : undefined;
-  const speed = typeof v.speed !== "undefined" ? Number(v.speed) : undefined;
+    v.dropped === undefined ? undefined : Number(v.dropped);
+  const speed = v.speed === undefined ? undefined : Number(v.speed);
 
   return {
     frame,
@@ -56,11 +56,11 @@ export function parseInfo(data: string): FFmpegInfo | undefined {
   if (!matches) {
     return;
   }
-  const durationStr = matches[1];
+  const durationString = matches[1];
   let duration: number | undefined;
 
-  if (durationStr) {
-    const trimmedDuration = durationStr.trim();
+  if (durationString) {
+    const trimmedDuration = durationString.trim();
     if (trimmedDuration !== "N/A") {
       duration = timerToSecs(trimmedDuration);
     }
@@ -103,22 +103,27 @@ export function parseFinalSizes(data: string): FFmpeggyFinalSizes | undefined {
     const value = parseSize(Number(match[2]), match[3]);
 
     switch (key) {
-      case "video":
+      case "video": {
         result.video = value;
         break;
-      case "audio":
+      }
+      case "audio": {
         result.audio = value;
         break;
+      }
       case "subtitle":
-      case "subtitles":
+      case "subtitles": {
         result.subtitles = value;
         break;
-      case "other streams":
+      }
+      case "other streams": {
         result.otherStreams = value;
         break;
-      case "global headers":
+      }
+      case "global headers": {
         result.globalHeaders = value;
         break;
+      }
     }
   }
 

@@ -50,9 +50,9 @@ describe("FFmpeggy:timeout", () => {
 
     // The error handler should have been called
     expect(errorHandler).toHaveBeenCalled();
-    const errorArg = errorHandler.mock.calls[0][0];
-    expect(errorArg).toBeInstanceOf(Error);
-    expect(errorArg.message).toMatch(/timed out/i);
+    const errorArgument = errorHandler.mock.calls[0][0];
+    expect(errorArgument).toBeInstanceOf(Error);
+    expect(errorArgument.message).toMatch(/timed out/i);
     vi.useRealTimers();
   });
 

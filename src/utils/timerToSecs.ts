@@ -24,10 +24,10 @@ export function timerToSecs(input: string): number {
 
   const hours = +timer[0];
   const mins = +timer[1];
-  const secs = parseFloat(timer[2]);
+  const secs = Number.parseFloat(timer[2]);
 
   if (isNaN(hours) || isNaN(mins) || isNaN(secs)) {
-    throw new Error(`Invalid time values: cannot parse "${input}"`);
+    throw new TypeError(`Invalid time values: cannot parse "${input}"`);
   }
 
   return Math.round((hours * 3600 + mins * 60 + secs) * 100) / 100;

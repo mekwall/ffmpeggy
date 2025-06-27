@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
-import { ReadStream } from "fs";
+import { ReadStream } from "node:fs";
 import { FFmpeggy } from "#/FFmpeggy";
 import {
   configureFFmpeggy,
@@ -29,7 +29,7 @@ describe("FFmpeggy:core", () => {
   });
 
   it("should pass in options in constructor", () => {
-    const opts = {
+    const options = {
       cwd: __dirname,
       overwriteExisting: false,
       pipe: true,
@@ -37,13 +37,13 @@ describe("FFmpeggy:core", () => {
       globalOptions: ["-max_alloc 1024", "-vol 512"],
     };
 
-    const ffmpeggy = FFmpeggyTestHelpers.createFFmpeggyWithOptions(opts);
-    expect(ffmpeggy.cwd).toBe(opts.cwd);
-    expect(ffmpeggy.overwriteExisting).toBe(opts.overwriteExisting);
+    const ffmpeggy = FFmpeggyTestHelpers.createFFmpeggyWithOptions(options);
+    expect(ffmpeggy.cwd).toBe(options.cwd);
+    expect(ffmpeggy.overwriteExisting).toBe(options.overwriteExisting);
     expect(ffmpeggy.output).toBe("-");
-    expect(ffmpeggy.hideBanner).toBe(opts.hideBanner);
+    expect(ffmpeggy.hideBanner).toBe(options.hideBanner);
     // -stats is always added to globalOptions
-    expect(ffmpeggy.globalOptions).toEqual(["-stats", ...opts.globalOptions]);
+    expect(ffmpeggy.globalOptions).toEqual(["-stats", ...options.globalOptions]);
     expect(ffmpeggy).toBeDefined();
   });
 
@@ -78,11 +78,11 @@ describe("FFmpeggy:core", () => {
 
   it("should return existing process", () => {
     const ffmpeggy = FFmpeggyTestHelpers.createBasicFFmpeggy();
-    const tempFile = fileManager.createTempFile("mp4");
+    const temporaryFile = fileManager.createTempFile("mp4");
     const process = ffmpeggy
       .setInput(SAMPLE_FILES.video_basic_mp4)
       .setOutputOptions(["-c copy"])
-      .setOutput(tempFile)
+      .setOutput(temporaryFile)
       .run();
     expect(ffmpeggy.run()).toEqual(process);
   });

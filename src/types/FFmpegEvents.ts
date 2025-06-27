@@ -20,7 +20,7 @@ export type FFmpegEvents = {
   /**
    * Emitted when the FFmpeg process starts. Provides the arguments passed to FFmpeg.
    */
-  start: (ffmpegArgs: readonly string[]) => void;
+  start: (ffmpegArguments: readonly string[]) => void;
   /**
    * Emitted when processing completes. For multiple outputs, emits an array of results; for single output, emits a single result.
    * Each result includes: { file, sizes, outputIndex }

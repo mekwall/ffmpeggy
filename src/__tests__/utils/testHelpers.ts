@@ -1,12 +1,12 @@
-import crypto from "crypto";
+import crypto from "node:crypto";
 import {
   createWriteStream,
   createReadStream,
   ReadStream,
   WriteStream,
-} from "fs";
-import { mkdir, stat, unlink, rm, access } from "fs/promises";
-import path from "path";
+} from "node:fs";
+import { mkdir, stat, unlink, rm, access } from "node:fs/promises";
+import path from "node:path";
 import ffmpegStatic from "ffmpeg-static";
 import { path as ffprobeBin } from "ffprobe-static";
 import { FFmpeggy } from "#/FFmpeggy.js";
@@ -20,7 +20,7 @@ export const PROBE_TIMEOUT_MS = TEST_TIMEOUTS.PROBE_OPERATION;
 export const HOOK_TIMEOUT_MS = TEST_TIMEOUTS.HOOK_OPERATION;
 
 // Re-export TEST_TIMEOUTS for convenience
-export { TEST_TIMEOUTS };
+
 
 // FFmpeg binary validation
 const ffmpegBin = ffmpegStatic as unknown as string;
@@ -80,9 +80,9 @@ export async function waitForFileExists(
   maxRetries = isCI ? 30 : 10,
   retryDelay = isCI ? 1000 : 500,
 ): Promise<void> {
-  const fs = await import("fs/promises");
+  const fs = await import("node:fs/promises");
 
-  for (let i = 0; i < maxRetries; i++) {
+  for (let index = 0; index < maxRetries; index++) {
     try {
       // Use stat instead of access to get more information
       const stats = await fs.stat(filePath);
@@ -93,12 +93,12 @@ export async function waitForFileExists(
       }
 
       // File exists but is empty, wait a bit more
-      if (i < maxRetries - 1) {
+      if (index < maxRetries - 1) {
         await wait(retryDelay);
       }
     } catch {
       // File doesn't exist yet, wait and retry
-      if (i < maxRetries - 1) {
+      if (index < maxRetries - 1) {
         await wait(retryDelay);
       } else {
         throw new Error(
@@ -121,19 +121,19 @@ export async function waitForFileSize(
   maxRetries = isCI ? 30 : 10,
   retryDelay = isCI ? 1000 : 500,
 ): Promise<number> {
-  for (let i = 0; i < maxRetries; i++) {
+  for (let index = 0; index < maxRetries; index++) {
     try {
       const stats = await stat(filePath);
       if (stats.size >= minSize) {
         return stats.size;
       }
-      if (i === maxRetries - 1) {
+      if (index === maxRetries - 1) {
         throw new Error(
           `File ${filePath} size (${stats.size}) is less than minimum expected size (${minSize})`,
         );
       }
     } catch (error) {
-      if (i === maxRetries - 1) {
+      if (index === maxRetries - 1) {
         throw error;
       }
     }
@@ -149,9 +149,9 @@ interface DestroyableStream {
   destroy(): void;
   once(event: string, listener: () => void): void;
   removeListener(event: string, listener: () => void): void;
-  on(event: "error", listener: (err: Error) => void): void;
+  on(event: "error", listener: (error: Error) => void): void;
   on(event: "close" | "finish" | "end", listener: () => void): void;
-  off(event: "error", listener: (err: Error) => void): void;
+  off(event: "error", listener: (error: Error) => void): void;
   off(event: "close" | "finish" | "end", listener: () => void): void;
   end(): void;
   writable?: boolean;
@@ -191,16 +191,16 @@ export async function cleanupStreams(
         let cleanupCalled = false;
 
         // Define all event handlers first
-        const onError = (err: Error) => {
+        const onError = (error: Error) => {
           // Suppress expected stream cleanup errors
-          const errorMessage = err.message || "";
+          const errorMessage = error.message || "";
           const isExpectedError =
             /premature close|write after end|cannot pipe|stream.*error/i.test(
               errorMessage,
             );
 
           if (process.env.DEBUG && !isExpectedError) {
-            console.warn("[Stream cleanup] Unexpected error:", err.message);
+            console.warn("[Stream cleanup] Unexpected error:", error.message);
           }
           cleanup();
         };
@@ -372,13 +372,13 @@ export class TestFileManager {
             console.warn(
               `Failed to delete ${failedDeletions.length} temp files after ${TEST_TIMEOUTS.CLEANUP.FILE_DELETION_RETRIES} attempts:`,
             );
-            failedDeletions.forEach(({ file, result }) => {
+            for (const { file, result } of failedDeletions) {
               const error =
                 result.status === "rejected"
                   ? result.reason
                   : result.value.error;
               console.warn(`  - ${file}: ${error}`);
-            });
+            }
           } else {
             // Wait before retry with exponential backoff
             // Use longer delays for EBUSY errors on Windows
@@ -482,15 +482,15 @@ export class TestFileManager {
     }
 
     // Generate a random file name using current timestamp and random bytes
-    const timestamp = new Date().getTime();
+    const timestamp = Date.now();
     const randomBytes = crypto.randomBytes(8).toString("hex");
-    const tempFilename = path.join(
+    const temporaryFilename = path.join(
       this.tempDir,
       `temp-${timestamp}-${randomBytes}${extension}`,
     );
 
-    this.tempFiles.push(tempFilename);
-    return tempFilename;
+    this.tempFiles.push(temporaryFilename);
+    return temporaryFilename;
   }
 
   getTempFiles(): string[] {
@@ -538,18 +538,18 @@ export class TestFileManager {
 }
 
 // FFmpeggy test helpers
-export class FFmpeggyTestHelpers {
-  static createBasicFFmpeggy(): FFmpeggy {
+export const FFmpeggyTestHelpers = {
+  createBasicFFmpeggy(): FFmpeggy {
     return new FFmpeggy();
-  }
+  },
 
-  static createFFmpeggyWithOptions(
+  createFFmpeggyWithOptions(
     options: ConstructorParameters<typeof FFmpeggy>[0],
   ): FFmpeggy {
     return new FFmpeggy(options);
-  }
+  },
 
-  static createStreamingFFmpeggy(
+  createStreamingFFmpeggy(
     inputStream: ReadStream,
     outputStream: WriteStream,
     inputOptions: string[] = [],
@@ -562,9 +562,9 @@ export class FFmpeggyTestHelpers {
       output: outputStream,
       outputOptions,
     });
-  }
+  },
 
-  static createFileToFileFFmpeggy(
+  createFileToFileFFmpeggy(
     inputFile: string,
     outputFile: string,
     outputOptions: string[] = [],
@@ -574,9 +574,9 @@ export class FFmpeggyTestHelpers {
       output: outputFile,
       outputOptions,
     });
-  }
+  },
 
-  static createPipedFFmpeggy(
+  createPipedFFmpeggy(
     inputFile: string,
     outputOptions: string[] = [],
   ): FFmpeggy {
@@ -586,9 +586,9 @@ export class FFmpeggyTestHelpers {
       pipe: true,
       outputOptions,
     });
-  }
+  },
 
-  static async runAndWait(
+  async runAndWait(
     ffmpeggy: FFmpeggy,
   ): Promise<{ file?: string; sizes?: FFmpeggyFinalSizes }> {
     return new Promise<{ file?: string; sizes?: FFmpeggyFinalSizes }>(
@@ -668,9 +668,9 @@ export class FFmpeggyTestHelpers {
         ffmpeggy.triggerAutorun();
       },
     );
-  }
+  },
 
-  static async runWithEvents(
+  async runWithEvents(
     ffmpeggy: FFmpeggy,
     eventHandlers: {
       onDone?: (
@@ -730,13 +730,13 @@ export class FFmpeggyTestHelpers {
 
       ffmpeggy.run().catch(reject);
     });
-  }
+  },
 
   /**
    * Robust streaming test helper that handles common flakiness issues
    * Specifically designed for tests that stream from one format to another
    */
-  static async runStreamingTest(
+  async runStreamingTest(
     ffmpeggy: FFmpeggy,
     outputFile: string,
     options: {
@@ -811,15 +811,15 @@ export class FFmpeggyTestHelpers {
       maxRetries,
       retryDelay,
     );
-  }
-}
+  },
+};
 
 /**
  * Retry mechanism for flaky tests
  * Based on patterns from Playwright and TestNG retry implementations
  */
 export async function retryTest<T>(
-  testFn: () => Promise<T>,
+  testFunction: () => Promise<T>,
   maxRetries = 3,
   baseDelayMs = 1000,
 ): Promise<T> {
@@ -827,7 +827,7 @@ export async function retryTest<T>(
 
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
-      return await testFn();
+      return await testFunction();
     } catch (error) {
       lastError = error as Error;
 
@@ -863,7 +863,7 @@ export async function retryTest<T>(
  * This is useful for tests that fail due to file system timing issues
  */
 export async function retryFileTest<T>(
-  testFn: () => Promise<T>,
+  testFunction: () => Promise<T>,
   maxRetries = 3,
   baseDelayMs = 1000,
 ): Promise<T> {
@@ -871,7 +871,7 @@ export async function retryFileTest<T>(
 
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
-      return await testFn();
+      return await testFunction();
     } catch (error) {
       lastError = error as Error;
 
@@ -909,3 +909,5 @@ export async function retryFileTest<T>(
   // This should never be reached, but TypeScript requires it
   throw lastError!;
 }
+
+export {TEST_TIMEOUTS} from "./testTimeouts.js";
