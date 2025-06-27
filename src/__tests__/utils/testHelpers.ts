@@ -192,24 +192,6 @@ export async function cleanupStreams(
   const cleanupPromises = streams.map((stream) => {
     return new Promise<void>((resolve) => {
       if (isDestroyableStream(stream)) {
-        // Create cleanup function that will be called in all cases
-        let cleanupCalled = false;
-
-        // Define all event handlers first
-        const onError = (error: Error) => {
-          // Suppress expected stream cleanup errors
-          const errorMessage = error.message || "";
-          const isExpectedError =
-            /premature close|write after end|cannot pipe|stream.*error/i.test(
-              errorMessage,
-            );
-
-          if (process.env.DEBUG && !isExpectedError) {
-            console.warn("[Stream cleanup] Unexpected error:", error.message);
-          }
-          cleanup();
-        };
-
         const onClose = () => cleanup();
         const onFinish = () => cleanup();
         const onEnd = () => cleanup();
@@ -229,6 +211,24 @@ export async function cleanupStreams(
           }
 
           resolve();
+        };
+
+        // Create cleanup function that will be called in all cases
+        let cleanupCalled = false;
+
+        // Define all event handlers first
+        const onError = (error: Error) => {
+          // Suppress expected stream cleanup errors
+          const errorMessage = error.message || "";
+          const isExpectedError =
+            /premature close|write after end|cannot pipe|stream.*error/i.test(
+              errorMessage,
+            );
+
+          if (process.env.DEBUG && !isExpectedError) {
+            console.warn("[Stream cleanup] Unexpected error:", error.message);
+          }
+          cleanup();
         };
 
         // Add error handler first
