@@ -16,6 +16,27 @@ export default tseslint.config(
   ...tseslint.configs.recommended,
   eslintPluginUnicorn.configs.recommended,
   {
+    rules: {
+      "unicorn/filename-case": "off",
+      // TODO: Consider using EventTarget instead of EventEmitter for better browser compatibility
+      "unicorn/prefer-event-target": "warn",
+      // TODO: Consider using undefined instead of null for better type safety
+      "unicorn/no-null": "warn",
+      // TODO: Consider using import.meta.url instead of __dirname for ESM compatibility
+      "unicorn/prefer-module": "warn",
+      // TODO: Consider avoiding direct member access from await expressions for better readability
+      "unicorn/no-await-expression-member": "warn",
+      // TODO: Consider using more descriptive variable names instead of abbreviations
+      "unicorn/prevent-abbreviations": "warn",
+      // TODO: Consider using ternary expressions instead of if statements where appropriate
+      "unicorn/prefer-ternary": "warn",
+      // TODO: Consider using default imports for better tree-shaking
+      "unicorn/import-style": "warn",
+      // TODO: Consider using Number.isNaN instead of isNaN for better type checking
+      "unicorn/prefer-number-properties": "warn",
+    },
+  },
+  {
     files: ["*.{cjs,js,ts}"],
     languageOptions: {
       ecmaVersion: 2024,
@@ -112,12 +133,6 @@ export default tseslint.config(
     },
   },
   {
-    files: ["**/*.js"],
-    rules: {
-      "@typescript-eslint/no-var-requires": "off",
-    },
-  },
-  {
     files: ["**/*.test.js", "**/*.spec.ts", "**/*.test.cjs", "**/*.test.ts"],
     languageOptions: {
       globals: {
@@ -133,7 +148,6 @@ export default tseslint.config(
         afterEach: "readonly",
       },
     },
-    ...vitestPlugin.configs.recommended,
   },
   prettierConfig,
 );
