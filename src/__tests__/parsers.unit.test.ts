@@ -29,7 +29,7 @@ describe("parsers", () => {
     expect(progress).toBeDefined();
     expect(progress?.frame).toBe(3853);
     expect(progress?.fps).toBe(246);
-    expect(progress?.q).toBe(-1);
+    expect(progress?.quality).toBe(-1);
     expect(progress?.size).toBe(25_806_848);
     expect(progress?.time).toBe(154.08);
     expect(progress?.bitrate).toBe(1339.9);
@@ -43,7 +43,7 @@ describe("parsers", () => {
     expect(progress).toBeDefined();
     expect(progress?.frame).toBe(72);
     expect(progress?.fps).toBe(0);
-    expect(progress?.q).toBe(-1);
+    expect(progress?.quality).toBe(-1);
     expect(progress?.size).toBe(undefined);
     expect(progress?.time).toBe(2.85);
     expect(progress?.bitrate).toBe(undefined);

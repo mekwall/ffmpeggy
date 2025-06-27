@@ -410,6 +410,8 @@ export class FFmpeggy extends EventEmitter {
       }
       this.emit("exit", 1, error_);
       this.running = false;
+      // Re-throw the error so the caller can handle it
+      throw error_;
     }
 
     this.awaitStatus();
