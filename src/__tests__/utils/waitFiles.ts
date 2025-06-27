@@ -1,4 +1,4 @@
-import { resolve as resolvePath } from "node:path";
+import path from "node:path";
 import { execa } from "@esm2cjs/execa";
 
 export async function waitFiles(
@@ -6,7 +6,7 @@ export async function waitFiles(
   timeout = 10_000,
   checkInterval = 1000,
 ): Promise<void> {
-  const files = rawFiles.map((f) => resolvePath(f));
+  const files = rawFiles.map((f) => path.resolve(f));
   const startTime = Date.now();
 
   const isWindows = process.platform === "win32";
