@@ -44,6 +44,7 @@ describe("timerToSecs", () => {
   });
 
   it("should throw error for null/undefined input", () => {
+    // eslint-disable-next-line unicorn/no-null
     expect(() => timerToSecs(null as unknown as string)).toThrow(
       "Invalid input: must be a non-empty string",
     );
