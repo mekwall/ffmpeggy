@@ -123,19 +123,19 @@ export class FFmpeggy extends EventEmitter {
 
   // set from DefaultConfig in constructor
   /** Path to the FFmpeg binary */
-  public ffmpegBin!: string;
+  public ffmpegBin: string = "";
 
   /** Path to the FFprobe binary */
-  public ffprobeBin!: string;
+  public ffprobeBin: string = "";
 
   /** Working directory for FFmpeg operations */
-  public cwd!: string;
+  public cwd: string = process.cwd();
 
   /** Whether to overwrite existing output files */
-  public overwriteExisting!: boolean;
+  public overwriteExisting: boolean = false;
 
   /** Whether to hide the FFmpeg banner output */
-  public hideBanner!: boolean;
+  public hideBanner: boolean = true;
 
   /** Whether to use tee pseudo-muxer for multiple outputs */
   public tee = false;
