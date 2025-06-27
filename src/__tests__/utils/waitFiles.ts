@@ -1,12 +1,12 @@
-import { resolve as resolvePath } from "path";
+import path from "node:path";
 import { execa } from "@esm2cjs/execa";
 
 export async function waitFiles(
   rawFiles: string[],
-  timeout = 10000,
-  checkInterval = 1000
+  timeout = 10_000,
+  checkInterval = 1000,
 ): Promise<void> {
-  const files = rawFiles.map((f) => resolvePath(f));
+  const files = rawFiles.map((f) => path.resolve(f));
   const startTime = Date.now();
 
   const isWindows = process.platform === "win32";
@@ -21,7 +21,7 @@ export async function waitFiles(
             "-Command",
             `Get-Process -Name ffmpeg | ForEach-Object { $_.Modules } | Where-Object { $_.FileName -eq '${file}' }`,
           ],
-          { reject: false }
+          { reject: false },
         );
         return stdout.trim().length > 0; // Non-empty output means the file is open by ffmpeg
       } else {
@@ -33,7 +33,7 @@ export async function waitFiles(
         const { stdout: psOutput } = await execa(
           "ps",
           ["-p", pids.join(","), "-o", "comm="],
-          { reject: false }
+          { reject: false },
         );
         return psOutput
           .trim()
@@ -51,7 +51,7 @@ export async function waitFiles(
     while (true) {
       if (Date.now() - startTime > timeout) {
         throw new Error(
-          `Timeout: File "${file}" did not close within ${timeout}ms`
+          `Timeout: File "${file}" did not close within ${timeout}ms`,
         );
       }
 
@@ -60,7 +60,7 @@ export async function waitFiles(
         return; // File is no longer open by ffmpeg
       }
 
-      await new Promise((res) => setTimeout(res, checkInterval));
+      await new Promise((resolve) => setTimeout(resolve, checkInterval));
     }
   }
 

@@ -1,7 +1,26 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    "outDir": "cjs"
+    "outDir": "cjs",
+    "isolatedModules": true,
+    "module": "CommonJS",
+    "moduleResolution": "node",
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "removeComments": false,
+    "rootDir": "src",
+    "baseUrl": ".",
+    "paths": {}
   },
-  "exclude": ["**/*/__tests__"]
+  "include": ["src/**/*"],
+  "exclude": [
+    "**/*.test.ts",
+    "**/*.spec.ts",
+    "src/__tests__/**",
+    "vitest.config.ts",
+    "vitest.setup.ts",
+    "cjs/**",
+    "es/**"
+  ]
 }

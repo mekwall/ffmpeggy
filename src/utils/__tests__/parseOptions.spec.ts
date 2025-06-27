@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseOptions } from "../parseOptions";
+import { parseOptions } from "#/utils/parseOptions";
 
 describe("parseOptions", () => {
   it("should parse simple string array", () => {

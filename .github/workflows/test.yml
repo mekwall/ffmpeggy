@@ -13,16 +13,216 @@ on:
         required: false
         type: boolean
         default: false
+      coverage:
+        required: false
+        type: boolean
+        default: false
+    secrets:
+      DEEPSOURCE_DSN:
+        required: false
+        description: "DeepSource DSN for coverage reporting"
 
 jobs:
-  test:
-    name: test
+  test-unit:
+    name: test-unit
     runs-on: ${{ inputs.os }}
 
     steps:
       - uses: actions/checkout@v4
 
       - uses: ./.github/actions/setup-node
+        with:
+          node-version: ${{ inputs.node-version }}
+
+      - name: Install dependencies
+        run: yarn install
+
+      - name: Run unit tests
+        shell: bash
+        run: yarn test:unit ${{ inputs.coverage && '--coverage' || '' }}
+        env:
+          DEBUG: ${{ inputs.debug && '*' || '' }}
+
+      - name: Report test coverage to DeepSource
+        if: inputs.coverage
+        uses: deepsourcelabs/test-coverage-action@master
+        with:
+          key: javascript
+          coverage-file: coverage/lcov.info
+          dsn: ${{ secrets.DEEPSOURCE_DSN }}
+          fail-ci-on-error: false
+
+      - name: Publish Test Results
+        uses: dorny/test-reporter@v2
+        if: always()
+        with:
+          name: Vitest Unit Tests
+          path: test-results.xml
+          reporter: java-junit
+          fail-on-error: false
+
+  test-async-integration:
+    name: test-async-integration
+    runs-on: ${{ inputs.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ./.github/actions/setup-node
+        with:
+          node-version: ${{ inputs.node-version }}
+
+      - name: Install dependencies
+        run: yarn install
+
+      - name: Run async integration tests
+        shell: bash
+        run: yarn test:async ${{ inputs.coverage && '--coverage' || '' }}
+        env:
+          DEBUG: ${{ inputs.debug && '*' || '' }}
+
+      - name: Report test coverage to DeepSource
+        if: inputs.coverage
+        uses: deepsourcelabs/test-coverage-action@master
+        with:
+          key: javascript
+          coverage-file: coverage/lcov.info
+          dsn: ${{ secrets.DEEPSOURCE_DSN }}
+          fail-ci-on-error: false
+
+      - name: Publish Test Results
+        uses: dorny/test-reporter@v2
+        if: always()
+        with:
+          name: Vitest Async Integration Tests
+          path: test-results.xml
+          reporter: java-junit
+          fail-on-error: false
+
+  test-events-integration:
+    name: test-events-integration
+    runs-on: ${{ inputs.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ./.github/actions/setup-node
+        with:
+          node-version: ${{ inputs.node-version }}
+
+      - name: Install dependencies
+        run: yarn install
+
+      - name: Run events integration tests
+        shell: bash
+        run: yarn test:events ${{ inputs.coverage && '--coverage' || '' }}
+        env:
+          DEBUG: ${{ inputs.debug && '*' || '' }}
+
+      - name: Report test coverage to DeepSource
+        if: inputs.coverage
+        uses: deepsourcelabs/test-coverage-action@master
+        with:
+          key: javascript
+          coverage-file: coverage/lcov.info
+          dsn: ${{ secrets.DEEPSOURCE_DSN }}
+          fail-ci-on-error: false
+
+      - name: Publish Test Results
+        uses: dorny/test-reporter@v2
+        if: always()
+        with:
+          name: Vitest Events Integration Tests
+          path: test-results.xml
+          reporter: java-junit
+          fail-on-error: false
+
+  test-multi-integration:
+    name: test-multi-integration
+    runs-on: ${{ inputs.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ./.github/actions/setup-node
+        with:
+          node-version: ${{ inputs.node-version }}
+
+      - name: Install dependencies
+        run: yarn install
+
+      - name: Run multi integration tests
+        shell: bash
+        run: yarn test:multi ${{ inputs.coverage && '--coverage' || '' }}
+        env:
+          DEBUG: ${{ inputs.debug && '*' || '' }}
+
+      - name: Report test coverage to DeepSource
+        if: inputs.coverage
+        uses: deepsourcelabs/test-coverage-action@master
+        with:
+          key: javascript
+          coverage-file: coverage/lcov.info
+          dsn: ${{ secrets.DEEPSOURCE_DSN }}
+          fail-ci-on-error: false
+
+      - name: Publish Test Results
+        uses: dorny/test-reporter@v2
+        if: always()
+        with:
+          name: Vitest Multi Integration Tests
+          path: test-results.xml
+          reporter: java-junit
+          fail-on-error: false
+
+  test-probe-integration:
+    name: test-probe-integration
+    runs-on: ${{ inputs.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ./.github/actions/setup-node
+        with:
+          node-version: ${{ inputs.node-version }}
+
+      - name: Install dependencies
+        run: yarn install
+
+      - name: Run probe integration tests
+        shell: bash
+        run: yarn test:probe ${{ inputs.coverage && '--coverage' || '' }}
+        env:
+          DEBUG: ${{ inputs.debug && '*' || '' }}
+
+      - name: Report test coverage to DeepSource
+        if: inputs.coverage
+        uses: deepsourcelabs/test-coverage-action@master
+        with:
+          key: javascript
+          coverage-file: coverage/lcov.info
+          dsn: ${{ secrets.DEEPSOURCE_DSN }}
+          fail-ci-on-error: false
+
+      - name: Publish Test Results
+        uses: dorny/test-reporter@v2
+        if: always()
+        with:
+          name: Vitest Probe Integration Tests
+          path: test-results.xml
+          reporter: java-junit
+          fail-on-error: false
+
+  test-cjs-integration:
+    name: test-cjs-integration
+    runs-on: ${{ inputs.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ./.github/actions/setup-node
+        with:
+          node-version: ${{ inputs.node-version }}
 
       - name: Download build artifacts
         uses: actions/download-artifact@v4
@@ -32,27 +232,26 @@ jobs:
       - name: Install dependencies
         run: yarn install
 
-      - name: Run tests
+      - name: Run CJS integration tests
         shell: bash
-        run: yarn test
+        run: yarn test:cjs ${{ inputs.coverage && '--coverage' || '' }}
         env:
           DEBUG: ${{ inputs.debug && '*' || '' }}
 
-      - name: List test results
-        shell: bash
-        run: |
-          echo "Current directory: $(pwd)"
-          echo "Files in current directory:"
-          ls -la
-          echo "Looking for test results..."
-          find . -name "*.xml" -type f 2>/dev/null || echo "No XML files found"
-          find . -name "test-results.xml" -type f 2>/dev/null || echo "test-results.xml not found"
+      - name: Report test coverage to DeepSource
+        if: inputs.coverage
+        uses: deepsourcelabs/test-coverage-action@master
+        with:
+          key: javascript
+          coverage-file: coverage/lcov.info
+          dsn: ${{ secrets.DEEPSOURCE_DSN }}
+          fail-ci-on-error: false
 
       - name: Publish Test Results
         uses: dorny/test-reporter@v2
         if: always()
         with:
-          name: Vitest Tests
+          name: Vitest CJS Integration Tests
           path: test-results.xml
           reporter: java-junit
           fail-on-error: false

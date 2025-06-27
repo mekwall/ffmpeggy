@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseSize } from "../parseSize";
+import { parseSize } from "#/utils/parseSize";
 
 describe("sizeUnits", () => {
   it("should convert kB to bytes", () => {
@@ -7,7 +7,7 @@ describe("sizeUnits", () => {
   });
 
   it("should convert MB to bytes", () => {
-    expect(parseSize(1, "mB")).toBe(1048576);
+    expect(parseSize(1, "mB")).toBe(1_048_576);
   });
 
   it("shouldn't do anything", () => {

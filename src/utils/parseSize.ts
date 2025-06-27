@@ -8,13 +8,17 @@
  */
 export function parseSize(size: number, unit: string): number {
   switch (unit.toLowerCase()) {
-    case "b":
+    case "b": {
       return size;
-    case "kb":
+    }
+    case "kb": {
       return size * 1024;
-    case "mb":
+    }
+    case "mb": {
       return size * 1024 * 1024;
-    default:
-      throw Error("Unknown unit");
+    }
+    default: {
+      throw new Error("Unknown unit");
+    }
   }
 }

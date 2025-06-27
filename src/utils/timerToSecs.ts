@@ -18,16 +18,16 @@ export function timerToSecs(input: string): number {
   const timer = trimmedInput.split(":");
   if (timer.length !== 3) {
     throw new Error(
-      `Invalid time format: expected "HH:MM:SS.MS", got "${input}"`
+      `Invalid time format: expected "HH:MM:SS.MS", got "${input}"`,
     );
   }
 
   const hours = +timer[0];
   const mins = +timer[1];
-  const secs = parseFloat(timer[2]);
+  const secs = Number.parseFloat(timer[2]);
 
-  if (isNaN(hours) || isNaN(mins) || isNaN(secs)) {
-    throw new Error(`Invalid time values: cannot parse "${input}"`);
+  if (Number.isNaN(hours) || Number.isNaN(mins) || Number.isNaN(secs)) {
+    throw new TypeError(`Invalid time values: cannot parse "${input}"`);
   }
 
   return Math.round((hours * 3600 + mins * 60 + secs) * 100) / 100;

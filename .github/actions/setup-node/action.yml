@@ -2,8 +2,11 @@ name: "Setup Node.js with Corepack"
 description: "Setup Node.js with Corepack support and dependency caching"
 
 inputs:
+  node-version:
+    description: "Specific Node.js version to use (takes precedence over node-version-file)"
+    required: false
   node-version-file:
-    description: "Path to .node-version file"
+    description: "Path to .node-version file (used if node-version is not provided)"
     required: false
     default: ".node-version"
   cache:
@@ -17,7 +20,8 @@ runs:
     - name: Install Node.js
       uses: actions/setup-node@v4
       with:
-        node-version-file: ${{ inputs.node-version-file }}
+        node-version: ${{ inputs.node-version }}
+        node-version-file: ${{ !inputs.node-version && inputs.node-version-file || '' }}
 
     - name: Enable Corepack
       shell: bash

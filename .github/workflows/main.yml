@@ -30,13 +30,20 @@ jobs:
       os: "ubuntu-latest"
       debug: true
 
+  lint:
+    uses: ./.github/workflows/lint.yml
+    with:
+      os: "ubuntu-latest"
+
   test:
     uses: ./.github/workflows/test.yml
-    needs: build
+    needs: [build, lint]
     with:
       node-version: ${{ matrix.node-version }}
       os: ${{ matrix.os }}
       debug: true
+      coverage: ${{ matrix.os == 'ubuntu-latest' && matrix.node-version == '24.x' }}
+    secrets: inherit
     strategy:
       matrix:
         os:
@@ -45,22 +52,9 @@ jobs:
           - ubuntu-latest
         node-version: [18.x, 20.x, 22.x, 24.x]
 
-  coverage:
-    uses: ./.github/workflows/coverage.yml
-    needs: build
-    with:
-      node-version: "24.x"
-      os: "ubuntu-latest"
-      debug: true
-
-  eslint:
-    uses: ./.github/workflows/eslint.yml
-    with:
-      os: "ubuntu-latest"
-
   release:
     name: Release
-    needs: [build, test, eslint]
+    needs: [build, lint, test]
     runs-on: ubuntu-latest
     permissions:
       contents: write
