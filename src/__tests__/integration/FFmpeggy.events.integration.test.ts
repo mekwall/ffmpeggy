@@ -56,11 +56,11 @@ describe("FFmpeggy:events", () => {
 
     return new Promise<void>((resolve, reject) => {
       ffmpeggy.on("done", (result) => {
-        const r = Array.isArray(result) ? result[0] : result;
-        expect(r?.file).toBe(temporaryFile);
-        expect(r?.sizes).toBeDefined();
-        expect(r?.sizes?.video).toBeGreaterThan(0);
-        expect(r?.sizes?.audio).toBeGreaterThan(0);
+        const resultItem = Array.isArray(result) ? result[0] : result;
+        expect(resultItem?.file).toBe(temporaryFile);
+        expect(resultItem?.sizes).toBeDefined();
+        expect(resultItem?.sizes?.video).toBeGreaterThan(0);
+        expect(resultItem?.sizes?.audio).toBeGreaterThan(0);
         resolve();
       });
 
@@ -84,14 +84,17 @@ describe("FFmpeggy:events", () => {
       let progressReceived = false;
       ffmpeggy.on("progress", (progress) => {
         const array = Array.isArray(progress) ? progress : [progress];
-        for (const p of array) {
-          expect(p).toBeDefined();
-          expect(p.time).toBeGreaterThan(0);
-          if (p.duration === 0 || p.duration === undefined) {
-            expect(p.percent).toBe(0);
+        for (const progressItem of array) {
+          expect(progressItem).toBeDefined();
+          expect(progressItem.time).toBeGreaterThan(0);
+          if (
+            progressItem.duration === 0 ||
+            progressItem.duration === undefined
+          ) {
+            expect(progressItem.percent).toBe(0);
           } else {
-            expect(p.percent).toBeGreaterThan(0);
-            expect(p.percent).toBeLessThanOrEqual(100);
+            expect(progressItem.percent).toBeGreaterThan(0);
+            expect(progressItem.percent).toBeLessThanOrEqual(100);
           }
           progressReceived = true;
         }
@@ -162,14 +165,17 @@ describe("FFmpeggy:events", () => {
       let progressReceived = false;
       ffmpeggy.on("progress", (progress) => {
         const array = Array.isArray(progress) ? progress : [progress];
-        for (const p of array) {
-          expect(p).toBeDefined();
-          expect(p.time).toBeGreaterThan(0);
-          if (p.duration === 0 || p.duration === undefined) {
-            expect(p.percent).toBe(0);
+        for (const progressItem of array) {
+          expect(progressItem).toBeDefined();
+          expect(progressItem.time).toBeGreaterThan(0);
+          if (
+            progressItem.duration === 0 ||
+            progressItem.duration === undefined
+          ) {
+            expect(progressItem.percent).toBe(0);
           } else {
-            expect(p.percent).toBeGreaterThan(0);
-            expect(p.percent).toBeLessThanOrEqual(100);
+            expect(progressItem.percent).toBeGreaterThan(0);
+            expect(progressItem.percent).toBeLessThanOrEqual(100);
           }
           progressReceived = true;
         }
