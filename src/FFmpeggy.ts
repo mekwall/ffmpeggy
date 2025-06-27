@@ -85,6 +85,8 @@ function sanitizeErrorForLog(error: unknown): unknown {
  *
  * @extends EventEmitter
  */
+// TODO: Consider using EventTarget instead of EventEmitter for compatibility with deno
+// eslint-disable-next-line unicorn/prefer-event-target
 export class FFmpeggy extends EventEmitter {
   /** Whether the FFmpeg process is currently running */
   public running = false;
@@ -1269,7 +1271,7 @@ export class FFmpeggy extends EventEmitter {
         }
 
         // Cleanup and emit exit event in next tick
-        await this.cleanupAndEmitExit();
+        await this.cleanupAndEmitExit(code);
       } catch (error) {
         // Handle process errors
         this.error = error as Error;
@@ -1285,7 +1287,7 @@ export class FFmpeggy extends EventEmitter {
         }
 
         // Cleanup and emit exit event in next tick
-        await this.cleanupAndEmitExit();
+        await this.cleanupAndEmitExit(this.status?.exitCode);
       }
     }
   }
@@ -1296,7 +1298,7 @@ export class FFmpeggy extends EventEmitter {
    * @param code - The exit code from the FFmpeg process
    * @private
    */
-  private async cleanupAndEmitExit(code?: number): Promise<void> {
+  private async cleanupAndEmitExit(code = 0): Promise<void> {
     return new Promise<void>((resolve) => {
       nextTick(() => {
         this.process = undefined;
@@ -1498,6 +1500,7 @@ export class FFmpeggy extends EventEmitter {
    * }
    * ```
    */
+
   public async exit(): Promise<{ code?: number | null; error?: Error }> {
     if (this.running && this.process) {
       // Wait for the process to complete

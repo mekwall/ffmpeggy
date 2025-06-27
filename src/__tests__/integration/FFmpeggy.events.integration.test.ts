@@ -124,14 +124,17 @@ describe("FFmpeggy:events", () => {
         sizes?: FFmpeggyFinalSizes;
         outputIndex?: number;
       }[] = [];
+
       ffmpeggy.on("writing", (info) => {
         const array = Array.isArray(info) ? info : [info];
         writingEvents.push(...array);
       });
+
       ffmpeggy.on("done", (result) => {
         const array = Array.isArray(result) ? result : [result];
         doneEvents.push(...array);
       });
+
       ffmpeggy.on("exit", (code) => {
         expect(code).toBe(0);
         expect(writingEvents.length).toBeGreaterThan(0);
