@@ -43,7 +43,10 @@ describe("FFmpeggy:core", () => {
     expect(ffmpeggy.output).toBe("-");
     expect(ffmpeggy.hideBanner).toBe(options.hideBanner);
     // -stats is always added to globalOptions
-    expect(ffmpeggy.globalOptions).toEqual(["-stats", ...options.globalOptions]);
+    expect(ffmpeggy.globalOptions).toEqual([
+      "-stats",
+      ...options.globalOptions,
+    ]);
     expect(ffmpeggy).toBeDefined();
   });
 
@@ -120,8 +123,8 @@ describe("FFmpeggy:core", () => {
         input: "nonexistent_file.mp4",
         output: "output.mp4",
       });
-      ffmpeggy.ffmpegBin =
-        ((await import("ffmpeg-static")).default as unknown as string) || "";
+      const ffmpegStatic = await import("ffmpeg-static");
+      ffmpeggy.ffmpegBin = (ffmpegStatic.default as unknown as string) || "";
 
       // This should fail with a clear error message before FFmpeg is even called
       await expect(ffmpeggy.run()).rejects.toThrow(
