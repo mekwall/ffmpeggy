@@ -44,7 +44,7 @@ jobs:
           DEBUG: ${{ inputs.debug && '*' || '' }}
 
       - name: Report test coverage to DeepSource
-        if: inputs.coverage && secrets.DEEPSOURCE_DSN != ''
+        if: inputs.coverage
         uses: deepsourcelabs/test-coverage-action@master
         with:
           key: javascript
@@ -82,7 +82,7 @@ jobs:
           DEBUG: ${{ inputs.debug && '*' || '' }}
 
       - name: Report test coverage to DeepSource
-        if: inputs.coverage && secrets.DEEPSOURCE_DSN != ''
+        if: inputs.coverage
         uses: deepsourcelabs/test-coverage-action@master
         with:
           key: javascript
@@ -120,7 +120,7 @@ jobs:
           DEBUG: ${{ inputs.debug && '*' || '' }}
 
       - name: Report test coverage to DeepSource
-        if: inputs.coverage && secrets.DEEPSOURCE_DSN != ''
+        if: inputs.coverage
         uses: deepsourcelabs/test-coverage-action@master
         with:
           key: javascript
@@ -158,7 +158,7 @@ jobs:
           DEBUG: ${{ inputs.debug && '*' || '' }}
 
       - name: Report test coverage to DeepSource
-        if: inputs.coverage && secrets.DEEPSOURCE_DSN != ''
+        if: inputs.coverage
         uses: deepsourcelabs/test-coverage-action@master
         with:
           key: javascript
@@ -196,7 +196,7 @@ jobs:
           DEBUG: ${{ inputs.debug && '*' || '' }}
 
       - name: Report test coverage to DeepSource
-        if: inputs.coverage && secrets.DEEPSOURCE_DSN != ''
+        if: inputs.coverage
         uses: deepsourcelabs/test-coverage-action@master
         with:
           key: javascript
@@ -239,7 +239,7 @@ jobs:
           DEBUG: ${{ inputs.debug && '*' || '' }}
 
       - name: Report test coverage to DeepSource
-        if: inputs.coverage && secrets.DEEPSOURCE_DSN != ''
+        if: inputs.coverage
         uses: deepsourcelabs/test-coverage-action@master
         with:
           key: javascript
