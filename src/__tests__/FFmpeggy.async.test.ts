@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
-import { FFmpeggy } from "../FFmpeggy";
+import { FFmpeggy } from "../FFmpeggy.js";
 import {
   configureFFmpeggy,
   SAMPLE_FILES,
@@ -9,7 +9,7 @@ import {
   StreamHelpers,
   TestAssertions,
   cleanupStreams,
-} from "./utils/testHelpers";
+} from "./utils/testHelpers.js";
 
 // Configure FFmpeggy with binaries
 configureFFmpeggy();
@@ -32,7 +32,7 @@ describe("FFMpeggy:async", () => {
 
   it("should pass in options in constructor", () => {
     const ffmpeggy = FFmpeggyTestHelpers.createFFmpeggyWithOptions({
-      cwd: __dirname,
+      cwd: import.meta.dirname,
       overwriteExisting: false,
       pipe: true,
       hideBanner: false,
@@ -40,7 +40,7 @@ describe("FFMpeggy:async", () => {
     });
 
     TestAssertions.expectConstructorOptions(ffmpeggy, {
-      cwd: __dirname,
+      cwd: import.meta.dirname,
       overwriteExisting: false,
       output: "-", // pipe = true
       hideBanner: false,
@@ -51,8 +51,8 @@ describe("FFMpeggy:async", () => {
   it("should set options with methods", () => {
     const ffmpeggy = FFmpeggyTestHelpers.createBasicFFmpeggy();
 
-    ffmpeggy.setCwd(__dirname);
-    expect(ffmpeggy.cwd).toBe(__dirname);
+    ffmpeggy.setCwd(import.meta.dirname);
+    expect(ffmpeggy.cwd).toBe(import.meta.dirname);
 
     ffmpeggy.setOverwriteExisting(false);
     expect(ffmpeggy.overwriteExisting).toBe(false);

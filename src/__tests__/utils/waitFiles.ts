@@ -1,5 +1,5 @@
 import { resolve as resolvePath } from "path";
-import { execa } from "@esm2cjs/execa";
+import { execa } from "execa";
 
 export async function waitFiles(
   rawFiles: string[],

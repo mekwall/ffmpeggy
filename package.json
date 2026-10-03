@@ -16,28 +16,30 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/mekwall/ffmpeggy.git"
+    "url": "git+https://github.com/mekwall/ffmpeggy.git"
   },
-  "main": "./cjs/index.js",
-  "module": "./es/index.mjs",
-  "types": "./cjs/index.d.ts",
+  "sideEffects": false,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "types": "./cjs/index.d.ts",
-      "require": "./cjs/index.js",
-      "import": "./es/index.mjs"
-    }
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
   },
   "files": [
-    "cjs",
-    "es",
+    "dist",
     "CHANGELOG.md",
     "LICENSE",
     "README.md"
   ],
   "scripts": {
-    "rebuild": "yarn build --clean",
-    "build": "tsukuru -c tsconfig.build.json",
+    "clean": "node -e \"require('node:fs').rmSync('dist',{recursive:true,force:true})\"",
+    "build": "tsc -p tsconfig.build.json",
+    "rebuild": "yarn clean && yarn build",
+    "typecheck": "tsc -p tsconfig.test.json --noEmit",
+    "check:package": "publint --pack npm && attw --pack . --profile esm-only",
     "lint": "eslint .",
     "test": "yarn build && vitest run",
     "test:watch": "yarn build && vitest",
@@ -51,17 +53,15 @@
     "semantic-release:dry-run": "cross-env DRY_RUN=true semantic-release --dry-run --no-ci --debug"
   },
   "engines": {
-    "node": ">= 18"
+    "node": ">=22"
   },
   "dependencies": {
-    "@esm2cjs/execa": "^6.1.1-cjs.1",
     "debug": "^4.3.2",
+    "execa": "^10.0.1",
     "typed-emitter": "^2.1.0"
   },
   "devDependencies": {
-    "@babel/core": "^7.14.8",
-    "@babel/preset-env": "^7.14.8",
-    "@babel/preset-typescript": "^7.14.5",
+    "@arethetypeswrong/cli": "^0.18.5",
     "@eslint/js": "^9.17.0",
     "@semantic-release/changelog": "^6.0.1",
     "@semantic-release/commit-analyzer": "^13.0.0",
@@ -83,8 +83,8 @@
     "eslint-plugin-unused-imports": "^4.1.4",
     "ffmpeg-static": "^5.0.0",
     "ffprobe-static": "^3.0.0",
+    "publint": "^0.3.25",
     "semantic-release": "^24.2.0",
-    "tsukuru": "^0.8.0",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.33.1",
     "vitest": "^3.2.3"

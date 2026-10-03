@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
-import { FFmpeggyProgressEvent } from "../FFmpeggy";
+import { FFmpeggyProgressEvent } from "../FFmpeggy.js";
 import {
   configureFFmpeggy,
   SAMPLE_FILES,
@@ -7,7 +7,7 @@ import {
   TestFileManager,
   FFmpeggyTestHelpers,
   StreamHelpers,
-} from "./utils/testHelpers";
+} from "./utils/testHelpers.js";
 
 // Configure FFmpeggy with binaries
 configureFFmpeggy();

@@ -7,17 +7,23 @@ import {
 } from "fs";
 import { mkdir, stat, unlink, rm, access } from "fs/promises";
 import path from "path";
-import ffmpegBin from "ffmpeg-static";
+import ffmpegStatic from "ffmpeg-static";
 import { path as ffprobeBin } from "ffprobe-static";
-import { FFmpeggy, FFmpeggyProgressEvent } from "../../FFmpeggy";
-import { FFmpeggyFinalSizes } from "../../types/FFmpeggyProgress";
-import { FFprobeResult } from "../../types/probeTypes";
-import { waitFiles } from "./waitFiles";
+import { FFmpeggy, FFmpeggyProgressEvent } from "../../FFmpeggy.js";
+import { FFmpeggyFinalSizes } from "../../types/FFmpeggyProgress.js";
+import { FFprobeResult } from "../../types/probeTypes.js";
+import { waitFiles } from "./waitFiles.js";
 import { expect } from "vitest";
 
 // Test timeout constants for better readability and maintainability
 export const TEST_TIMEOUT_MS = 60000; // 60 seconds for most test operations
 export const PROBE_TIMEOUT_MS = 30000; // 30 seconds for probe operations
+
+// ffmpeg-static's typings declare an ESM default export, but the package is
+// CommonJS, so under NodeNext the default import is typed as the module
+// namespace while at runtime it is the binary path itself.
+const ffmpegBin = ffmpegStatic as unknown as string | null;
+export const FFMPEG_BIN = ffmpegBin || "";
 
 // FFmpeg binary validation
 if (!ffmpegBin) {
@@ -30,12 +36,12 @@ export function configureFFmpeggy(): void {
     ...FFmpeggy.DefaultConfig,
     overwriteExisting: true,
     ffprobeBin: ffprobeBin || "",
-    ffmpegBin: ffmpegBin || "",
+    ffmpegBin: FFMPEG_BIN,
   };
 }
 
 // Sample file paths
-export const SAMPLE_DIR = path.join(__dirname, "../samples/");
+export const SAMPLE_DIR = path.join(import.meta.dirname, "../samples/");
 export const SAMPLE_FILES = {
   mkv: path.join(SAMPLE_DIR, "bunny1.mkv"),
   mp4: path.join(SAMPLE_DIR, "bunny2.mp4"),

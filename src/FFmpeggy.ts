@@ -1,24 +1,19 @@
-import EventEmitter from "events";
-import { ReadStream, WriteStream } from "fs";
-import { nextTick } from "process";
-import { PassThrough } from "stream";
-import { pipeline } from "stream/promises";
+import { EventEmitter } from "node:events";
+import { ReadStream, WriteStream } from "node:fs";
+import { nextTick } from "node:process";
+import { PassThrough } from "node:stream";
+import { pipeline } from "node:stream/promises";
 import createDebug from "debug";
-import {
-  execa,
-  type ExecaReturnValue,
-  type ExecaChildProcess,
-} from "@esm2cjs/execa";
-import TypedEmitter from "typed-emitter";
+import { execa, type Result, type ResultPromise } from "execa";
 import {
   parseInfo,
   parseWriting,
   parseProgress,
   parseFinalSizes,
-} from "./parsers";
-import { FFmpeggyProgress, FFmpeggyFinalSizes } from "./types/FFmpeggyProgress";
-import { FFprobeResult } from "./types/probeTypes";
-import { parseOptions } from "./utils/parseOptions";
+} from "./parsers.js";
+import { FFmpeggyProgress, FFmpeggyFinalSizes } from "./types/FFmpeggyProgress.js";
+import { FFprobeResult } from "./types/probeTypes.js";
+import { parseOptions } from "./utils/parseOptions.js";
 
 export interface FFmpeggyOptions {
   cwd?: string;
@@ -41,20 +36,20 @@ export type FFmpeggyProgressEvent = FFmpeggyProgress & {
 };
 
 type FFmpegEvents = {
-  error: (error: Error) => void;
-  start: (ffmpegArgs: readonly string[]) => void;
-  done: (file?: string, sizes?: FFmpeggyFinalSizes) => void;
-  exit: (code?: number | null, error?: Error) => void;
-  probe: (probeResult: FFprobeResult) => void;
-  progress: (progress: FFmpeggyProgressEvent) => void;
-  writing: (file: string) => void;
+  error: [error: Error];
+  start: [ffmpegArgs: readonly string[]];
+  done: [file?: string, sizes?: FFmpeggyFinalSizes];
+  exit: [code?: number | null, error?: Error];
+  probe: [probeResult: FFprobeResult];
+  progress: [progress: FFmpeggyProgressEvent];
+  writing: [file: string];
 };
 
 const debug = createDebug("ffmpeggy");
-export class FFmpeggy extends (EventEmitter as new () => TypedEmitter<FFmpegEvents>) {
+export class FFmpeggy extends EventEmitter<FFmpegEvents> {
   public running = false;
-  public status?: ExecaReturnValue;
-  public process?: ExecaChildProcess;
+  public status?: Result;
+  public process?: ResultPromise;
   public error?: Error;
   public currentFile?: string;
   public input: string | ReadStream = "";
@@ -135,7 +130,7 @@ export class FFmpeggy extends (EventEmitter as new () => TypedEmitter<FFmpegEven
     }
   }
 
-  public async run(): Promise<ExecaChildProcess | undefined> {
+  public async run(): Promise<ResultPromise | undefined> {
     // Return any existing process
     if (this.process) {
       debug("returning existing process");
@@ -341,9 +336,7 @@ export class FFmpeggy extends (EventEmitter as new () => TypedEmitter<FFmpegEven
     if (this.process) {
       try {
         this.status = await this.process;
-        // Store the process reference and exit code before clearing it
-        const processRef = this.process;
-        const code = processRef.exitCode;
+        const code = this.status.exitCode ?? null;
 
         if (code === 1) {
           console.error("FFmpeg failed:", this.log);
