@@ -1,0 +1,24 @@
+name: lint
+
+on:
+  workflow_call:
+    inputs:
+      os:
+        required: true
+        type: string
+
+jobs:
+  lint:
+    name: lint
+    runs-on: ${{ inputs.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ./.github/actions/setup
+
+      - name: Install dependencies
+        run: yarn install --immutable
+
+      - name: Biome check
+        run: yarn biome ci --reporter=github .

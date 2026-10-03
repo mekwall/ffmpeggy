@@ -22,26 +22,28 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: ./.github/actions/setup-node
+      - uses: ./.github/actions/setup
 
       - name: Install dependencies
-        run: yarn install
+        run: yarn install --immutable
 
-      - name: Run linting
-        run: yarn lint
+      - name: Type check
+        run: yarn typecheck
 
       - name: Build
         run: yarn build
         env:
           DEBUG: ${{ inputs.debug && '*' || '' }}
 
+      - name: Check package
+        run: yarn check:package
+
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
           name: build
           path: |
-            cjs/
-            es/
+            dist/
             package.json
             yarn.lock
           retention-days: 7

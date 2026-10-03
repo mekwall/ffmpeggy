@@ -7,9 +7,10 @@ on:
       - "package.json"
       - "yarn.lock"
       - "tsconfig*.json"
-      - "eslint.config.js"
+      - "biome.json"
       - "vitest.config.ts"
-      - ".node-version"
+      - "mise.toml"
+      - ".github/actions/**"
       - ".github/workflows/**"
       - "!**/*.md"
 
@@ -38,17 +39,17 @@ jobs:
           - ubuntu-latest
           - macos-latest
           - windows-latest
-        node-version: [18.x, 20.x, 22.x, 24.x]
+        node-version: ["22", "24"]
 
   coverage:
     uses: ./.github/workflows/coverage.yml
     needs: build
     with:
-      node-version: "24.x"
+      node-version: "24"
       os: "ubuntu-latest"
       debug: false
 
-  eslint:
-    uses: ./.github/workflows/eslint.yml
+  lint:
+    uses: ./.github/workflows/lint.yml
     with:
       os: "ubuntu-latest"
