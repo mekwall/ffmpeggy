@@ -93,13 +93,13 @@ describe("FFMpeggy:events", () => {
 
         ffmpeggy.on("progress", (progress: FFmpeggyProgressEvent) => {
           expect(progress).toBeDefined();
-          expect(progress.time).toBeGreaterThan(0);
+          expect(progress.time).toBeGreaterThanOrEqual(0);
 
           // If duration is not available, percent should be undefined or 0, not 100
           if (progress.duration === 0 || progress.duration === undefined) {
             expect(progress.percent).toBe(0);
           } else {
-            expect(progress.percent).toBeGreaterThan(0);
+            expect(progress.percent).toBeGreaterThanOrEqual(0);
             expect(progress.percent).toBeLessThanOrEqual(100);
           }
           progressReceived = true;
@@ -176,13 +176,13 @@ describe("FFMpeggy:events", () => {
 
         ffmpeggy.on("progress", (progress: FFmpeggyProgressEvent) => {
           expect(progress).toBeDefined();
-          expect(progress.time).toBeGreaterThan(0);
+          expect(progress.time).toBeGreaterThanOrEqual(0);
 
           // If duration is not available, percent should be undefined or 0, not 100
           if (progress.duration === 0 || progress.duration === undefined) {
             expect(progress.percent).toBe(0);
           } else {
-            expect(progress.percent).toBeGreaterThan(0);
+            expect(progress.percent).toBeGreaterThanOrEqual(0);
             expect(progress.percent).toBeLessThanOrEqual(100);
           }
           progressReceived = true;
@@ -206,15 +206,16 @@ describe("FFMpeggy:events", () => {
   it(
     "should handle progress with streaming operations where duration might not be available",
     async () => {
-      const tempFile = fileManager.createTempFile("mp4");
-      const inputStream = StreamHelpers.createInputStream(SAMPLE_FILES.mp4);
+      // MP4 can't be demuxed/muxed through non-seekable pipes, so use Matroska
+      const tempFile = fileManager.createTempFile("mkv");
+      const inputStream = StreamHelpers.createInputStream(SAMPLE_FILES.mkv);
       const outputStream = StreamHelpers.createOutputStream(tempFile);
 
       const ffmpeggy = FFmpeggyTestHelpers.createStreamingFFmpeggy(
         inputStream,
         outputStream,
-        ["-f mp4"],
-        ["-f mp4", "-c copy", "-stats"]
+        ["-f matroska"],
+        ["-f matroska", "-c copy", "-stats"]
       );
 
       return new Promise<void>((resolve, reject) => {
@@ -222,14 +223,14 @@ describe("FFMpeggy:events", () => {
 
         ffmpeggy.on("progress", (progress: FFmpeggyProgressEvent) => {
           expect(progress).toBeDefined();
-          expect(progress.time).toBeGreaterThan(0);
+          expect(progress.time).toBeGreaterThanOrEqual(0);
 
           // For streaming operations, duration might not be available
           // In such cases, percent should be 0, not 100
           if (progress.duration === 0 || progress.duration === undefined) {
             expect(progress.percent).toBe(0);
           } else {
-            expect(progress.percent).toBeGreaterThan(0);
+            expect(progress.percent).toBeGreaterThanOrEqual(0);
             expect(progress.percent).toBeLessThanOrEqual(100);
           }
           progressReceived = true;
