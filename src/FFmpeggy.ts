@@ -6,13 +6,16 @@ import { pipeline } from "node:stream/promises";
 import createDebug from "debug";
 import { execa, type Result, type ResultPromise } from "execa";
 import {
-  parseInfo,
-  parseWriting,
-  parseProgress,
   parseFinalSizes,
+  parseInfo,
+  parseProgress,
+  parseWriting,
 } from "./parsers.js";
-import { FFmpeggyProgress, FFmpeggyFinalSizes } from "./types/FFmpeggyProgress.js";
-import { FFprobeResult } from "./types/probeTypes.js";
+import type {
+  FFmpeggyFinalSizes,
+  FFmpeggyProgress,
+} from "./types/FFmpeggyProgress.js";
+import type { FFprobeResult } from "./types/probeTypes.js";
 import { parseOptions } from "./utils/parseOptions.js";
 
 export interface FFmpeggyOptions {
@@ -585,11 +588,11 @@ export class FFmpeggy extends EventEmitter<FFmpegEvents> {
         if (i > 0 && lines[i - 1].trim()) {
           const result = `${lines[i - 1].trim()}\n${line}`;
           return result.length > maxLength
-            ? result.substring(0, maxLength) + "..."
+            ? `${result.substring(0, maxLength)}...`
             : result;
         }
         return line.length > maxLength
-          ? line.substring(0, maxLength) + "..."
+          ? `${line.substring(0, maxLength)}...`
           : line;
       }
     }
@@ -599,7 +602,7 @@ export class FFmpeggy extends EventEmitter<FFmpegEvents> {
       const line = lines[i].trim();
       if (line) {
         return line.length > maxLength
-          ? line.substring(0, maxLength) + "..."
+          ? `${line.substring(0, maxLength)}...`
           : line;
       }
     }

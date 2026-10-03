@@ -1,14 +1,14 @@
-import { describe, it, expect, beforeAll, afterAll } from "vitest";
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { FFmpeggy } from "../FFmpeggy.js";
 import {
-  configureFFmpeggy,
-  SAMPLE_FILES,
-  TEST_TIMEOUT_MS,
-  TestFileManager,
-  FFmpeggyTestHelpers,
-  StreamHelpers,
-  TestAssertions,
   cleanupStreams,
+  configureFFmpeggy,
+  FFmpeggyTestHelpers,
+  SAMPLE_FILES,
+  StreamHelpers,
+  TEST_TIMEOUT_MS,
+  TestAssertions,
+  TestFileManager,
 } from "./utils/testHelpers.js";
 
 // Configure FFmpeggy with binaries
@@ -206,7 +206,7 @@ describe("FFMpeggy:async", () => {
         // Wait for the process to complete
         await ffmpeggy.done();
 
-        const tempStats1 = await import("fs/promises").then((fs) =>
+        const tempStats1 = await import("node:fs/promises").then((fs) =>
           fs.stat(tempFile1)
         );
         expect(tempStats1.size).toBeGreaterThan(0);
@@ -223,7 +223,7 @@ describe("FFMpeggy:async", () => {
         // Wait for the process to complete
         await ffmpeggy.done();
 
-        const tempStats2 = await import("fs/promises").then((fs) =>
+        const tempStats2 = await import("node:fs/promises").then((fs) =>
           fs.stat(tempFile2)
         );
         expect(tempStats2.size).toBeGreaterThan(0);

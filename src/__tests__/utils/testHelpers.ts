@@ -1,19 +1,19 @@
-import crypto from "crypto";
+import crypto from "node:crypto";
 import {
-  createWriteStream,
   createReadStream,
-  ReadStream,
-  WriteStream,
-} from "fs";
-import { mkdir, stat, unlink, rm, access } from "fs/promises";
-import path from "path";
+  createWriteStream,
+  type ReadStream,
+  type WriteStream,
+} from "node:fs";
+import { access, mkdir, rm, stat, unlink } from "node:fs/promises";
+import path from "node:path";
 import ffmpegStatic from "ffmpeg-static";
 import { path as ffprobeBin } from "ffprobe-static";
-import { FFmpeggy, FFmpeggyProgressEvent } from "../../FFmpeggy.js";
-import { FFmpeggyFinalSizes } from "../../types/FFmpeggyProgress.js";
-import { FFprobeResult } from "../../types/probeTypes.js";
-import { waitFiles } from "./waitFiles.js";
 import { expect } from "vitest";
+import { FFmpeggy, type FFmpeggyProgressEvent } from "../../FFmpeggy.js";
+import type { FFmpeggyFinalSizes } from "../../types/FFmpeggyProgress.js";
+import type { FFprobeResult } from "../../types/probeTypes.js";
+import { waitFiles } from "./waitFiles.js";
 
 // Test timeout constants for better readability and maintainability
 export const TEST_TIMEOUT_MS = 60000; // 60 seconds for most test operations
@@ -192,11 +192,11 @@ export class TestFileManager {
   createTempFile(extension: string): string {
     // Ensure the extension starts with a dot
     if (extension[0] !== ".") {
-      extension = "." + extension;
+      extension = `.${extension}`;
     }
 
     // Generate a random file name using current timestamp and random bytes
-    const timestamp = new Date().getTime();
+    const timestamp = Date.now();
     const randomBytes = crypto.randomBytes(8).toString("hex");
     const tempFilename = path.join(
       this.tempDir,

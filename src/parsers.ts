@@ -1,4 +1,7 @@
-import { FFmpeggyProgress, FFmpeggyFinalSizes } from "./types/FFmpeggyProgress.js";
+import type {
+  FFmpeggyFinalSizes,
+  FFmpeggyProgress,
+} from "./types/FFmpeggyProgress.js";
 import { parseBitrate } from "./utils/parseBitrate.js";
 import { parseSize } from "./utils/parseSize.js";
 import { timerToSecs } from "./utils/timerToSecs.js";
@@ -7,7 +10,7 @@ const progressRxp =
   /(?:frame=\s*(?<frame>[\d]+)\s+)?(?:fps=\s*(?<fps>[\d.]+)\s+)?(?:q=(?<q>[0-9.-]+)\s+)?(L?)size=\s*(?<size>[0-9]+|N\/A)(?<sizeunit>kB|mB|b)?\s*(?:time=\s*(?<time>\d\d:\d\d:\d\d\.\d\d)\s*)?bitrate=\s*(?<bitrate>N\/A|[\d.]+)(?<bitrateunit>bits\/s|mbits\/s|kbits\/s)?.*(dup=(?<duplicates>\d+)\s*)?(drop=(?<dropped>\d+)\s*)?speed=\s*(?<speed>[\d.e+]+)x/;
 export function parseProgress(data: string): FFmpeggyProgress | undefined {
   const matches = progressRxp.exec(data);
-  if (!matches || !matches.groups) {
+  if (!matches?.groups) {
     return;
   }
   const v = matches.groups;
@@ -96,9 +99,7 @@ export function parseFinalSizes(data: string): FFmpeggyFinalSizes | undefined {
   // This handles different field orders, missing fields, and extra fields
   const regex =
     /(video|audio|subtitle[s]?|other streams|global headers):\s*(\d+)(kB|MB|B)/g;
-  let match;
-
-  while ((match = regex.exec(data)) !== null) {
+  for (const match of data.matchAll(regex)) {
     const key = match[1].toLowerCase();
     const value = parseSize(Number(match[2]), match[3]);
 

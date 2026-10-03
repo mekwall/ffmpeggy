@@ -1,4 +1,4 @@
-import { resolve as resolvePath } from "path";
+import { resolve as resolvePath } from "node:path";
 import { execa } from "execa";
 
 export async function waitFiles(

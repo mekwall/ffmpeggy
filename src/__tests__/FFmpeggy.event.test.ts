@@ -1,12 +1,12 @@
-import { describe, it, expect, beforeAll, afterAll } from "vitest";
-import { FFmpeggyProgressEvent } from "../FFmpeggy.js";
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import type { FFmpeggyProgressEvent } from "../FFmpeggy.js";
 import {
   configureFFmpeggy,
+  FFmpeggyTestHelpers,
   SAMPLE_FILES,
+  StreamHelpers,
   TEST_TIMEOUT_MS,
   TestFileManager,
-  FFmpeggyTestHelpers,
-  StreamHelpers,
 } from "./utils/testHelpers.js";
 
 // Configure FFmpeggy with binaries

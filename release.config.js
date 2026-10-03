@@ -26,6 +26,7 @@ export default {
       {
         assets: ["CHANGELOG.md", "package.json"],
         message:
+          // biome-ignore lint/suspicious/noTemplateCurlyInString: lodash template evaluated by semantic-release
           "chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}",
       },
     ],

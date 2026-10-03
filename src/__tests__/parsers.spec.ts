@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseProgress, parseFinalSizes, parseInfo } from "../parsers.js";
+import { parseFinalSizes, parseInfo, parseProgress } from "../parsers.js";
 
 function calculateProgressPercentage(
   progressTime: number | undefined,

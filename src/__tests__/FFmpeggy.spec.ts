@@ -1,14 +1,14 @@
-import { describe, it, expect, beforeAll, afterAll } from "vitest";
-import { ReadStream } from "fs";
+import type { ReadStream } from "node:fs";
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { FFmpeggy } from "../FFmpeggy.js";
 import {
   configureFFmpeggy,
   FFMPEG_BIN,
+  FFmpeggyTestHelpers,
   SAMPLE_FILES,
   TEST_TIMEOUT_MS,
-  TestFileManager,
-  FFmpeggyTestHelpers,
   TestAssertions,
+  TestFileManager,
 } from "./utils/testHelpers.js";
 
 // Configure FFmpeggy with binaries
