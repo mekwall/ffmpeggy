@@ -4,7 +4,7 @@
 
 A minimal yet powerful wrapper for [FFmpeg][ffmpeg] and [FFprobe][ffprobe]. Has built-in support for Node.js streams and events that can provide you with a detailed progress report.
 
-This is a hybrid package built in TypeScript that provides both CommonJS and ES modules with only a couple of dependencies.
+This is an ESM-only package built in TypeScript, with only a couple of dependencies. It requires Node.js 22 or newer.
 
 ## ✨ Features
 
@@ -16,7 +16,7 @@ This is a hybrid package built in TypeScript that provides both CommonJS and ES 
 - **🛡️ Error Handling**: Robust error handling with descriptive messages
 - **⚙️ Flexible Configuration**: Support for all FFmpeg options and arguments
 - **📊 Progress Tracking**: Detailed progress events with frame, time, and bitrate info
-- **🎯 Hybrid Package**: Works with both CommonJS and ES modules
+- **🎯 Native ESM**: Ships as an ES module and can still be loaded with `require()`
 
 ## 📦 Installation
 
@@ -29,6 +29,28 @@ npm install --save ffmpeggy
 ```sh
 yarn add ffmpeggy
 ```
+
+### Requirements and module format
+
+FFmpeggy requires Node.js 22 or newer and is published as an ES module:
+
+```ts
+import { FFmpeggy } from "ffmpeggy";
+```
+
+CommonJS projects can use `require()` on Node.js 22.12 and newer, which can load ES modules natively:
+
+```js
+const { FFmpeggy } = require("ffmpeggy");
+```
+
+On older Node.js versions, use a dynamic import instead:
+
+```js
+const { FFmpeggy } = await import("ffmpeggy");
+```
+
+> **Upgrading from 3.x?** The `cjs/` and `es/` builds are replaced by a single ES module build, and Node.js 22 or newer is required. The public `process` and `status` properties are now [execa](https://github.com/sindresorhus/execa) 10 objects (a `ResultPromise` and a `Result`) instead of execa 6 ones, so code that reads them directly may need adjusting, for example `status.exitCode` instead of `process.exitCode`. Everything else is unchanged.
 
 ### Installing FFmpeg and FFprobe Binaries
 

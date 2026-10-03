@@ -42,23 +42,41 @@ By participating in this project, you agree to maintain a respectful and inclusi
    cd ffmpeggy
    ```
 
-2. Install dependencies:
+2. Install the toolchain (Node.js and Yarn) with [mise](https://mise.jdx.dev), which reads the versions from `mise.toml`:
+
+   ```bash
+   mise install
+   ```
+
+   Without mise, install Node.js 22 or newer and Yarn 4 yourself.
+
+3. Install dependencies:
 
    ```bash
    yarn install
    ```
 
-3. Run tests:
+4. Run tests:
 
    ```bash
    yarn test
    ```
 
+Other useful scripts:
+
+```bash
+yarn lint            # Check formatting, linting and import order with Biome
+yarn lint:fix        # Apply Biome's safe fixes
+yarn typecheck       # Type-check the source and the tests
+yarn build           # Build the package to dist/
+yarn check:package   # Verify the packaging with publint and attw
+```
+
 ### Code Style
 
 - Follow the existing code style
-- Use ESLint for code linting
-- Write meaningful commit messages
+- Biome handles linting, formatting and import sorting, so run `yarn lint:fix` before committing
+- Write [Conventional Commits](https://www.conventionalcommits.org) messages (for example `fix: handle N/A duration`). Releases and the changelog are generated from them with semantic-release, so use `feat:` for features, `fix:` for fixes, and a `!` or a `BREAKING CHANGE:` footer for breaking changes
 - Keep changes focused and atomic
 
 ### Testing
